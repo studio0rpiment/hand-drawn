@@ -164,6 +164,14 @@ grasshopper green, on a dark background. Each slider shows the line mirrored
 its own way (left–right, top–bottom, both or neither, picked from the
 slider's name), so the bends differ down the page and stay put between visits. The real slider
 sits invisibly on top, so keyboard, screen readers and touch work as usual.
+
+Text is set lowercase in NaN Success Titling, a variable font with one axis,
+width: it rests at its most compressed (100) and the letters of buttons, tabs,
+labels and headings widen to 150 under the pointer. Buttons reserve their
+widened size up front, so hovering never reflows the page. The font is
+licensed and not in this repository: put `NaNSuccessTitling-Variable.woff2`
+in `public/fonts/` (git-ignored) to use it; without it the app falls back to
+the system sans-serif, still lowercase.
 hand-icons is installed straight from its GitHub repository.
 
 ## Licence note

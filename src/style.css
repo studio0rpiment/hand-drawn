@@ -1,3 +1,11 @@
+/* NaN Success Titling (Jérémy Landes, Studio Triple / NaN), licensed: kept in
+   public/fonts on this machine only. Its one axis is width, 100 (compressed) to 1000. */
+@font-face {
+  font-family: 'NaN Success Titling';
+  src: url('/fonts/NaNSuccessTitling-Variable.woff2') format('woff2');
+  font-display: swap;
+}
+
 :root {
   /* Always dark: the drawings and previews read best against it. */
   color-scheme: dark;
@@ -13,8 +21,45 @@
   /* The part of a slider past its value. */
   --rest: #4a4640;
   --radius: 0.5rem;
+  /* Resting and hovered widths on the font's wdth axis. */
+  --narrow: 'wdth' 100;
+  --wide: 'wdth' 150;
+  font-family: 'NaN Success Titling', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-variation-settings: var(--narrow);
+  /* A compressed titling face reads small; everything in rem scales with this. */
+  font-size: 112.5%;
+  text-transform: lowercase;
+}
+
+/* Browsers give buttons their own case; follow the page instead. */
+button,
+select {
+  text-transform: inherit;
+}
+
+/* What people type keeps its own case and a plain face. */
+input[type='text'],
+textarea {
+  text-transform: none;
+  font-variation-settings: normal;
   font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  font-size: 100%;
+}
+
+/* Letters widen a little under the pointer. */
+:where(.button, .tab, label, legend, h1, h2, h3, figcaption, select) {
+  transition: font-variation-settings 0.25s ease;
+}
+
+/* :is (not :where) so this outweighs the buttons' `font: inherit`, which resets the width. */
+:is(.button, .tab, label, legend, h1, h2, h3, figcaption, select):hover,
+:is(.button, .tab):focus-visible {
+  font-variation-settings: var(--wide);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.button, .tab, label, legend, h1, h2, h3, figcaption, select) {
+    transition: none;
+  }
 }
 
 * {
@@ -48,8 +93,7 @@ h1 {
 h2 {
   font-size: 0.8125rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   color: var(--quiet);
   margin: 0 0 0.5rem;
 }
@@ -65,6 +109,7 @@ h2 {
 .button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   font: inherit;
   font-size: 0.9375rem;
   padding: 0.45rem 0.85rem;
@@ -165,7 +210,6 @@ legend {
 
 .slider output {
   color: var(--quiet);
-  font-variant-numeric: tabular-nums;
 }
 
 input[type='range'] {
@@ -489,9 +533,12 @@ main.font-app {
   font-size: 0.8125rem;
 }
 
-input[type='text'],
 select {
   font: inherit;
+}
+
+input[type='text'],
+select {
   font-size: 0.875rem;
   padding: 0.3rem 0.45rem;
   border: 1px solid var(--line);

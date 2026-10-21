@@ -4,7 +4,7 @@ import { findPaper, fullFrame, quadSize, warp } from './paper'
 import { setPage, showFont, useLoader } from './font/ui'
 import { setMask, showIcon } from './icon/ui'
 import { samplePhoto } from './sample'
-import { decorate, favicon, flash, handSliders, installSprite } from './ui/hand'
+import { decorate, favicon, flash, handSliders, installSprite, reserveHoverWidths } from './ui/hand'
 import { setArt, showTexture } from './texture/ui'
 import { complexity } from './svgpath'
 import { toSvg, trace, type TraceResult } from './trace'
@@ -78,6 +78,7 @@ function loadSource(src: CanvasImageSource, w: number, h: number, name: string) 
   photoCanvas.height = c.height
   photoCanvas.getContext('2d')!.drawImage(c, 0, 0)
   app.classList.remove('empty')
+  reserveHoverWidths(app)
   detectPaper()
 }
 
@@ -408,6 +409,7 @@ document.querySelectorAll<HTMLButtonElement>('.tab').forEach((tab) =>
       t.setAttribute('aria-pressed', String(on))
       $(t.dataset.view!).hidden = !on
     })
+    reserveHoverWidths($(tab.dataset.view!))
     if (tab.dataset.view === 'icon-app') showIcon()
     if (tab.dataset.view === 'texture-app') showTexture()
     if (tab.dataset.view === 'font-app') showFont()
@@ -446,3 +448,4 @@ showOutputs()
 // Every view's controls exist by now: draw the sliders and add the icons.
 handSliders()
 decorate()
+reserveHoverWidths()

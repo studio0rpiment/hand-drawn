@@ -156,3 +156,23 @@ export function flash(btn: HTMLElement, text = 'Copied') {
   label.textContent = ` ${text}`
   setTimeout(() => (label.textContent = was), 1200)
 }
+
+/**
+ * Letters widen on hover; give each button and tab the room its widened text
+ * needs up front, so hovering never reflows the row (which on a narrow screen
+ * would push the button out from under the pointer and back, flickering).
+ */
+export async function reserveHoverWidths(root: ParentNode = document) {
+  await document.fonts.ready
+  const wide = getComputedStyle(document.documentElement).getPropertyValue('--wide').trim()
+  root.querySelectorAll<HTMLElement>('.button, .tab').forEach((el) => {
+    el.style.minWidth = ''
+    el.style.transition = 'none'
+    el.style.fontVariationSettings = wide
+    const w = el.getBoundingClientRect().width
+    el.style.fontVariationSettings = ''
+    el.style.transition = ''
+    // Hidden views measure as zero; they get measured when shown.
+    if (w > 0) el.style.minWidth = `${Math.ceil(w)}px`
+  })
+}
