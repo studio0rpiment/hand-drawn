@@ -29,19 +29,43 @@ export function decorate(root: ParentNode = document) {
   })
 }
 
+export interface Flip {
+  /** Mirror left to right (a half turn about the vertical axis). */
+  x: boolean
+  /** Mirror top to bottom (a half turn about the line's own axis), so the bend arcs the other way. */
+  y: boolean
+}
+
 /** A drawn line from the sprite, turned horizontal and cropped to its ink, as an SVG that stretches. */
-function drawnLine(pathId: string, cls: string): SVGSVGElement {
+function drawnLine(pathId: string, cls: string, flip: Flip): SVGSVGElement {
   const svg = document.createElementNS(SVG_NS, 'svg')
   svg.setAttribute('class', cls)
   svg.setAttribute('aria-hidden', 'true')
   svg.setAttribute('preserveAspectRatio', 'none')
+  const box = lineBox(pathId)
+  const [bx, by, bw, bh] = box.split(' ').map(Number)
+  // Mirrors happen inside the drawing, about the middle of its box, so the
+  // slider's fill still runs left to right.
+  const mirror = [
+    flip.x ? `translate(${2 * bx + bw} 0) scale(-1 1)` : '',
+    flip.y ? `translate(0 ${2 * by + bh}) scale(1 -1)` : '',
+  ].join(' ')
   const use = document.createElementNS(SVG_NS, 'use')
   use.setAttribute('href', `#${pathId}`)
   // The lines are drawn upright; a quarter turn lays them along the slider.
-  use.setAttribute('transform', 'rotate(-90)')
+  use.setAttribute('transform', `${mirror} rotate(-90)`.trim())
   svg.append(use)
-  svg.setAttribute('viewBox', lineBox(pathId))
+  svg.setAttribute('viewBox', box)
   return svg
+}
+
+/** A stable pick of one of the four mirrorings, from a name (FNV-1a hash, scrambled so every bit varies). */
+export function flipFor(name: string): Flip {
+  let h = 0x811c9dc5
+  for (let i = 0; i < name.length; i++) h = Math.imul(h ^ name.charCodeAt(i), 0x01000193)
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b)
+  h ^= h >>> 13
+  return { x: (h & 1) === 1, y: (h & 2) === 2 }
 }
 
 const boxes = new Map<string, string>()
@@ -64,8 +88,6 @@ function lineBox(pathId: string): string {
   return box
 }
 
-const valueDescriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!
-
 /**
  * Draw a range input with Kevin's single marker line: bright up to the value,
  * muted after it, and the blob as the handle. The real input
@@ -74,10 +96,14 @@ const valueDescriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototy
 export function handSlider(input: HTMLInputElement) {
   if (input.dataset.hand !== undefined) return
   input.dataset.hand = ''
+  const valueDescriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!
   const wrap = document.createElement('span')
   wrap.className = 'hand-range'
-  const rest = drawnLine('hi-p-line-solid', 'hr-line hr-rest')
-  const done = drawnLine('hi-p-line-solid', 'hr-line hr-done')
+  // Each slider shows Kevin's line mirrored its own way, so the bends differ
+  // down the page; picked from the slider's id, it stays put between visits.
+  const flip = flipFor(input.id || input.name || input.closest('label')?.textContent || '')
+  const rest = drawnLine('hi-p-line-solid', 'hr-line hr-rest', flip)
+  const done = drawnLine('hi-p-line-solid', 'hr-line hr-done', flip)
   const thumb = document.createElementNS(SVG_NS, 'svg')
   thumb.setAttribute('class', 'hr-thumb')
   thumb.setAttribute('aria-hidden', 'true')
