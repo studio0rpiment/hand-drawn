@@ -1,0 +1,352 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f6f3ee;
+  --surface: #ffffff;
+  --text: #1f1c1a;
+  --quiet: #6b645e;
+  --line: #ddd6cd;
+  --accent: #b5651d;
+  --accent-text: #ffffff;
+  --handle: #b5651d;
+  --radius: 0.5rem;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1917;
+    --surface: #25221f;
+    --text: #efe9e2;
+    --quiet: #a49b92;
+    --line: #3b3632;
+    --accent: #e0914a;
+    --accent-text: #1b1917;
+    --handle: #f0a560;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+h1 {
+  font-size: 1.125rem;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+h2 {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--quiet);
+  margin: 0 0 0.5rem;
+}
+
+.bar-actions,
+.row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  font: inherit;
+  font-size: 0.9375rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.button:hover {
+  border-color: var(--accent);
+}
+
+.button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.button.small {
+  font-size: 0.8125rem;
+  padding: 0.35rem 0.65rem;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+main {
+  display: grid;
+  grid-template-columns: 18rem 1fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  align-items: start;
+}
+
+main.empty .controls,
+main.empty .pane {
+  display: none;
+}
+
+main:not(.empty) .intro {
+  display: none;
+}
+
+.intro {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 6rem 1rem;
+  border: 2px dashed var(--line);
+  border-radius: 1rem;
+  font-size: 1.0625rem;
+}
+
+.quiet,
+.hint {
+  color: var(--quiet);
+}
+
+.hint {
+  font-size: 0.8125rem;
+  margin: 0 0 0.5rem;
+}
+
+.controls {
+  display: grid;
+  gap: 0.75rem;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  display: grid;
+  gap: 0.6rem;
+}
+
+legend {
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0 0.25rem;
+}
+
+.slider {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.8125rem;
+}
+
+.slider span {
+  display: flex;
+  justify-content: space-between;
+}
+
+.slider output {
+  color: var(--quiet);
+  font-variant-numeric: tabular-nums;
+}
+
+input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.check,
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+}
+
+.check input {
+  accent-color: var(--accent);
+}
+
+input[type='color'] {
+  width: 2rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 0.25rem;
+  background: none;
+}
+
+.stats {
+  font-size: 0.75rem;
+  color: var(--quiet);
+  margin: 0;
+  min-height: 1rem;
+}
+
+.pane {
+  min-width: 0;
+  position: sticky;
+  top: 1rem;
+}
+
+.pane-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.toggle {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.toggle input {
+  accent-color: var(--accent);
+}
+
+.stage {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.stage canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 75vh;
+  width: auto;
+  height: auto;
+}
+
+#vector-view {
+  width: 100%;
+}
+
+#vector-view svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 75vh;
+}
+
+/* minmax(0, 1fr): otherwise the column grows to the canvas's pixel width. */
+.stage {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.stage > * {
+  grid-area: 1 / 1;
+}
+
+#photo-stage {
+  touch-action: none;
+}
+
+#handles {
+  overflow: visible;
+}
+
+#handles polygon {
+  fill: color-mix(in srgb, var(--handle) 12%, transparent);
+  stroke: var(--handle);
+  vector-effect: non-scaling-stroke;
+  stroke-width: 2;
+}
+
+#handles circle {
+  fill: var(--surface);
+  stroke: var(--handle);
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+  cursor: grab;
+}
+
+#handles circle:focus-visible {
+  outline: none;
+  fill: var(--handle);
+}
+
+/* Light in both themes: most drawings are dark ink, and it should read like paper. */
+.checker {
+  background-color: #ffffff;
+  background-image: conic-gradient(#ebe6df 25%, transparent 0 50%, #ebe6df 0 75%, transparent 0);
+  background-size: 1.25rem 1.25rem;
+}
+
+.drop {
+  position: fixed;
+  inset: 0.75rem;
+  border: 3px dashed var(--accent);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  pointer-events: none;
+}
+
+.drop[hidden] {
+  display: none;
+}
+
+@media (max-width: 75rem) {
+  main {
+    grid-template-columns: 18rem 1fr;
+  }
+  main .pane:last-child {
+    grid-column: 2;
+  }
+  .pane {
+    position: static;
+  }
+}
+
+@media (max-width: 48rem) {
+  main {
+    grid-template-columns: 1fr;
+  }
+  main .pane:last-child {
+    grid-column: auto;
+  }
+  .controls {
+    order: 3;
+  }
+}
