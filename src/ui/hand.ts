@@ -1,5 +1,5 @@
 // The app's own hand-drawn look, from Kevin's hand-icons: icons on buttons,
-// and sliders drawn with his marker lines and blob.
+// and sliders drawn with his single marker line and blob.
 
 import sprite from 'hand-icons/sprite.svg?raw'
 
@@ -67,8 +67,8 @@ function lineBox(pathId: string): string {
 const valueDescriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!
 
 /**
- * Draw a range input with hand-drawn lines: a solid marker line up to the
- * value, a dashed one after it, and the blob as the handle. The real input
+ * Draw a range input with Kevin's single marker line: bright up to the value,
+ * muted after it, and the blob as the handle. The real input
  * stays on top, invisible, so keyboard, screen readers and pointer all work.
  */
 export function handSlider(input: HTMLInputElement) {
@@ -76,7 +76,7 @@ export function handSlider(input: HTMLInputElement) {
   input.dataset.hand = ''
   const wrap = document.createElement('span')
   wrap.className = 'hand-range'
-  const rest = drawnLine('hi-p-line-dashed', 'hr-line hr-rest')
+  const rest = drawnLine('hi-p-line-solid', 'hr-line hr-rest')
   const done = drawnLine('hi-p-line-solid', 'hr-line hr-done')
   const thumb = document.createElementNS(SVG_NS, 'svg')
   thumb.setAttribute('class', 'hr-thumb')

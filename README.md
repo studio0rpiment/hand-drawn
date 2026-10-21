@@ -158,8 +158,9 @@ the sheet with a system handwriting font, to try it without drawing.
 
 The app wears Kevin's [hand-icons](https://github.com/studio0rpiment/hand-icons):
 the icons on tabs and buttons come from its sprite, and every slider is drawn
-with its marker lines (solid up to the value, dashed after) with the blob as
-the handle, in grasshopper green from the Orpiment palette. The real slider
+with its single marker line (`line-solid`: bright up to the value, muted
+after) with the blob as the handle, in a brighter take on the Orpiment
+grasshopper green, on a dark background. The real slider
 sits invisibly on top, so keyboard, screen readers and touch work as usual.
 hand-icons is installed straight from its GitHub repository.
 

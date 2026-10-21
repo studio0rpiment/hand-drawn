@@ -1,33 +1,20 @@
 :root {
-  color-scheme: light dark;
-  --bg: #f6f3ee;
-  --surface: #ffffff;
-  --text: #1f1c1a;
-  --quiet: #6b645e;
-  --line: #ddd6cd;
-  /* Grasshopper green, from the Orpiment palette. Text on it is dark: white would be too faint. */
-  --accent: #869c42;
-  --accent-text: #1b1917;
-  --handle: #869c42;
-  /* The undrawn part of a slider. */
-  --rest: #b9b1a7;
+  /* Always dark: the drawings and previews read best against it. */
+  color-scheme: dark;
+  --bg: #121210;
+  --surface: #1c1b18;
+  --text: #efe9e2;
+  --quiet: #a49b92;
+  --line: #2f2c28;
+  /* A brighter grasshopper (same hue as the Orpiment grasshopper, #869c42). Text on it is dark. */
+  --accent: #a6c83c;
+  --accent-text: #121210;
+  --handle: #a6c83c;
+  /* The part of a slider past its value. */
+  --rest: #4a4640;
   --radius: 0.5rem;
   font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: 100%;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1b1917;
-    --surface: #25221f;
-    --text: #efe9e2;
-    --quiet: #a49b92;
-    --line: #3b3632;
-    --accent: #869c42;
-    --accent-text: #1b1917;
-    --handle: #9db355;
-    --rest: #5d5751;
-  }
 }
 
 * {
@@ -201,7 +188,7 @@ input[type='range'] {
   margin-right: 0.35em;
 }
 
-/* Sliders: Kevin's solid marker line up to the value, the dashed one after, the blob as handle. */
+/* Sliders: Kevin's single marker line, bright up to the value and muted after, the blob as handle. */
 .hand-range {
   --p: 0;
   --knob: 1.35rem;
