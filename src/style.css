@@ -385,7 +385,8 @@ input[type='color'] {
 /* ---- Icon view ---- */
 
 main.icon-app,
-main.texture-app {
+main.texture-app,
+main.font-app {
   grid-template-columns: 18rem minmax(0, 1fr);
 }
 
@@ -530,14 +531,81 @@ h3 {
 
 @media (max-width: 48rem) {
   main.icon-app,
-  main.texture-app {
+  main.texture-app,
+  main.font-app {
     grid-template-columns: 1fr;
   }
   main.icon-app .controls,
-  main.texture-app .controls {
+  main.texture-app .controls,
+  main.font-app .controls {
     order: 2;
   }
   .tabs {
     margin-left: 0;
   }
+}
+
+/* ---- Font view ---- */
+
+.sheet-state {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.size-slider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 12rem;
+}
+
+.font-sample {
+  width: 100%;
+  min-height: 12rem;
+  resize: vertical;
+  font-size: 56px;
+  line-height: 1.25;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fbfaf6;
+  color: #1d1a24;
+}
+
+.glyphs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3.5rem, 1fr));
+  gap: 0.35rem;
+}
+
+.glyph {
+  margin: 0;
+  padding: 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: 0.375rem;
+  background: #fbfaf6;
+  color: #1d1a24;
+  display: grid;
+  justify-items: center;
+}
+
+.glyph.composite {
+  background: #f1efe8;
+  border-style: dashed;
+}
+
+.glyph svg {
+  width: 100%;
+  height: 3.25rem;
+  fill: currentColor;
+}
+
+.glyph .baseline {
+  stroke: #a9c2da;
+  stroke-width: 6;
+}
+
+.glyph figcaption {
+  font-size: 0.6875rem;
+  color: #6b645e;
 }

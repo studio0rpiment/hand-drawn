@@ -13,6 +13,7 @@
         <button class="tab" type="button" data-view="app" aria-pressed="true">Logo</button>
         <button id="icon-tab" class="tab" type="button" data-view="icon-app" aria-pressed="false" disabled>Icon</button>
         <button id="texture-tab" class="tab" type="button" data-view="texture-app" aria-pressed="false" disabled>Texture</button>
+        <button id="font-tab" class="tab" type="button" data-view="font-app" aria-pressed="false">Font</button>
       </nav>
       <div class="bar-actions">
         <label class="button primary">
@@ -174,6 +175,55 @@
         <div class="pane" id="texture-repeat-pane" hidden>
           <h2>Repeat, 2 × 2</h2>
           <div class="stage"><canvas id="texture-repeat"></canvas></div>
+        </div>
+      </section>
+    </main>
+
+    <main id="font-app" class="font-app" hidden>
+      <aside class="controls" aria-label="Font style">
+        <fieldset>
+          <legend>Letter sheet</legend>
+          <p class="hint">Print both pages, draw each character in its box, photograph each page flat with all four corner squares in view, and open the photos.</p>
+          <div class="row">
+            <button id="sheet-print-1" class="button small" type="button">Print page 1</button>
+            <button id="sheet-print-2" class="button small" type="button">Print page 2</button>
+            <button id="sheet-svg" class="button small" type="button">Download sheets</button>
+          </div>
+          <div class="row">
+            <button id="sheet-sample-1" class="button small" type="button">Sample page 1</button>
+            <button id="sheet-sample-2" class="button small" type="button">Sample page 2</button>
+          </div>
+          <p class="hint sheet-state" id="sheet-state" aria-live="polite"></p>
+        </fieldset>
+        <fieldset>
+          <legend>Font</legend>
+          <label class="field">Family name <input id="font-family" type="text" value="My Hand" spellcheck="false" /></label>
+          <label class="field">Designer <input id="font-designer" type="text" spellcheck="false" /></label>
+        </fieldset>
+        <div id="font-style-box"></div>
+        <div id="font-fields"></div>
+        <fieldset>
+          <legend>Export</legend>
+          <div class="row">
+            <button id="font-otf" class="button primary small" type="button">Download font (.otf)</button>
+            <button id="font-css" class="button small" type="button">Copy @font-face</button>
+          </div>
+          <p class="stats" id="font-stats" aria-live="polite"></p>
+        </fieldset>
+      </aside>
+
+      <section class="icon-preview">
+        <div class="pane">
+          <div class="pane-head">
+            <h2>Type here</h2>
+            <label class="slider size-slider"><span>Size</span><input id="font-size" type="range" min="16" max="160" value="56" /></label>
+          </div>
+          <textarea id="font-sample" class="font-sample" rows="4" spellcheck="false" aria-label="Preview text"></textarea>
+        </div>
+        <div class="pane">
+          <h2>Characters</h2>
+          <p class="hint" id="glyphs-missing"></p>
+          <div class="glyphs" id="glyphs"></div>
         </div>
       </section>
     </main>

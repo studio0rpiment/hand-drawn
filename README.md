@@ -26,11 +26,13 @@ pnpm test
 5. **Texture** — the third tab prints the drawing with its hand-made quality
    kept: rubber stamp, risograph, halftone or the ink as drawn, once or as a
    seamless repeating tile. Also driven by styles.
+6. **Font** — the fourth tab prints a two-page letter sheet, reads photos of
+   it, and builds an OpenType font under a font style.
 
 The code is split so the image processing (`src/image.ts`, `src/paper.ts`,
-`src/clean.ts`, `src/svgpath.ts`, and in `src/icon/` and `src/texture/`
-everything but `ui.ts`, `pack.ts` and `compose.ts`) has no DOM and is unit
-tested. `src/ui/` holds what the tools share: style books and the
+`src/clean.ts`, `src/svgpath.ts`, and in `src/icon/`, `src/texture/` and
+`src/font/` everything but `ui.ts`, `pack.ts`, `compose.ts`, `make.ts` and
+`sample.ts`) has no DOM and is unit tested. `src/ui/` holds what the tools share: style books and the
 field-driven style controls.
 
 ## Icon styles
@@ -100,6 +102,44 @@ wrap. Built-in colours come from the Orpiment palette.
 Exports: a PNG (transparent unless printed on paper) and a CSS
 `background` line for it.
 
+## Fonts from a letter sheet
+
+1. **Print page 1** and **Print page 2** (or **Download sheets** as SVG). They
+   print at true size on A4.
+2. Draw each character in its box. Letters sit on the solid line; capitals
+   reach the upper dashed line, small letters the lower one. Accent marks on
+   page 2 are drawn on their own.
+3. Photograph each page flat, all four corner squares in view, and open the
+   photos one after the other. Each page is recognised by its markers (page 2
+   has an extra square at the top), and a new photo of a page replaces it.
+
+The corner squares are found in the photo and the boxes are read through
+them, so a page straightened slightly off still lands every box. Guide lines
+and labels are printed light enough to drop out. Ink spilling in from a
+neighbouring box (a sliver under 2 mm wide at a side edge) is ignored.
+
+Page 1 holds A–Z, a–z, 0–9 and `.,!?'"-&`. Page 2 holds
+`()[]:;/@#%+=*_<>«»€$£¿¡ßœŒæÆøØ‘’“”–…·` and seven accents (´ ` ˆ ¨ ˜ ¸ ˚).
+Accented letters for German, French and Spanish (À–ÿ, Ç, Ñ, Å …) are built
+from a drawn letter plus a drawn accent, centred over it, with a dotless i
+under accents on i. Anything drawn in its own box wins.
+
+Font styles, like the others, can be saved, exported and imported:
+
+| | Settings |
+| --- | --- |
+| Ink | cut-off (or automatic), speck size, weight (thicker / thinner strokes) |
+| Outline | smoothness, curve simplification |
+| Spacing | space beside letters, tracking, word space, monospaced, extra line spacing |
+| Character | slant, bounce (random rise per letter), wobble (random turn), variation |
+| Accents | gap above letters, accent size |
+
+Built-ins: As drawn, Tidy, Bouncy, Bold marker, Slanted, Typewriter. The style
+name becomes the font's style name, so one drawing can give a family (*My Hand
+Bouncy*, *My Hand Bold marker* …). Exports an `.otf` (cubic outlines, cap
+height 700 of a 1000 em) and an `@font-face` rule. **Sample page 1 / 2** fill
+the sheet with a system handwriting font, to try it without drawing.
+
 ## Photos
 
 - Work size is capped at 2400 px on the long side.
@@ -112,11 +152,12 @@ Exports: a PNG (transparent unless printed on paper) and a CSS
 - [x] Stage 1: photo cleanup and SVG logo trace
 - [x] Stage 2: icon family and favicon set, driven by saved styles
 - [x] Stage 3: texture and stamp art (stamp, risograph, halftone, ink; seamless patterns), driven by styles
-- [ ] Font from a drawn letter sheet
+- [x] Stage 4: font from a drawn letter sheet, with accents built in, driven by styles
 
 ## Licence note
 
+Fonts are written with [opentype.js](https://github.com/opentypejs/opentype.js) (MIT).
 Tracing uses [esm-potrace-wasm](https://github.com/tomayac/esm-potrace-wasm),
 a build of potrace, which is GPL-2.0. That's fine for using this tool; if it is
-ever distributed, it has to be under GPL-compatible terms. The SVGs it produces
-are yours.
+ever distributed, it has to be under GPL-compatible terms. What it produces
+(SVGs, PNGs, fonts) is yours.

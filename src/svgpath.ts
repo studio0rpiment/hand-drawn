@@ -5,7 +5,7 @@ import type { TraceResult } from './trace'
 const ARITY: Record<string, number> = { m: 2, l: 2, c: 6, z: 0 }
 
 /** Split path data into commands with their numbers; implicit repeats stay in one command. */
-function parse(d: string): { cmd: string; nums: number[] }[] {
+export function parse(d: string): { cmd: string; nums: number[] }[] {
   const out: { cmd: string; nums: number[] }[] = []
   for (const tok of d.match(/[a-zA-Z]|-?\d*\.?\d+(?:e-?\d+)?/g) ?? []) {
     if (/[a-zA-Z]/.test(tok)) {
