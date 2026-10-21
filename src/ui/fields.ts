@@ -13,7 +13,7 @@ export interface FieldGroup {
   legend: string
   hint?: string
   /** Buttons that set one field to a preset value, e.g. direction sets; a function is called on each click. */
-  presets?: { label: string; path: string; value: unknown }[]
+  presets?: { label: string; path: string; value: unknown; /** hand-icons symbol, e.g. scatter-fill */ icon?: string }[]
   /** Show the group only when this holds for the edited style. */
   when?: (s: never) => boolean
   fields: Field[]
@@ -71,6 +71,7 @@ export function buildFields<T>(
         b.type = 'button'
         b.className = 'button small'
         b.textContent = p.label
+        if (p.icon) b.dataset.icon = p.icon
         b.addEventListener('click', () => change(p.path, typeof p.value === 'function' ? p.value() : p.value))
         row.append(b)
       }

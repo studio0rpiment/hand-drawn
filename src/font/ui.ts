@@ -5,6 +5,7 @@ import type { GrayImage } from '../image'
 import { slug } from '../icon/style'
 import { buildFields, fixed, plain, type FieldGroup } from '../ui/fields'
 import { StyleBook, styleBox } from '../ui/styles'
+import { flash } from '../ui/hand'
 import { assemble, ASCENDER, DESCENDER, type BuiltGlyph } from './assemble'
 import { traceKey, traceSheet } from './make'
 import { COMPOSITES, type Cmd } from './outline'
@@ -40,7 +41,7 @@ const GROUPS: FieldGroup[] = [
   },
   {
     legend: 'Character',
-    presets: [{ label: 'Shuffle', path: 'shape.seed', value: () => Math.floor(Math.random() * 1000000) }],
+    presets: [{ label: 'Shuffle', path: 'shape.seed', value: () => Math.floor(Math.random() * 1000000), icon: 'scatter-fill' }],
     fields: [
       { kind: 'range', path: 'shape.slant', label: 'Slant', min: -20, max: 30, step: 1, fmt: degrees },
       { kind: 'range', path: 'shape.bounce', label: 'Bounce', min: 0, max: 150, step: 5, fmt: units },
@@ -234,8 +235,7 @@ $('font-css').addEventListener('click', async (e) => {
   await navigator.clipboard.writeText(
     `@font-face {\n  font-family: "${family}";\n  src: url("${fileName()}.otf") format("opentype");\n  font-display: swap;\n}\n`,
   )
-  btn.textContent = 'Copied'
-  setTimeout(() => (btn.textContent = 'Copy @font-face'), 1200)
+  flash(btn)
 })
 
 for (const id of ['font-family', 'font-designer']) $(id).addEventListener('change', buildSoon)

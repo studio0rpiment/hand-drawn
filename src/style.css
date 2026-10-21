@@ -5,9 +5,12 @@
   --text: #1f1c1a;
   --quiet: #6b645e;
   --line: #ddd6cd;
-  --accent: #b5651d;
-  --accent-text: #ffffff;
-  --handle: #b5651d;
+  /* Grasshopper green, from the Orpiment palette. Text on it is dark: white would be too faint. */
+  --accent: #869c42;
+  --accent-text: #1b1917;
+  --handle: #869c42;
+  /* The undrawn part of a slider. */
+  --rest: #b9b1a7;
   --radius: 0.5rem;
   font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: 100%;
@@ -20,9 +23,10 @@
     --text: #efe9e2;
     --quiet: #a49b92;
     --line: #3b3632;
-    --accent: #e0914a;
+    --accent: #869c42;
     --accent-text: #1b1917;
-    --handle: #f0a560;
+    --handle: #9db355;
+    --rest: #5d5751;
   }
 }
 
@@ -167,7 +171,7 @@ legend {
   font-size: 0.8125rem;
 }
 
-.slider span {
+.slider > span:not(.hand-range) {
   display: flex;
   justify-content: space-between;
 }
@@ -180,6 +184,108 @@ legend {
 input[type='range'] {
   width: 100%;
   accent-color: var(--accent);
+}
+
+/* ---- Hand-drawn pieces (hand-icons) ---- */
+
+.hi {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+  fill: currentColor;
+  vertical-align: -0.2em;
+}
+
+.button .hi,
+.tab .hi {
+  margin-right: 0.35em;
+}
+
+/* Sliders: Kevin's solid marker line up to the value, the dashed one after, the blob as handle. */
+.hand-range {
+  --p: 0;
+  --knob: 1.35rem;
+  position: relative;
+  display: block;
+  height: 1.6rem;
+  cursor: pointer;
+}
+
+.hr-line {
+  position: absolute;
+  left: calc(var(--knob) / 2);
+  right: calc(var(--knob) / 2);
+  top: 50%;
+  height: 0.5rem;
+  width: calc(100% - var(--knob));
+  transform: translateY(-50%);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hr-rest {
+  fill: var(--rest);
+  clip-path: inset(0 0 0 calc(var(--p) * 100%));
+}
+
+.hr-done {
+  fill: var(--accent);
+  clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0);
+}
+
+.hr-thumb {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--p) * (100% - var(--knob)));
+  width: var(--knob);
+  height: var(--knob);
+  /* The sprite paints in currentColor; a halo in the page colour lifts the blob off the green line. */
+  color: var(--accent);
+  stroke: var(--surface);
+  stroke-width: 70;
+  paint-order: stroke;
+  /* A little turn as it moves, like a blob of ink rolling along. */
+  transform: translateY(-50%) rotate(calc(var(--p) * 140deg));
+  transition: scale 0.12s;
+  pointer-events: none;
+}
+
+.hand-range:hover .hr-thumb {
+  scale: 1.15;
+}
+
+.hand-range:focus-within .hr-thumb {
+  scale: 1.25;
+  filter: drop-shadow(0 0 0.15rem var(--accent));
+}
+
+.hand-range input[type='range'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.intro-mark {
+  width: 4rem;
+  height: 4rem;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+.drop span {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+}
+
+.drop-mark {
+  width: 4rem;
+  height: 4rem;
+  color: var(--accent);
 }
 
 .check,
@@ -409,7 +515,8 @@ select {
 }
 
 .style-pick {
-  flex: 1;
+  /* A line of its own, so long style names fit and the buttons wrap below. */
+  flex: 1 1 100%;
 }
 
 .multi {
@@ -557,6 +664,10 @@ h3 {
   align-items: center;
   gap: 0.5rem;
   width: 12rem;
+}
+
+.size-slider .hand-range {
+  flex: 1;
 }
 
 .font-sample {

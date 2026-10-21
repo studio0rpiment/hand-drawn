@@ -154,8 +154,18 @@ the sheet with a system handwriting font, to try it without drawing.
 - [x] Stage 3: texture and stamp art (stamp, risograph, halftone, ink; seamless patterns), driven by styles
 - [x] Stage 4: font from a drawn letter sheet, with accents built in, driven by styles
 
+## The look
+
+The app wears Kevin's [hand-icons](https://github.com/studio0rpiment/hand-icons):
+the icons on tabs and buttons come from its sprite, and every slider is drawn
+with its marker lines (solid up to the value, dashed after) with the blob as
+the handle, in grasshopper green from the Orpiment palette. The real slider
+sits invisibly on top, so keyboard, screen readers and touch work as usual.
+hand-icons is installed straight from its GitHub repository.
+
 ## Licence note
 
+The hand-icons drawings are © Kevin Patton, CC-BY-4.0 (its code is MIT).
 Fonts are written with [opentype.js](https://github.com/opentypejs/opentype.js) (MIT).
 Tracing uses [esm-potrace-wasm](https://github.com/tomayac/esm-potrace-wasm),
 a build of potrace, which is GPL-2.0. That's fine for using this tool; if it is

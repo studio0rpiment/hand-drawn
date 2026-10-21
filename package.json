@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "esm-potrace-wasm": "^0.5.1",
+    "hand-icons": "github:studio0rpiment/hand-icons",
     "opentype.js": "2.0.0"
   },
   "devDependencies": {

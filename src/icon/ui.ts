@@ -4,6 +4,7 @@
 import type { Mask } from '../image'
 import { buildFields, fixed, pct, plain, type FieldGroup } from '../ui/fields'
 import { StyleBook, styleBox } from '../ui/styles'
+import { flash } from '../ui/hand'
 import { buildIcon, faviconVariant, headSnippet, packZip, rasterize, shapeKey } from './pack'
 import { BUILT_IN, CONTAINERS, DIRECTIONS, DIRECTION_GROUPS, VARIANTS, readStyle, slug, type IconStyle } from './style'
 import { sprite, standaloneSvg, type IconPaths } from './svg'
@@ -250,13 +251,14 @@ $('dl-pack').addEventListener('click', async (e) => {
   if (!paths) return
   const btn = e.currentTarget as HTMLButtonElement
   btn.disabled = true
-  btn.textContent = 'Packing…'
+  const label = btn.lastChild!
+  label.textContent = ' Packing…'
   try {
     const title = nameInput.value || maskName
     download(await packZip(title, paths, book.named()), `${slug(title)}-icons.zip`)
   } finally {
     btn.disabled = false
-    btn.textContent = 'Download icon pack'
+    label.textContent = 'Download icon pack'
   }
 })
 
@@ -269,8 +271,7 @@ $('dl-sprite').addEventListener('click', () => {
 $('copy-head').addEventListener('click', async (e) => {
   const btn = e.currentTarget as HTMLButtonElement
   await navigator.clipboard.writeText(headSnippet())
-  btn.textContent = 'Copied'
-  setTimeout(() => (btn.textContent = 'Copy <head> tags'), 1200)
+  flash(btn)
 })
 
 // ---- Wiring to the Logo view ----

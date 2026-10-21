@@ -4,9 +4,13 @@ import { findPaper, fullFrame, quadSize, warp } from './paper'
 import { setPage, showFont, useLoader } from './font/ui'
 import { setMask, showIcon } from './icon/ui'
 import { samplePhoto } from './sample'
+import { decorate, favicon, flash, handSliders, installSprite } from './ui/hand'
 import { setArt, showTexture } from './texture/ui'
 import { complexity } from './svgpath'
 import { toSvg, trace, type TraceResult } from './trace'
+
+installSprite()
+favicon()
 
 // Photos are worked on at this size at most; plenty for a logo, and keeps sliders live.
 const WORK_SIDE = 2400
@@ -428,8 +432,7 @@ $('copy-svg').addEventListener('click', async (e) => {
   if (!state.traced) return
   const btn = e.currentTarget as HTMLButtonElement
   await navigator.clipboard.writeText(svgText())
-  btn.textContent = 'Copied'
-  setTimeout(() => (btn.textContent = 'Copy SVG'), 1200)
+  flash(btn)
 })
 
 $('dl-png').addEventListener('click', () => {
@@ -439,3 +442,7 @@ $('dl-png').addEventListener('click', () => {
 })
 
 showOutputs()
+
+// Every view's controls exist by now: draw the sliders and add the icons.
+handSliders()
+decorate()

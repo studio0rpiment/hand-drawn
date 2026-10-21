@@ -4,6 +4,7 @@
 import { slug } from '../icon/style'
 import { buildFields, fixed, pct, plain, type FieldGroup } from '../ui/fields'
 import { StyleBook, styleBox } from '../ui/styles'
+import { flash } from '../ui/hand'
 import { compose } from './compose'
 import { plan } from './layout'
 import { printArt, printKey, resizeArt, type Art, type Print } from './looks'
@@ -16,7 +17,7 @@ type S = TextureStyle
 const GROUPS: FieldGroup[] = [
   {
     legend: 'Look',
-    presets: [{ label: 'Shuffle', path: 'seed', value: () => Math.floor(Math.random() * 1000000) }],
+    presets: [{ label: 'Shuffle', path: 'seed', value: () => Math.floor(Math.random() * 1000000), icon: 'scatter-fill' }],
     fields: [
       { kind: 'select', path: 'look', label: 'Print as', options: LOOKS },
       { kind: 'range', path: 'seed', label: 'Variation', min: 0, max: 999, step: 1, fmt: plain },
@@ -169,8 +170,7 @@ $('texture-css').addEventListener('click', async (e) => {
   const repeat = style.layout.mode === 'single' ? 'no-repeat' : 'repeat'
   // Half size in CSS so the tile stays sharp on high-density screens.
   await navigator.clipboard.writeText(`background: url("${fileStem()}.png") 0 0 / ${size} ${repeat};\n`)
-  btn.textContent = 'Copied'
-  setTimeout(() => (btn.textContent = 'Copy CSS'), 1200)
+  flash(btn)
 })
 
 // ---- Wiring to the Logo view ----

@@ -126,13 +126,13 @@ export function styleBox<T extends Named>(book: StyleBook<T>, changed: () => voi
     <legend>Style</legend>
     <div class="row">
       <select aria-label="Style" class="style-pick"></select>
-      <button class="button small" type="button" data-act="save">Save as…</button>
-      <button class="button small" type="button" data-act="delete">Delete</button>
+      <button class="button small" type="button" data-act="save" data-icon="cross-fill">Save as…</button>
+      <button class="button small" type="button" data-act="delete" data-icon="big-x-fill">Delete</button>
     </div>
     <div class="row">
-      <button class="button small" type="button" data-act="export">Export style</button>
-      <label class="button small">Import style <input type="file" accept="application/json,.json" hidden /></label>
-      <button class="button small" type="button" data-act="reset">Reset</button>
+      <button class="button small" type="button" data-act="export" data-icon="arrow-bar-fill-r90">Export style</button>
+      <label class="button small" data-icon="arrow-bar-fill-r270">Import style <input type="file" accept="application/json,.json" hidden /></label>
+      <button class="button small" type="button" data-act="reset" data-icon="c-spiral-fill">Reset</button>
     </div>
     <p class="hint" aria-live="polite"></p>`
   const pick = fs.querySelector('select')!

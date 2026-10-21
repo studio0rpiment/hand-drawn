@@ -10,22 +10,23 @@
     <header class="bar">
       <h1>Sketch to Mark</h1>
       <nav class="tabs" aria-label="Tools">
-        <button class="tab" type="button" data-view="app" aria-pressed="true">Logo</button>
-        <button id="icon-tab" class="tab" type="button" data-view="icon-app" aria-pressed="false" disabled>Icon</button>
-        <button id="texture-tab" class="tab" type="button" data-view="texture-app" aria-pressed="false" disabled>Texture</button>
-        <button id="font-tab" class="tab" type="button" data-view="font-app" aria-pressed="false">Font</button>
+        <button class="tab" type="button" data-view="app" aria-pressed="true" data-icon="blob-fill">Logo</button>
+        <button id="icon-tab" class="tab" type="button" data-view="icon-app" aria-pressed="false" disabled data-icon="triangle-y-fill">Icon</button>
+        <button id="texture-tab" class="tab" type="button" data-view="texture-app" aria-pressed="false" disabled data-icon="hatch-heavy-fill">Texture</button>
+        <button id="font-tab" class="tab" type="button" data-view="font-app" aria-pressed="false" data-icon="spiral-tight-fill">Font</button>
       </nav>
       <div class="bar-actions">
-        <label class="button primary">
+        <label class="button primary" data-icon="arrow-bar-fill-r270">
           Open photo
           <input id="file" type="file" accept="image/*" hidden />
         </label>
-        <button id="sample" class="button" type="button">Try a sample</button>
+        <button id="sample" class="button" type="button" data-icon="star-scribble-fill">Try a sample</button>
       </div>
     </header>
 
     <main id="app" class="empty">
       <section class="intro" id="intro">
+        <svg class="hi intro-mark" aria-hidden="true"><use href="#hi-star-scribble-fill"/></svg>
         <p>Drop a photo of a drawing anywhere on this page, paste one, or open a file.</p>
         <p class="quiet">Everything happens in this browser. Nothing is uploaded.</p>
       </section>
@@ -89,9 +90,9 @@
         <fieldset>
           <legend>Export</legend>
           <div class="row">
-            <button id="dl-svg" class="button primary small" type="button">Download SVG</button>
-            <button id="copy-svg" class="button small" type="button">Copy SVG</button>
-            <button id="dl-png" class="button small" type="button">Download PNG</button>
+            <button id="dl-svg" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">Download SVG</button>
+            <button id="copy-svg" class="button small" type="button" data-icon="equals-fill">Copy SVG</button>
+            <button id="dl-png" class="button small" type="button" data-icon="arrow-bar-fill-r90">Download PNG</button>
           </div>
           <p class="stats" id="stats" aria-live="polite"></p>
         </fieldset>
@@ -133,9 +134,9 @@
         <fieldset>
           <legend>Export</legend>
           <div class="row">
-            <button id="dl-pack" class="button primary small" type="button">Download icon pack</button>
-            <button id="dl-sprite" class="button small" type="button">Download sprite</button>
-            <button id="copy-head" class="button small" type="button">Copy &lt;head&gt; tags</button>
+            <button id="dl-pack" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">Download icon pack</button>
+            <button id="dl-sprite" class="button small" type="button" data-icon="arrow-bar-fill-r90">Download sprite</button>
+            <button id="copy-head" class="button small" type="button" data-icon="equals-fill">Copy &lt;head&gt; tags</button>
           </div>
           <p class="stats" id="icon-stats" aria-live="polite"></p>
         </fieldset>
@@ -160,8 +161,8 @@
         <fieldset>
           <legend>Export</legend>
           <div class="row">
-            <button id="texture-png" class="button primary small" type="button">Download PNG</button>
-            <button id="texture-css" class="button small" type="button">Copy CSS</button>
+            <button id="texture-png" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">Download PNG</button>
+            <button id="texture-css" class="button small" type="button" data-icon="equals-fill">Copy CSS</button>
           </div>
           <p class="stats" id="texture-stats" aria-live="polite"></p>
         </fieldset>
@@ -185,13 +186,13 @@
           <legend>Letter sheet</legend>
           <p class="hint">Print both pages, draw each character in its box, photograph each page flat with all four corner squares in view, and open the photos.</p>
           <div class="row">
-            <button id="sheet-print-1" class="button small" type="button">Print page 1</button>
-            <button id="sheet-print-2" class="button small" type="button">Print page 2</button>
-            <button id="sheet-svg" class="button small" type="button">Download sheets</button>
+            <button id="sheet-print-1" class="button small" type="button" data-icon="strokes-fill">Print page 1</button>
+            <button id="sheet-print-2" class="button small" type="button" data-icon="strokes-fill">Print page 2</button>
+            <button id="sheet-svg" class="button small" type="button" data-icon="arrow-bar-fill-r90">Download sheets</button>
           </div>
           <div class="row">
-            <button id="sheet-sample-1" class="button small" type="button">Sample page 1</button>
-            <button id="sheet-sample-2" class="button small" type="button">Sample page 2</button>
+            <button id="sheet-sample-1" class="button small" type="button" data-icon="star-scribble-fill">Sample page 1</button>
+            <button id="sheet-sample-2" class="button small" type="button" data-icon="star-scribble-fill">Sample page 2</button>
           </div>
           <p class="hint sheet-state" id="sheet-state" aria-live="polite"></p>
         </fieldset>
@@ -205,8 +206,8 @@
         <fieldset>
           <legend>Export</legend>
           <div class="row">
-            <button id="font-otf" class="button primary small" type="button">Download font (.otf)</button>
-            <button id="font-css" class="button small" type="button">Copy @font-face</button>
+            <button id="font-otf" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">Download font (.otf)</button>
+            <button id="font-css" class="button small" type="button" data-icon="equals-fill">Copy @font-face</button>
           </div>
           <p class="stats" id="font-stats" aria-live="polite"></p>
         </fieldset>
@@ -228,7 +229,7 @@
       </section>
     </main>
 
-    <div id="drop" class="drop" hidden>Drop the photo</div>
+    <div id="drop" class="drop" hidden><span><svg class="hi drop-mark" aria-hidden="true"><use href="#hi-arrow-bar-fill-r90"/></svg>Drop the photo</span></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
