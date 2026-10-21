@@ -3,6 +3,7 @@ import { otsu, toGray, type GrayImage, type Mask, type Quad, type RGBAImage } fr
 import { findPaper, fullFrame, quadSize, warp } from './paper'
 import { setMask, showIcon } from './icon/ui'
 import { samplePhoto } from './sample'
+import { setArt, showTexture } from './texture/ui'
 import { complexity } from './svgpath'
 import { toSvg, trace, type TraceResult } from './trace'
 
@@ -257,7 +258,10 @@ function makeInk() {
   const box = inkBox(mask, Number(sliders.pad.value))
   state.mask = box ? cropMask(mask, box) : null
   setMask(state.mask, state.name)
+  // Textures keep the photo's own tones, so they get the light-evened grey too.
+  setArt(box && state.mask ? { gray: cropMask(flattened, box), mask: state.mask } : null, state.name)
   $<HTMLButtonElement>('icon-tab').disabled = !state.mask
+  $<HTMLButtonElement>('texture-tab').disabled = !state.mask
   showOutputs()
   drawInk()
   traceSoon()
@@ -396,6 +400,7 @@ document.querySelectorAll<HTMLButtonElement>('.tab').forEach((tab) =>
       $(t.dataset.view!).hidden = !on
     })
     if (tab.dataset.view === 'icon-app') showIcon()
+    if (tab.dataset.view === 'texture-app') showTexture()
   }),
 )
 

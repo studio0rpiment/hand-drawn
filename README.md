@@ -23,11 +23,15 @@ pnpm test
 4. **Icon** — the second tab turns the cleaned ink into an icon family under a
    *style* (see below): line, fill and tint variants, rotations and mirrors,
    an optional container, light and dark colours, favicons and a sprite.
+5. **Texture** — the third tab prints the drawing with its hand-made quality
+   kept: rubber stamp, risograph, halftone or the ink as drawn, once or as a
+   seamless repeating tile. Also driven by styles.
 
 The code is split so the image processing (`src/image.ts`, `src/paper.ts`,
-`src/clean.ts`, `src/svgpath.ts`, and in `src/icon/` everything but `ui.ts`
-and `pack.ts`) has no DOM and is unit tested; `src/main.ts` and
-`src/icon/ui.ts` are the UI.
+`src/clean.ts`, `src/svgpath.ts`, and in `src/icon/` and `src/texture/`
+everything but `ui.ts`, `pack.ts` and `compose.ts`) has no DOM and is unit
+tested. `src/ui/` holds what the tools share: style books and the
+field-driven style controls.
 
 ## Icon styles
 
@@ -70,6 +74,32 @@ space with nothing else drawn in it, so a ring around a note stays a ring.
   style.json
 ```
 
+## Texture styles
+
+Texture styles work like icon styles: built-ins, **Save as…**, **Export
+style** / **Import style**, kept apart from the icon styles. Every random
+choice comes from the style's *variation* number, so a style prints the same
+way every time; **Shuffle** picks a new one.
+
+| | Settings |
+| --- | --- |
+| Look | stamp, riso, halftone or ink; variation; which greys print as full and as no ink, tone curve; print grain |
+| Stamp | ink spread, ragged edge and its wobble size, worn patches and their size, uneven pressure |
+| Risograph | second drum on or off, misregistration across and down |
+| Halftone | dots or lines, cell size, screen angle |
+| Colours | ink, second ink, paper, print on paper or transparent, paper texture |
+| Layout | single, grid, half-drop or scatter; print size, random turn, margin, tile size, gap, number of prints |
+
+The drawing is printed at 1200 px on its long side, whatever the photo's size,
+so pixel settings (spread, dot size, offsets) look the same on every drawing.
+Inks overprint (multiply) on paper, as real ink does. Patterns fit a whole
+number of cells per tile and draw prints across the edges again on the other
+side, so tiles join without seams; scatter spreads prints evenly around the
+wrap. Built-in colours come from the Orpiment palette.
+
+Exports: a PNG (transparent unless printed on paper) and a CSS
+`background` line for it.
+
 ## Photos
 
 - Work size is capped at 2400 px on the long side.
@@ -81,7 +111,7 @@ space with nothing else drawn in it, so a ring around a note stays a ring.
 
 - [x] Stage 1: photo cleanup and SVG logo trace
 - [x] Stage 2: icon family and favicon set, driven by saved styles
-- [ ] Texture and stamp art (keep the grain; stamp, risograph, halftone)
+- [x] Stage 3: texture and stamp art (stamp, risograph, halftone, ink; seamless patterns), driven by styles
 - [ ] Font from a drawn letter sheet
 
 ## Licence note

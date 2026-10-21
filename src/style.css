@@ -384,7 +384,8 @@ input[type='color'] {
 
 /* ---- Icon view ---- */
 
-main.icon-app {
+main.icon-app,
+main.texture-app {
   grid-template-columns: 18rem minmax(0, 1fr);
 }
 
@@ -406,7 +407,7 @@ select {
   min-width: 0;
 }
 
-#style-pick {
+.style-pick {
   flex: 1;
 }
 
@@ -528,10 +529,12 @@ h3 {
 }
 
 @media (max-width: 48rem) {
-  main.icon-app {
+  main.icon-app,
+  main.texture-app {
     grid-template-columns: 1fr;
   }
-  main.icon-app .controls {
+  main.icon-app .controls,
+  main.texture-app .controls {
     order: 2;
   }
   .tabs {

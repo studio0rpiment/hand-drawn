@@ -12,6 +12,7 @@
       <nav class="tabs" aria-label="Tools">
         <button class="tab" type="button" data-view="app" aria-pressed="true">Logo</button>
         <button id="icon-tab" class="tab" type="button" data-view="icon-app" aria-pressed="false" disabled>Icon</button>
+        <button id="texture-tab" class="tab" type="button" data-view="texture-app" aria-pressed="false" disabled>Texture</button>
       </nav>
       <div class="bar-actions">
         <label class="button primary">
@@ -122,20 +123,10 @@
 
     <main id="icon-app" class="icon-app" hidden>
       <aside class="controls" aria-label="Icon style">
+        <div id="icon-style-box"></div>
         <fieldset>
-          <legend>Style</legend>
-          <div class="row">
-            <select id="style-pick" aria-label="Style"></select>
-            <button id="style-save" class="button small" type="button">Save as…</button>
-            <button id="style-delete" class="button small" type="button">Delete</button>
-          </div>
-          <div class="row">
-            <button id="style-export" class="button small" type="button">Export style</button>
-            <label class="button small">Import style <input id="style-import" type="file" accept="application/json,.json" hidden /></label>
-            <button id="style-reset" class="button small" type="button">Reset</button>
-          </div>
-          <p class="hint" id="style-state"></p>
-          <label class="field">Icon name <input id="icon-name" type="text" spellcheck="false" /></label>
+          <legend>Icon</legend>
+          <label class="field">Name <input id="icon-name" type="text" spellcheck="false" /></label>
         </fieldset>
         <div id="style-fields"></div>
         <fieldset>
@@ -157,6 +148,32 @@
         <div class="pane">
           <h2>Family</h2>
           <div class="family" id="family"></div>
+        </div>
+      </section>
+    </main>
+
+    <main id="texture-app" class="texture-app" hidden>
+      <aside class="controls" aria-label="Texture style">
+        <div id="texture-style-box"></div>
+        <div id="texture-fields"></div>
+        <fieldset>
+          <legend>Export</legend>
+          <div class="row">
+            <button id="texture-png" class="button primary small" type="button">Download PNG</button>
+            <button id="texture-css" class="button small" type="button">Copy CSS</button>
+          </div>
+          <p class="stats" id="texture-stats" aria-live="polite"></p>
+        </fieldset>
+      </aside>
+
+      <section class="icon-preview">
+        <div class="pane">
+          <h2>Print</h2>
+          <div class="stage checker"><canvas id="texture-view"></canvas></div>
+        </div>
+        <div class="pane" id="texture-repeat-pane" hidden>
+          <h2>Repeat, 2 × 2</h2>
+          <div class="stage"><canvas id="texture-repeat"></canvas></div>
         </div>
       </section>
     </main>
