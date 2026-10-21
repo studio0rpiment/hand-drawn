@@ -9,6 +9,10 @@
   <body>
     <header class="bar">
       <h1>Sketch to Mark</h1>
+      <nav class="tabs" aria-label="Tools">
+        <button class="tab" type="button" data-view="app" aria-pressed="true">Logo</button>
+        <button id="icon-tab" class="tab" type="button" data-view="icon-app" aria-pressed="false" disabled>Icon</button>
+      </nav>
       <div class="bar-actions">
         <label class="button primary">
           Open photo
@@ -112,6 +116,47 @@
           <canvas id="ink-view" hidden></canvas>
           <canvas id="flat-view" hidden></canvas>
           <div id="vector-view"></div>
+        </div>
+      </section>
+    </main>
+
+    <main id="icon-app" class="icon-app" hidden>
+      <aside class="controls" aria-label="Icon style">
+        <fieldset>
+          <legend>Style</legend>
+          <div class="row">
+            <select id="style-pick" aria-label="Style"></select>
+            <button id="style-save" class="button small" type="button">Save as…</button>
+            <button id="style-delete" class="button small" type="button">Delete</button>
+          </div>
+          <div class="row">
+            <button id="style-export" class="button small" type="button">Export style</button>
+            <label class="button small">Import style <input id="style-import" type="file" accept="application/json,.json" hidden /></label>
+            <button id="style-reset" class="button small" type="button">Reset</button>
+          </div>
+          <p class="hint" id="style-state"></p>
+          <label class="field">Icon name <input id="icon-name" type="text" spellcheck="false" /></label>
+        </fieldset>
+        <div id="style-fields"></div>
+        <fieldset>
+          <legend>Export</legend>
+          <div class="row">
+            <button id="dl-pack" class="button primary small" type="button">Download icon pack</button>
+            <button id="dl-sprite" class="button small" type="button">Download sprite</button>
+            <button id="copy-head" class="button small" type="button">Copy &lt;head&gt; tags</button>
+          </div>
+          <p class="stats" id="icon-stats" aria-live="polite"></p>
+        </fieldset>
+      </aside>
+
+      <section class="icon-preview">
+        <div class="pane">
+          <h2>Small sizes</h2>
+          <div class="sizes" id="sizes"></div>
+        </div>
+        <div class="pane">
+          <h2>Family</h2>
+          <div class="family" id="family"></div>
         </div>
       </section>
     </main>

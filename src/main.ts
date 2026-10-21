@@ -1,6 +1,7 @@
 import { cropMask, despeckle, flattenLight, inkBox, lineWeight, threshold, trimEdges } from './clean'
 import { otsu, toGray, type GrayImage, type Mask, type Quad, type RGBAImage } from './image'
 import { findPaper, fullFrame, quadSize, warp } from './paper'
+import { setMask, showIcon } from './icon/ui'
 import { samplePhoto } from './sample'
 import { complexity } from './svgpath'
 import { toSvg, trace, type TraceResult } from './trace'
@@ -255,6 +256,8 @@ function makeInk() {
   mask = lineWeight(mask, Number(sliders.weight.value))
   const box = inkBox(mask, Number(sliders.pad.value))
   state.mask = box ? cropMask(mask, box) : null
+  setMask(state.mask, state.name)
+  $<HTMLButtonElement>('icon-tab').disabled = !state.mask
   showOutputs()
   drawInk()
   traceSoon()
@@ -380,6 +383,19 @@ const views = { vector: vectorView, ink: inkCanvas, flat: flatCanvas }
 document.querySelectorAll<HTMLInputElement>('input[name="view"]').forEach((r) =>
   r.addEventListener('change', () => {
     for (const [k, el] of Object.entries(views)) el.hidden = k !== r.value
+  }),
+)
+
+// ---- Views ----
+
+document.querySelectorAll<HTMLButtonElement>('.tab').forEach((tab) =>
+  tab.addEventListener('click', () => {
+    document.querySelectorAll<HTMLButtonElement>('.tab').forEach((t) => {
+      const on = t === tab
+      t.setAttribute('aria-pressed', String(on))
+      $(t.dataset.view!).hidden = !on
+    })
+    if (tab.dataset.view === 'icon-app') showIcon()
   }),
 )
 

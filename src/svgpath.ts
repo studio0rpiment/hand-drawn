@@ -21,8 +21,9 @@ function parse(d: string): { cmd: string; nums: number[] }[] {
  * translate(0,h) scale(0.1,-0.1). Bake that in so the SVG has plain pixel
  * coordinates and no transform.
  */
-export function toPixels(d: string, height: number): string {
-  const r = (v: number) => String(Math.round(v * 100) / 100)
+export function toPixels(d: string, height: number, decimals = 2): string {
+  const k = 10 ** decimals
+  const r = (v: number) => String(Math.round(v * k) / k)
   return parse(d)
     .map(({ cmd, nums }) => {
       const abs = cmd === cmd.toUpperCase()

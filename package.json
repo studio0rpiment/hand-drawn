@@ -11,6 +11,7 @@
     "esm-potrace-wasm": "^0.5.1"
   },
   "devDependencies": {
+    "@types/node": "^26.6.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.4",
     "vitest": "^5.0.5"

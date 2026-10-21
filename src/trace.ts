@@ -11,6 +11,8 @@ export interface TraceSettings {
   smoothness: number
   /** potrace opttolerance: how far curves may drift to use fewer points. */
   simplify: number
+  /** Decimals kept in the path coordinates (default 2). */
+  decimals?: number
 }
 
 export interface TraceResult {
@@ -40,7 +42,7 @@ export async function trace(mask: Mask, s: TraceSettings): Promise<TraceResult> 
     pathonly: true,
     extractcolors: false,
   })
-  const paths = out.map((p) => toPixels(pathData(p), mask.height)).filter((d) => d.length > 0)
+  const paths = out.map((p) => toPixels(pathData(p), mask.height, s.decimals)).filter((d) => d.length > 0)
   return { paths, width: mask.width, height: mask.height }
 }
 
