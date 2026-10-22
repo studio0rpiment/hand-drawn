@@ -1,7 +1,10 @@
 // Named styles for one tool: built-ins, styles saved in this browser, and the
 // one being edited. Plus the Style box that picks, saves, exports and imports them.
+// Nothing reaches browser storage unless the person allowed it (see consent.ts);
+// until then styles live in this page only.
 
 import { slug } from '../icon/style'
+import { onStorageChange, storageAllowed } from './consent'
 
 export interface Named {
   name: string
@@ -18,6 +21,7 @@ export interface StyleKind<T extends Named> {
 }
 
 function store(key: string, value: unknown) {
+  if (!storageAllowed()) return
   try {
     localStorage.setItem(key, JSON.stringify(value))
   } catch {
@@ -26,6 +30,7 @@ function store(key: string, value: unknown) {
 }
 
 function load(key: string): unknown {
+  if (!storageAllowed()) return null
   try {
     return JSON.parse(localStorage.getItem(key) ?? 'null')
   } catch {
@@ -39,16 +44,39 @@ export class StyleBook<T extends Named> {
   picked: T
   /** The style being edited. */
   current: T
+  /** Called after styles kept in storage were brought back, so the controls can refresh. */
+  onRestore: (() => void) | null = null
 
   constructor(readonly kind: StyleKind<T>) {
-    const raw = load(kind.key)
-    this.saved = Array.isArray(raw) ? raw.map((s) => kind.read(s)) : []
+    this.saved = []
     this.picked = kind.builtIn[0]
     this.current = kind.builtIn[0]
-    const cur = load(`${kind.key}.current`) as { picked?: string; style?: unknown } | null
+    this.restore()
+    // Allowed later: bring back what was kept before, then keep what was made in this page too.
+    onStorageChange((allowed) => {
+      if (!allowed) return
+      const made = this.saved
+      const edited = { picked: this.picked, current: this.current }
+      this.restore()
+      this.saved = [...this.saved.filter((s) => !made.some((m) => m.name === s.name)), ...made]
+      if (made.length || JSON.stringify(edited.current) !== JSON.stringify(this.kind.builtIn[0])) {
+        this.picked = edited.picked
+        this.current = edited.current
+      }
+      store(this.kind.key, this.saved)
+      store(`${this.kind.key}.current`, { picked: this.picked.name, style: this.current })
+      this.onRestore?.()
+    })
+  }
+
+  /** Read what this browser kept, if it allowed keeping anything. */
+  private restore() {
+    const raw = load(this.kind.key)
+    this.saved = Array.isArray(raw) ? raw.map((s) => this.kind.read(s)) : []
+    const cur = load(`${this.kind.key}.current`) as { picked?: string; style?: unknown } | null
     if (cur?.style) {
-      this.current = kind.read(cur.style)
-      this.picked = this.all().find((s) => s.name === cur.picked) ?? kind.builtIn[0]
+      this.current = this.kind.read(cur.style)
+      this.picked = this.all().find((s) => s.name === cur.picked) ?? this.kind.builtIn[0]
     }
   }
 
@@ -152,6 +180,7 @@ export function styleBox<T extends Named>(book: StyleBook<T>, changed: () => voi
     refresh()
     changed()
   }
+  book.onRestore = after
 
   pick.addEventListener('change', () => {
     const s = book.all().find((x) => x.name === pick.value)

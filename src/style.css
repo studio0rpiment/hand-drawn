@@ -810,3 +810,141 @@ h3 {
   font-size: 0.6875rem;
   color: #6b645e;
 }
+
+/* ---- Privacy ---- */
+
+.small {
+  font-size: 0.8125rem;
+}
+
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  padding: 1.5rem 1rem 2rem;
+  font-size: 0.8125rem;
+  color: var(--quiet);
+}
+
+.site-footer a,
+.link,
+.privacy-notice a {
+  color: var(--quiet);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.site-footer a:hover,
+.link:hover,
+.privacy-notice a:hover {
+  color: var(--accent);
+}
+
+.link {
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.privacy-notice {
+  position: fixed;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 20;
+  max-width: 34rem;
+  margin-inline: auto;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 0.875rem;
+  box-shadow: 0 0.5rem 2rem rgb(0 0 0 / 0.5);
+}
+
+.privacy-notice p {
+  margin: 0 0 0.6rem;
+}
+
+.privacy-notice strong {
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.privacy-notice .row {
+  margin-top: 0.75rem;
+}
+
+.privacy-notice[hidden] {
+  display: none;
+}
+
+/* ---- Privacy policy page ---- */
+
+.home {
+  color: inherit;
+  text-decoration: none;
+}
+
+.policy {
+  /* A legal text reads as written: capitals kept, unlike the app's lowercase interface. */
+  text-transform: none;
+  display: block;
+  max-width: 44rem;
+  padding: 1.5rem 1rem 3rem;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.policy h2 {
+  margin: 2rem 0 0.5rem;
+  font-size: 1rem;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+.policy strong {
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.policy ul {
+  padding-left: 1.2rem;
+}
+
+.policy li + li {
+  margin-top: 0.4rem;
+}
+
+.storage {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  margin: 0.75rem 0;
+}
+
+.storage th,
+.storage td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.45rem 0.6rem 0.45rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.storage th {
+  color: var(--quiet);
+  font-weight: 400;
+}
+
+/* Storage names are exact; keep their case. */
+.storage .key {
+  text-transform: none;
+  word-break: break-all;
+  color: var(--accent);
+}
+
+.todo {
+  color: #ff2fb4;
+}

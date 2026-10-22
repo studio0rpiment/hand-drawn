@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy · Hand Drawn</title>
+    <meta name="description" content="Hand Drawn's privacy policy: no cookies, no tracking, nothing stored unless you ask." />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <div class="title">
+        <h1><a href="./" class="home">Hand Drawn</a></h1>
+        <p class="tagline">privacy policy</p>
+      </div>
+    </header>
+
+    <main class="policy">
+      <p class="quiet small">Last updated 22 October 2026</p>
+
+      <h2>In short</h2>
+      <ul>
+        <li>Hand Drawn sets <strong>no cookies</strong> and uses <strong>no analytics or tracking</strong> of any kind.</li>
+        <li>Your photos and drawings are processed <strong>in your browser</strong>. They are never uploaded, sent or kept anywhere else.</li>
+        <li>Nothing is stored in your browser either, <strong>unless you allow it</strong>. The only thing Hand Drawn can keep is the styles you save.</li>
+        <li>It loads nothing from other companies: the app, its fonts and its icons all come from the same place as this page.</li>
+      </ul>
+
+      <h2>Who is responsible</h2>
+      <p>
+        Kevin Patton, Studio Orpiment.
+        <!-- TODO before publishing: add a postal or email contact for privacy questions. -->
+        Contact: <span class="todo">[contact address to be added before publishing]</span>
+      </p>
+
+      <h2>Your photos and drawings</h2>
+      <p>
+        When you open, drop or paste a photo, it is read and processed by code running in your browser. It stays in
+        the page's memory while the page is open and is gone when you close or reload it. Files you download (SVGs,
+        PNGs, icon packs, fonts) are saved on your device by your browser; Hand Drawn keeps no copy.
+      </p>
+
+      <h2>Cookies</h2>
+      <p>None. Hand Drawn sets no cookies, and nothing on this site does.</p>
+
+      <h2>What can be stored in your browser</h2>
+      <p>
+        Only if you choose <em>Remember my styles</em> does Hand Drawn use your browser's local storage, which stays
+        on your device and is never sent anywhere. If you say no, not even that answer is stored, so you will be asked
+        again on your next visit. These are all the entries it can create:
+      </p>
+      <table class="storage">
+        <thead>
+          <tr><th>Name</th><th>What it holds</th><th>How long</th></tr>
+        </thead>
+        <tbody id="storage-list"></tbody>
+      </table>
+      <p id="stored-now" class="small" aria-live="polite"></p>
+      <p><button id="forget" class="button small" type="button">Delete everything Hand Drawn stored in this browser</button></p>
+      <p>You can also delete it with your browser's “clear site data”, or withdraw your permission any time under <em>Privacy settings</em> at the bottom of the app.</p>
+
+      <h2>Hosting</h2>
+      <p>
+        Like any website, the server that delivers these pages may record standard technical details of each request
+        (such as the IP address, time and browser) in its logs, to keep the service running and secure. Hand Drawn
+        itself sends no data to that server after the page has loaded.
+        <!-- TODO before publishing: name the host and its log retention. -->
+        <span class="todo">[host and log retention to be added before publishing]</span>
+      </p>
+
+      <h2>Your rights</h2>
+      <p>
+        Hand Drawn holds no personal data about you, so there is nothing for it to give you, correct or delete; what
+        your browser keeps you control yourself, as above. You can still contact the person responsible with any
+        question, and you have the right to complain to a data protection authority.
+      </p>
+
+      <h2>Changes</h2>
+      <p>If what Hand Drawn stores ever changes, this page changes with it, and the app asks for your permission again.</p>
+    </main>
+
+    <script type="module" src="/src/privacy-page.ts"></script>
+  </body>
+</html>

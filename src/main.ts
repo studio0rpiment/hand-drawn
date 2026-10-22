@@ -5,6 +5,7 @@ import { setPage, showFont, useLoader } from './font/ui'
 import { setMask, showIcon } from './icon/ui'
 import { samplePhoto } from './sample'
 import { decorate, favicon, flash, handSliders, installSprite, reserveHoverWidths } from './ui/hand'
+import { privacyNotice, privacySettings } from './ui/privacy'
 import { setArt, showTexture } from './texture/ui'
 import { complexity } from './svgpath'
 import { toSvg, trace, type TraceResult } from './trace'
@@ -449,3 +450,6 @@ showOutputs()
 handSliders()
 decorate()
 reserveHoverWidths()
+
+$('privacy-settings').addEventListener('click', privacySettings)
+privacyNotice()

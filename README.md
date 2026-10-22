@@ -155,6 +155,22 @@ the sheet with a system handwriting font, to try it without drawing.
 - [x] Stage 3: texture and stamp art (stamp, risograph, halftone, ink; seamless patterns), driven by styles
 - [x] Stage 4: font from a drawn letter sheet, with accents built in, driven by styles
 
+## Privacy
+
+Hand Drawn sets no cookies, has no analytics or tracking, and loads nothing
+from other companies. Photos are processed in the browser and never leave it.
+Nothing is stored in the browser either until the person allows it: the
+first-visit notice offers *Remember my styles*, and only then are saved styles
+kept in local storage. Declining isn't stored (that would be storing
+something), so the notice asks again next visit. *Privacy settings* in the
+footer shows what is kept and deletes it.
+
+`privacy.html` is the privacy policy. Its list of storage entries comes from
+`STORED` in `src/ui/consent.ts`, the same list the app uses to clear storage,
+so the policy and the app can't disagree. Before publishing, fill in the two
+marked gaps: a contact address and the host with its log retention. Not legal
+advice; have the text reviewed.
+
 ## The look
 
 The app wears Kevin's [hand-icons](https://github.com/studio0rpiment/hand-icons):
