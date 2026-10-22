@@ -1234,3 +1234,8 @@ h3 {
   text-transform: none;
   letter-spacing: 0.08em;
 }
+
+/* A label set in the accent, to stand out among its neighbours. */
+.check.accent {
+  color: var(--accent);
+}
