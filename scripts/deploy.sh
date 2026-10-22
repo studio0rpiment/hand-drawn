@@ -14,5 +14,6 @@ npx vite build --outDir "$out" --emptyOutDir
 rm -f "$out/fonts/NaNSuccessTitling-Variable.woff2"
 cp vercel.json "$out/"
 cd "$out"
-vercel link --yes --project hand-drawn --scope kevin-pattons-projects
-vercel deploy --prod --yes --scope kevin-pattons-projects
+# The project's ids instead of `vercel link`, which also writes a token file.
+VERCEL_ORG_ID=team_cxOa3u5o0M0wwjcP3gDPKwck VERCEL_PROJECT_ID=prj_PSNSKx36UEC3eIRwDhSHXaKmsjDb \
+  vercel deploy --prod --yes
