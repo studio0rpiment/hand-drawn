@@ -234,8 +234,8 @@ footer shows what is kept and deletes it.
 `privacy.html` is the privacy policy. Its list of storage entries comes from
 `STORED` in `src/ui/consent.ts`, the same list the app uses to clear storage,
 so the policy and the app can't disagree. Privacy contact:
-support@orpiment.studio. Before publishing, fill in the one marked gap: the
-host and its log retention. Not legal
+support@orpiment.studio. Hosting: Vercel (the policy points to Vercel's own
+privacy policy for its request logs). Not legal
 advice; have the text reviewed.
 
 ## The look
