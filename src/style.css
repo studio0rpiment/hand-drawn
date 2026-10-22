@@ -267,7 +267,7 @@ input[type='range'] {
 .hand-range {
   --p: 0;
   /* The handle: Kevin's line stood upright, a short thick marker stroke. */
-  --knob: 0.4rem;
+  --knob: 0.2rem;
   --knob-height: 1.5rem;
   position: relative;
   display: block;
