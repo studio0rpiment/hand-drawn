@@ -10,7 +10,7 @@ const EVENT = 'hand-drawn-storage'
 
 /** Everything Hand Drawn can put in browser storage, for the policy and for clearing. */
 export const STORED: { key: string; purpose: string }[] = [
-  { key: KEY, purpose: 'Remembers that you allowed Hand Drawn to keep your styles, and when.' },
+  { key: KEY, purpose: 'Remembers that you allowed Hand Drawn to keep your saved settings, and when.' },
   { key: 'sketch-to-mark.styles', purpose: 'Icon styles you saved.' },
   { key: 'sketch-to-mark.styles.current', purpose: 'The icon style you were last editing.' },
   { key: 'sketch-to-mark.texture-styles', purpose: 'Texture styles you saved.' },

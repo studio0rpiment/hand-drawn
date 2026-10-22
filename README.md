@@ -160,15 +160,16 @@ the sheet with a system handwriting font, to try it without drawing.
 Hand Drawn sets no cookies, has no analytics or tracking, and loads nothing
 from other companies. Photos are processed in the browser and never leave it.
 Nothing is stored in the browser either until the person allows it: the
-first-visit notice offers *Remember my styles*, and only then are saved styles
-kept in local storage. Declining isn't stored (that would be storing
+first-visit notice offers *Remember my settings*, and only then are saved
+settings (styles) kept in local storage. Declining isn't stored (that would be storing
 something), so the notice asks again next visit. *Privacy settings* in the
 footer shows what is kept and deletes it.
 
 `privacy.html` is the privacy policy. Its list of storage entries comes from
 `STORED` in `src/ui/consent.ts`, the same list the app uses to clear storage,
-so the policy and the app can't disagree. Before publishing, fill in the two
-marked gaps: a contact address and the host with its log retention. Not legal
+so the policy and the app can't disagree. Privacy contact:
+support@orpiment.studio. Before publishing, fill in the one marked gap: the
+host and its log retention. Not legal
 advice; have the text reviewed.
 
 ## The look
