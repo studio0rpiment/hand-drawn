@@ -240,7 +240,7 @@ legend {
 }
 
 .slider output {
-  color: var(--quiet);
+  color: var(--accent);
 }
 
 input[type='range'] {
