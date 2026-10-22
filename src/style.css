@@ -30,6 +30,7 @@
   color-scheme: dark;
   --bg: #121210;
   --surface: #1c1b18;
+  --globe-ink: #77716a;
   --text: #efe9e2;
   --quiet: #a49b92;
   --line: #2f2c28;
@@ -1090,33 +1091,26 @@ h3 {
   stroke: var(--accent);
 }
 
-.globe-body {
-  fill: var(--surface);
+/* The surface and the drawn map, painted under the SVG (see paint in sphere.ts). */
+.globe-paint {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
-.globe-grid,
+.globe {
+  position: relative;
+}
+
 .globe-rim {
   fill: none;
+  stroke: var(--text);
+  stroke-width: 1.3;
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
-}
-
-/* Hand-drawn meridians and parallels, on the ball, rolling with it. */
-.globe-grid {
-  stroke: #8f877c;
-  stroke-width: 1;
-  opacity: 0.75;
-}
-
-.globe-rim {
-  stroke: var(--text);
-  stroke-width: 1.3;
-}
-
-.globe-rim-2 {
-  stroke-width: 0.8;
-  opacity: 0.45;
 }
 
 .globe-handle {

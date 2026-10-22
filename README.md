@@ -202,8 +202,10 @@ the sheet with a system handwriting font, to try it without drawing.
 ## Photos
 
 - Work size is capped at 2400 px on the long side.
-- iPhone HEIC photos open in Safari. In Chrome, export them as JPEG first, or
-  set the camera to "Most Compatible".
+- iPhone HEIC photos open anywhere. Safari reads them itself; in other
+  browsers they are converted to PNG in the page by
+  [heic-to](https://github.com/hoppergee/heic-to) (libheif, LGPL-3.0), which
+  only loads when a HEIC photo comes in.
 - Best results: daylight, the whole sheet in frame, a darker surface under it.
 
 ## Roadmap

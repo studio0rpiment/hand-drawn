@@ -11,6 +11,7 @@
   "dependencies": {
     "esm-potrace-wasm": "^0.5.1",
     "hand-icons": "github:studio0rpiment/hand-icons",
+    "heic-to": "1.6.6",
     "opentype.js": "2.0.0"
   },
   "devDependencies": {

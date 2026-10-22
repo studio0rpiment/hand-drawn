@@ -60,15 +60,37 @@ const state: {
 
 // ---- Loading ----
 
+/** An iPhone HEIC/HEIF photo, by its type, its name, or the brand in its first bytes. */
+async function isHeic(blob: Blob, name: string): Promise<boolean> {
+  if (/^image\/hei[cf]/.test(blob.type) || /\.hei[cf]$/i.test(name)) return true
+  const head = new TextDecoder().decode(await blob.slice(4, 12).arrayBuffer())
+  return /^ftyp(heic|heix|hevc|mif1|msf1)/.test(head)
+}
+
+/** While a HEIC photo converts (the first one takes a few seconds), the open button says so. */
+const openText = [...$('file').closest('label')!.childNodes].find((n) => n.nodeType === Node.TEXT_NODE && n.textContent!.trim())!
+const openWas = openText.textContent
+const converting = (on: boolean) => (openText.textContent = on ? ' Converting HEIC… ' : openWas)
+
 async function loadBlob(blob: Blob, name: string) {
   let bitmap: ImageBitmap
   try {
     bitmap = await createImageBitmap(blob, { imageOrientation: 'from-image' })
   } catch {
-    alert(
-      'This browser can’t read that image. iPhone HEIC photos open in Safari; elsewhere, export them as JPEG first.',
-    )
-    return
+    // Most browsers other than Safari can't read HEIC: convert it to PNG here, in the page.
+    // The converter is large, so it only loads when a HEIC photo comes in.
+    try {
+      if (!(await isHeic(blob, name))) throw new Error('not HEIC')
+      converting(true)
+      const { heicTo } = await import('heic-to/csp')
+      const png = await heicTo({ blob, type: 'image/png' })
+      bitmap = await createImageBitmap(png, { imageOrientation: 'from-image' })
+    } catch {
+      alert('This browser can’t read that image. Try exporting it as JPEG or PNG.')
+      return
+    } finally {
+      converting(false)
+    }
   }
   loadSource(bitmap, bitmap.width, bitmap.height, name)
   bitmap.close()
@@ -122,7 +144,7 @@ addEventListener('drop', (e) => {
   e.preventDefault()
   dragDepth = 0
   drop.hidden = true
-  const f = [...(e.dataTransfer?.files ?? [])].find((f) => f.type.startsWith('image/'))
+  const f = [...(e.dataTransfer?.files ?? [])].find((f) => f.type.startsWith('image/') || /\.hei[cf]$/i.test(f.name))
   if (f) loadBlob(f, f.name)
 })
 addEventListener('paste', (e) => {

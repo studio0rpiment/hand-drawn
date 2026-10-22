@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { markAt, rotate, toAngle, toFrac } from '../src/ui/sphere'
+import { markAt, rimAt, rotate, toAngle, toFrac, unrotate } from '../src/ui/sphere'
 
 describe('globe', () => {
   it('maps values to roll angles and back, continuously', () => {
@@ -23,5 +23,20 @@ describe('globe', () => {
     expect(Math.hypot(...a)).toBeCloseTo(Math.hypot(0.3, -0.5, 0.81), 9)
     const dot = (p: number[], q: number[]) => p[0] * q[0] + p[1] * q[1] + p[2] * q[2]
     expect(dot(a, b)).toBeCloseTo(dot([0.3, -0.5, 0.81], [0, 1, 0]), 9)
+  })
+})
+
+describe('unrotate', () => {
+  it('undoes a roll', () => {
+    const p: [number, number, number] = [0.3, -0.5, Math.sqrt(1 - 0.34)]
+    const back = unrotate(rotate(p, 0.7, -0.4), 0.7, -0.4)
+    back.forEach((v, i) => expect(v).toBeCloseTo(p[i], 10))
+  })
+})
+
+describe('rimAt', () => {
+  it('stays close to the unit circle and wraps round', () => {
+    for (let t = -7; t < 7; t += 0.37) expect(Math.abs(rimAt(t) - 1)).toBeLessThan(0.1)
+    expect(rimAt(0)).toBeCloseTo(rimAt(2 * Math.PI), 10)
   })
 })

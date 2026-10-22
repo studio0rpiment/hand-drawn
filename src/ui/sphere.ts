@@ -2,13 +2,16 @@
 // (Kevin's spiral) is a mark on the ball's surface: rolling left or right
 // sets one value (longitude), rolling up or down the other (latitude). The
 // hand-drawn meridians and parallels are on the ball too, so everything
-// rolls together, and the ball keeps a little momentum when let go.
+// rolls together, and the ball keeps a little momentum when let go. Both the
+// grid and the rim are Kevin's own drawing (guides/globe-guide.pdf, read by
+// guides/read-globe.py): the map is painted onto the ball pixel by pixel.
 //
 // Values are continuous; a setting that must be a whole number is rounded,
 // while the ball itself keeps moving smoothly. The two range inputs stay in
 // the page unseen as the source of truth for the rest of the app.
 
-import { hash } from '../texture/noise'
+import mapUrl from './globe-map.png'
+import { RIM } from './globe-rim'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 /** How far the mark can roll from the centre, either way (degrees): it never goes out of sight. */
@@ -24,6 +27,14 @@ export function rotate(p: V3, lon: number, lat: number): V3 {
   const x1 = x * Math.cos(lon) + z * Math.sin(lon)
   const z1 = -x * Math.sin(lon) + z * Math.cos(lon)
   return [x1, y * Math.cos(lat) + z1 * Math.sin(lat), -y * Math.sin(lat) + z1 * Math.cos(lat)]
+}
+
+/** The point on the unrolled ball that `rotate` brings to `q`. */
+export function unrotate(q: V3, lon: number, lat: number): V3 {
+  const [x1, y2, z2] = q
+  const y = y2 * Math.cos(lat) - z2 * Math.sin(lat)
+  const z1 = y2 * Math.sin(lat) + z2 * Math.cos(lat)
+  return [x1 * Math.cos(lon) - z1 * Math.sin(lon), y, x1 * Math.sin(lon) + z1 * Math.cos(lon)]
 }
 
 /** Where the mark (the ball point facing you at rest) is after rolling to `lon`, `lat`. */
@@ -50,66 +61,115 @@ function readFrac(input: HTMLInputElement, value: string): number {
   return max > min ? (Number(value) - min) / (max - min) : 0
 }
 
-/** The ball's grid: meridians every 30° and parallels at ±30°, ±60° and the equator, with a hand-drawn wobble. */
-function gridLines(seed: number): V3[][] {
-  const lines: V3[][] = []
-  const wobble = (p: V3, i: number, j: number): V3 => {
-    const k = 0.014
-    return [
-      p[0] + (hash(i, j, seed) - 0.5) * k,
-      p[1] + (hash(i, j, seed + 1) - 0.5) * k,
-      p[2] + (hash(i, j, seed + 2) - 0.5) * k,
-    ]
-  }
-  for (let m = 0; m < 12; m++) {
-    const lam = m * 30 * RAD
-    const line: V3[] = []
-    for (let s = 0, j = 0; s <= 180; s += 5, j++) {
-      const phi = (s - 90) * RAD
-      line.push(wobble([Math.cos(phi) * Math.sin(lam), Math.sin(phi), Math.cos(phi) * Math.cos(lam)], m, j))
-    }
-    lines.push(line)
-  }
-  for (const [n, deg] of [-60, -30, 0, 30, 60].entries()) {
-    const phi = deg * RAD
-    const line: V3[] = []
-    for (let s = 0, j = 0; s <= 360; s += 5, j++) {
-      const lam = s * RAD
-      line.push(wobble([Math.cos(phi) * Math.sin(lam), Math.sin(phi), Math.cos(phi) * Math.cos(lam)], 20 + n, j))
-    }
-    lines.push(line)
-  }
-  return lines
+/** The rim's radius at angle `t` (SVG angle: clockwise from 3 o'clock). */
+export function rimAt(t: number): number {
+  const f = (((t / (2 * Math.PI)) % 1) + 1) % 1 * RIM.length
+  const i = Math.floor(f)
+  const w = f - i
+  return RIM[i % RIM.length] * (1 - w) + RIM[(i + 1) % RIM.length] * w
 }
 
-/** The front-facing parts of the grid after rolling, as path data (SVG y down). */
-function gridPath(lines: V3[][], lon: number, lat: number): string {
-  let d = ''
-  for (const line of lines) {
-    let open = false
-    for (const p of line) {
-      const [x, y, z] = rotate(p, lon, lat)
-      if (z > 0.02) {
-        d += `${open ? 'L' : 'M'}${x.toFixed(4)} ${(-y).toFixed(4)}`
-        open = true
-      } else open = false
+/** The rim as path data. */
+function rimPath(): string {
+  return RIM.map((r, i) => {
+    const t = (i / RIM.length) * 2 * Math.PI
+    return `${i ? 'L' : 'M'}${(Math.cos(t) * r).toFixed(4)} ${(Math.sin(t) * r).toFixed(4)}`
+  }).join('') + 'Z'
+}
+
+/** The drawn map as ink coverage 0–255 (x: longitude from 0° eastward, y: latitude from the north pole). */
+interface Map {
+  w: number
+  h: number
+  ink: Uint8ClampedArray
+}
+
+let mapLoad: Promise<Map> | null = null
+function loadMap(): Promise<Map> {
+  mapLoad ??= new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const c = document.createElement('canvas')
+      c.width = img.naturalWidth
+      c.height = img.naturalHeight
+      const ctx = c.getContext('2d', { willReadFrequently: true })!
+      ctx.drawImage(img, 0, 0)
+      const rgba = ctx.getImageData(0, 0, c.width, c.height).data
+      const ink = new Uint8ClampedArray(c.width * c.height)
+      for (let i = 0; i < ink.length; i++) ink[i] = rgba[i * 4]
+      resolve({ w: c.width, h: c.height, ink })
+    }
+    img.onerror = reject
+    img.src = mapUrl
+  })
+  return mapLoad
+}
+
+/** A CSS colour as [r, g, b]. */
+function rgb(css: string): [number, number, number] {
+  const ctx = document.createElement('canvas').getContext('2d')!
+  ctx.fillStyle = css
+  const hex = ctx.fillStyle.replace('#', '')
+  return [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number]
+}
+
+/**
+ * Paint the ball: inside the drawn rim, the surface colour, and on it the
+ * front half of the drawn map after rolling. Each pixel is traced back to the
+ * point of the ball under it, and the map is read there (bilinear).
+ */
+function paint(canvas: HTMLCanvasElement, map: Map | null, lon: number, lat: number) {
+  const size = Math.round(canvas.clientWidth * devicePixelRatio)
+  if (!size) return
+  if (canvas.width !== size) canvas.width = canvas.height = size
+  const ctx = canvas.getContext('2d')!
+  const img = ctx.createImageData(size, size)
+  const out = img.data
+  const style = getComputedStyle(canvas)
+  const bg = rgb(style.getPropertyValue('--surface'))
+  const fg = rgb(style.getPropertyValue('--globe-ink'))
+  const span = 2.24 // the SVG viewBox, -1.12 to 1.12
+  const px = span / size
+  for (let j = 0; j < size; j++) {
+    const sy = -1.12 + (j + 0.5) * px
+    for (let i = 0; i < size; i++) {
+      const sx = -1.12 + (i + 0.5) * px
+      const r = Math.hypot(sx, sy)
+      const edge = rimAt(Math.atan2(sy, sx))
+      // Soft edge one pixel wide, under the drawn rim.
+      const a = Math.max(0, Math.min(1, (edge - r) / px + 0.5))
+      if (!a) continue
+      let ink = 0
+      if (map) {
+        // Fit the sphere to the drawn rim, then trace back to the ball's own coordinates.
+        const x = sx / edge
+        const y = -sy / edge
+        const z = Math.sqrt(Math.max(0, 1 - x * x - y * y))
+        const p = unrotate([x, y, z], lon, lat)
+        const u = ((Math.atan2(p[0], p[2]) / (2 * Math.PI)) % 1 + 1) % 1 * map.w - 0.5
+        const v = (0.5 - Math.asin(Math.max(-1, Math.min(1, p[1]))) / Math.PI) * map.h - 0.5
+        const u0 = Math.floor(u)
+        const v0 = Math.max(0, Math.min(map.h - 2, Math.floor(v)))
+        const fu = u - u0
+        const fv = Math.max(0, Math.min(1, v - v0))
+        const a0 = ((u0 % map.w) + map.w) % map.w
+        const a1 = (a0 + 1) % map.w
+        const r0 = v0 * map.w
+        const r1 = r0 + map.w
+        ink =
+          ((map.ink[r0 + a0] * (1 - fu) + map.ink[r0 + a1] * fu) * (1 - fv) +
+            (map.ink[r1 + a0] * (1 - fu) + map.ink[r1 + a1] * fu) * fv) /
+          255
+      }
+      const k = (j * size + i) * 4
+      out[k] = bg[0] + (fg[0] - bg[0]) * ink
+      out[k + 1] = bg[1] + (fg[1] - bg[1]) * ink
+      out[k + 2] = bg[2] + (fg[2] - bg[2]) * ink
+      out[k + 3] = a * 255
     }
   }
-  return d
+  ctx.putImageData(img, 0, 0)
 }
-
-/** A hand-drawn circle for the rim: a little wobble, and a second, fainter pass. */
-function rimPath(seed: number, pass: number): string {
-  let d = ''
-  for (let i = 0; i <= 72; i++) {
-    const t = (i / 72) * Math.PI * 2 + pass * 0.4
-    const r = 1 + (hash(i % 72, pass, seed) - 0.5) * 0.018 + pass * 0.012
-    d += `${i ? 'L' : 'M'}${(Math.cos(t) * r).toFixed(4)} ${(Math.sin(t) * r).toFixed(4)}`
-  }
-  return d + 'Z'
-}
-
-let count = 0
 
 /**
  * Replace two range inputs (each inside its own `label.slider`) with one
@@ -118,7 +178,6 @@ let count = 0
  * both names in a list underneath.
  */
 export function globePair(title: string, x: GlobeAxis, y: GlobeAxis, into: HTMLElement) {
-  const seed = 31 + ++count * 7
   const xLabel = x.input.closest('label')!
   const yLabel = y.input.closest('label')!
   const nameOf = (label: HTMLLabelElement) => label.querySelector('span')!.firstChild!.textContent!.trim()
@@ -134,11 +193,12 @@ export function globePair(title: string, x: GlobeAxis, y: GlobeAxis, into: HTMLE
   svg.setAttribute('role', 'group')
   svg.setAttribute('aria-label', `${title}: ${xName} and ${yName}. Left and right change ${xName}, up and down change ${yName}.`)
   svg.innerHTML = `
-    <circle r="1" class="globe-body"/>
-    <path class="globe-grid"/>
     <g class="globe-handle"><use href="#hi-spiral-tight-fill" x="-0.17" y="-0.17" width="0.34" height="0.34"/></g>
-    <path d="${rimPath(seed, 0)}" class="globe-rim"/>
-    <path d="${rimPath(seed, 1)}" class="globe-rim globe-rim-2"/>`
+    <path d="${rimPath()}" class="globe-rim"/>`
+  // The ball's surface and the drawn map, painted under the handle and the rim.
+  const surface = document.createElement('canvas')
+  surface.className = 'globe-paint'
+  surface.setAttribute('aria-hidden', 'true')
 
   // The values sit in the corners: y at the top right, x at the bottom right.
   const yOut = yLabel.querySelector('output')!
@@ -152,7 +212,7 @@ export function globePair(title: string, x: GlobeAxis, y: GlobeAxis, into: HTMLE
 
   const ball = document.createElement('div')
   ball.className = 'globe-ball'
-  ball.append(svg, yOut, xOut)
+  ball.append(surface, svg, yOut, xOut)
   const heading = document.createElement('h3')
   heading.className = 'globe-title'
   heading.textContent = title
@@ -168,8 +228,7 @@ export function globePair(title: string, x: GlobeAxis, y: GlobeAxis, into: HTMLE
     block.append(label)
   }
 
-  const lines = gridLines(seed)
-  const grid = svg.querySelector<SVGPathElement>('.globe-grid')!
+  let map: Map | null = null
   const handle = svg.querySelector<SVGGElement>('.globe-handle')!
 
   const proto = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!
@@ -178,7 +237,7 @@ export function globePair(title: string, x: GlobeAxis, y: GlobeAxis, into: HTMLE
   let lat = toAngle(readFrac(y.input, get(y.input)))
 
   const render = () => {
-    grid.setAttribute('d', gridPath(lines, lon, lat))
+    paint(surface, map, lon, lat)
     // The spiral is drawn on the ball's surface: its two axes are the ball's
     // local directions at the mark, projected, so it tilts and foreshortens as it rolls.
     const [mx, my, mz] = markAt(lon, lat)
@@ -359,4 +418,10 @@ export function globePair(title: string, x: GlobeAxis, y: GlobeAxis, into: HTMLE
   }
 
   render()
+  // Repaint once the drawing has loaded, and whenever the ball changes size.
+  loadMap().then((m) => {
+    map = m
+    render()
+  })
+  new ResizeObserver(() => render()).observe(surface)
 }
