@@ -46,6 +46,20 @@
         </fieldset>
 
         <fieldset>
+          <legend>Sheet</legend>
+          <label class="check"><input id="sheet-on" type="checkbox" /> Several drawings on this sheet</label>
+          <p class="hint">For a page of icons, or of logo iterations: each drawing is found and numbered, row by row.</p>
+          <label class="slider">
+            <span>Parts closer than this are one drawing <output id="gap-out"></output></span>
+            <input id="gap" type="range" min="4" max="160" step="1" value="30" />
+          </label>
+          <p class="hint" id="sheet-count" aria-live="polite"></p>
+          <div class="row">
+            <button id="dl-all" class="button small" type="button" data-icon="arrow-bar-fill-r90">Download all SVGs</button>
+          </div>
+        </fieldset>
+
+        <fieldset>
           <legend>2 · Ink</legend>
           <label class="slider">
             <span>Even out light <output id="flatten-out"></output></span>
@@ -111,6 +125,7 @@
             <label><input type="radio" name="view" value="flat" /> Straightened</label>
           </div>
         </div>
+        <div class="pieces" id="pieces" role="listbox" aria-label="Drawings on this sheet" hidden></div>
         <div class="result-wrap">
           <div class="stage checker" id="result-stage">
             <canvas id="ink-view" hidden></canvas>
@@ -150,6 +165,14 @@
       </aside>
 
       <section class="icon-preview">
+        <div class="pane" id="icon-set-pane" hidden>
+          <div class="pane-head">
+            <h2>Icon set</h2>
+            <button id="dl-set" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">Download icon set</button>
+          </div>
+          <p class="stats" id="icon-set-stats" aria-live="polite"></p>
+          <div class="icon-set" id="icon-set" role="listbox" aria-label="Icons in this set"></div>
+        </div>
         <div class="pane">
           <h2>Small sizes</h2>
           <div class="sizes" id="sizes"></div>

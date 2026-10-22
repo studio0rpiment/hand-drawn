@@ -1148,3 +1148,69 @@ h3 {
   color: var(--text);
 }
 
+
+/* ---- Sheets: the drawings found on one page ---- */
+
+.pieces {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.2rem 0 0.4rem;
+}
+
+.piece,
+.set-tile {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  padding: 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 0.375rem;
+  background: #f3f1ec;
+  cursor: pointer;
+}
+
+.piece {
+  width: 5rem;
+  height: 5rem;
+}
+
+.piece canvas {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.piece[aria-selected='true'],
+.set-tile[aria-selected='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.piece span,
+.set-num {
+  position: absolute;
+  top: 0.15rem;
+  left: 0.3rem;
+  font-size: 0.6875rem;
+  color: #6b645e;
+}
+
+.icon-set {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+  gap: 0.4rem;
+}
+
+.set-tile {
+  aspect-ratio: 1;
+}
+
+.set-tile svg {
+  width: 100%;
+  height: auto;
+}
+
+.set-wait {
+  color: #a49b92;
+}

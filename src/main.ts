@@ -1,8 +1,10 @@
-import { cropMask, despeckle, flattenLight, inkBox, lineWeight, threshold, trimEdges } from './clean'
+import { cropMask, despeckle, flattenLight, inkBox, lineWeight, threshold, trimEdges, type Box } from './clean'
+import { zip } from './icon/files'
+import { padBox, splitDrawings } from './split'
 import { otsu, shrinkGray, toGray, type GrayImage, type Mask, type Quad, type RGBAImage } from './image'
 import { findPaper, fullFrame, quadSize, warp } from './paper'
 import { setPage, showFont, useLoader } from './font/ui'
-import { setMask, showIcon } from './icon/ui'
+import { onSheetPick, setMask, setSheet, showIcon } from './icon/ui'
 import { samplePhoto } from './sample'
 import { decorate, favicon, flash, handSliders, installSprite, reserveHoverWidths } from './ui/hand'
 import { privacyNotice, privacySettings } from './ui/privacy'
@@ -35,7 +37,9 @@ const sliders = {
   pad: $<HTMLInputElement>('pad'),
   smooth: $<HTMLInputElement>('smooth'),
   simplify: $<HTMLInputElement>('simplify'),
+  gap: $<HTMLInputElement>('gap'),
 }
+const sheetOn = $<HTMLInputElement>('sheet-on')
 const levelAuto = $<HTMLInputElement>('level-auto')
 const inkColor = $<HTMLInputElement>('ink')
 const bgColor = $<HTMLInputElement>('bg')
@@ -49,7 +53,10 @@ const state: {
   gray: GrayImage | null
   mask: Mask | null
   traced: TraceResult | null
-} = { name: 'drawing', photo: null, quad: null, flat: null, gray: null, mask: null, traced: null }
+  /** A sheet of several drawings: the page's ink, each drawing's box in it, and which one is being worked on. */
+  sheet: { mask: Mask; boxes: Box[] } | null
+  pick: number
+} = { name: 'drawing', photo: null, quad: null, flat: null, gray: null, mask: null, traced: null, sheet: null, pick: 0 }
 
 // ---- Loading ----
 
@@ -76,6 +83,7 @@ function loadSource(src: CanvasImageSource, w: number, h: number, name: string) 
   g.drawImage(src, 0, 0, c.width, c.height)
   state.photo = g.getImageData(0, 0, c.width, c.height)
   state.name = name.replace(/\.[^.]+$/, '') || 'drawing'
+  state.pick = 0
   photoCanvas.width = c.width
   photoCanvas.height = c.height
   photoCanvas.getContext('2d')!.drawImage(c, 0, 0)
@@ -289,7 +297,19 @@ function makeInk() {
   // Specks go before the weight change, so thickening never grows them past the limit.
   mask = despeckle(mask, Number(sliders.speck.value) / (k * k))
   mask = lineWeight(mask, Math.round(Number(sliders.weight.value) / k))
-  const box = inkBox(mask, Math.round(Number(sliders.pad.value) / k))
+  const pad = Math.round(Number(sliders.pad.value) / k)
+  let box: Box | null
+  if (sheetOn.checked) {
+    // A sheet of drawings: find each one; the picked one is what the views work on.
+    const minArea = Math.max(30, Number(sliders.speck.value)) / (k * k)
+    const boxes = splitDrawings(mask, Number(sliders.gap.value) / k, minArea)
+    state.sheet = { mask, boxes }
+    state.pick = Math.min(state.pick, Math.max(0, boxes.length - 1))
+    box = boxes.length ? padBox(boxes[state.pick], pad, mask.width, mask.height) : null
+  } else {
+    state.sheet = null
+    box = inkBox(mask, pad)
+  }
   state.mask = box ? cropMask(mask, box) : null
   if (!rolling) {
     setMask(state.mask, state.name)
@@ -299,6 +319,7 @@ function makeInk() {
     setArt(box && state.mask ? { gray: cropMask(base, box), mask: state.mask } : null, state.name)
     $<HTMLButtonElement>('icon-tab').disabled = !state.mask
     $<HTMLButtonElement>('texture-tab').disabled = !state.mask
+    showSheet()
   }
   showOutputs()
   drawInk()
@@ -307,6 +328,97 @@ function makeInk() {
 
 // A globe came to rest: redo the drawing at full size.
 addEventListener('globe-rest', () => schedule(makeInk))
+
+// ---- Sheets of drawings ----
+
+const two = (n: number) => String(n).padStart(2, '0')
+const pieceName = (i: number) => `${state.name}-${two(i + 1)}`
+
+/** The drawings of a sheet, each cropped close (the views add their own margins). */
+function sheetPieces(): { mask: Mask; name: string }[] {
+  const sh = state.sheet
+  if (!sh) return []
+  return sh.boxes.map((b, i) => ({ mask: cropMask(sh.mask, padBox(b, 2, sh.mask.width, sh.mask.height)), name: pieceName(i) }))
+}
+
+/** The numbered thumbnails above the result, and the sheet's drawings handed to the Icon view. */
+function showSheet() {
+  const strip = $('pieces')
+  const sh = state.sheet
+  $('sheet-count').textContent = sh
+    ? `${sh.boxes.length} drawing${sh.boxes.length === 1 ? '' : 's'} found${sh.boxes.length ? ` · working on ${state.pick + 1}` : ''}`
+    : ''
+  $<HTMLButtonElement>('dl-all').disabled = !sh || !sh.boxes.length
+  strip.hidden = !sh
+  if (!sh) {
+    strip.replaceChildren()
+    setSheet(null, 0)
+    return
+  }
+  const [r, g, b] = hexRgb(inkColor.value)
+  strip.replaceChildren(
+    ...sh.boxes.map((box, i) => {
+      const btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'piece'
+      btn.setAttribute('role', 'option')
+      btn.setAttribute('aria-selected', String(i === state.pick))
+      btn.setAttribute('aria-label', `Drawing ${i + 1}`)
+      const c = document.createElement('canvas')
+      const s = Math.min(1, 72 / Math.max(box.width, box.height))
+      c.width = Math.max(1, Math.round(box.width * s))
+      c.height = Math.max(1, Math.round(box.height * s))
+      const full = cropMask(sh.mask, box)
+      const img = new ImageData(full.width, full.height)
+      for (let p = 0, j = 0; p < full.data.length; p++, j += 4) {
+        if (!full.data[p]) continue
+        img.data[j] = r
+        img.data[j + 1] = g
+        img.data[j + 2] = b
+        img.data[j + 3] = 255
+      }
+      const tmp = document.createElement('canvas')
+      tmp.width = full.width
+      tmp.height = full.height
+      tmp.getContext('2d')!.putImageData(img, 0, 0)
+      const ctx = c.getContext('2d')!
+      ctx.imageSmoothingQuality = 'high'
+      ctx.drawImage(tmp, 0, 0, c.width, c.height)
+      const num = document.createElement('span')
+      num.textContent = String(i + 1)
+      btn.append(c, num)
+      btn.addEventListener('click', () => {
+        state.pick = i
+        schedule(makeInk)
+      })
+      return btn
+    }),
+  )
+  setSheet(sheetPieces(), state.pick)
+}
+
+$('dl-all').addEventListener('click', async (e) => {
+  const pieces = sheetPieces()
+  if (!pieces.length) return
+  const btn = e.currentTarget as HTMLButtonElement
+  btn.disabled = true
+  const settings = { ignore: 2, smoothness: Number(sliders.smooth.value), simplify: Number(sliders.simplify.value) }
+  const style = { ink: inkColor.value, background: bgOn.checked ? bgColor.value : null }
+  const files = []
+  for (const [i, p] of pieces.entries()) {
+    stats.textContent = `Tracing ${i + 1} of ${pieces.length}…`
+    // The same margin as a single drawing gets.
+    const pad = Number(sliders.pad.value)
+    const m = p.mask
+    const padded: Mask = { width: m.width + 2 * pad, height: m.height + 2 * pad, data: new Uint8Array((m.width + 2 * pad) * (m.height + 2 * pad)) }
+    for (let y = 0; y < m.height; y++) padded.data.set(m.data.subarray(y * m.width, (y + 1) * m.width), (y + pad) * padded.width + pad)
+    files.push({ path: `${state.name}-drawings/${p.name}.svg`, data: toSvg(await trace(padded, settings), style) })
+  }
+  const bytes = zip(files)
+  download(new Blob([bytes.buffer as ArrayBuffer], { type: 'application/zip' }), `${state.name}-drawings.zip`)
+  stats.textContent = `${pieces.length} SVGs packed`
+  btn.disabled = false
+})
 
 function drawInk() {
   const m = state.mask
@@ -404,6 +516,7 @@ const formats: Record<keyof typeof sliders, (v: number) => string> = {
   pad: (v) => `${v} px`,
   smooth: (v) => v.toFixed(2),
   simplify: (v) => v.toFixed(2),
+  gap: (v) => `${v} px`,
 }
 
 function showOutputs() {
@@ -412,7 +525,13 @@ function showOutputs() {
   }
 }
 
-for (const k of ['flatten', 'weight', 'speck', 'trim', 'pad'] as const) {
+sheetOn.addEventListener('change', () => schedule(makeInk))
+// Choosing an icon in the Icon view's set picks that drawing everywhere.
+onSheetPick((i) => {
+  state.pick = i
+  schedule(makeInk)
+})
+for (const k of ['flatten', 'weight', 'speck', 'trim', 'pad', 'gap'] as const) {
   sliders[k].addEventListener('input', () => schedule(makeInk))
 }
 sliders.level.addEventListener('input', () => {

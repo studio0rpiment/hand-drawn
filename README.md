@@ -36,6 +36,21 @@ The code is split so the image processing (`src/image.ts`, `src/paper.ts`,
 `sample.ts`) has no DOM and is unit tested. `src/ui/` holds what the tools share: style books and the
 field-driven style controls.
 
+## Sheets of drawings
+
+Tick **Several drawings on this sheet** (Logo panel) for a page of icons or of
+logo iterations. Every separate drawing is found and numbered row by row;
+ink closer than the chosen distance counts as one drawing, and a mark inside
+another drawing (a dot in a ring) always stays with it. A strip of numbered
+thumbnails above the result picks the drawing the views work on.
+
+- **Logo:** *Download all SVGs* traces every drawing with the current settings
+  into one zip, for comparing iterations.
+- **Icon:** the *Icon set* panel builds every drawing in the current icon
+  style; *Download icon set* gives one sprite with all of them (hand-icons
+  symbol names, numbered manifest), an SVG per icon, variant and direction,
+  and the style. Clicking an icon picks it for the detailed previews.
+
 ## Icon styles
 
 A style is every choice that makes a set of icons one family, kept as plain

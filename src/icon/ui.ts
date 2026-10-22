@@ -7,7 +7,8 @@ import { StyleBook, styleBox } from '../ui/styles'
 import { flash } from '../ui/hand'
 import { buildIcon, faviconVariant, headSnippet, packZip, rasterize, shapeKey } from './pack'
 import { BUILT_IN, CONTAINERS, DIRECTIONS, DIRECTION_GROUPS, VARIANTS, readStyle, slug, type IconStyle } from './style'
-import { sprite, standaloneSvg, type IconPaths } from './svg'
+import { zip, type ZipFile } from './files'
+import { sprite, spriteSet, standaloneSvg, type IconPaths } from './svg'
 
 // ---- The editable fields. One line per style setting. ----
 
@@ -100,6 +101,9 @@ function applied() {
   box.refresh()
   if (shapeKey(style) !== builtFor) retraceSoon()
   else render()
+  // The set redraws in the new colours, and rebuilds if the shape settings changed.
+  if (shapeKey(style) !== setBuiltFor) buildSetSoon()
+  else drawSet()
 }
 
 const nameInput = $<HTMLInputElement>('icon-name')
@@ -290,7 +294,125 @@ export function setMask(m: Mask | null, name: string) {
 /** Called when the Icon view is shown. */
 export function showIcon() {
   if (dirty) retraceSoon()
+  buildSetSoon()
 }
+
+// ---- A whole sheet of icons ----
+
+let pieces: { mask: Mask; name: string }[] | null = null
+let picked = 0
+/** Built paths per piece, for the shape settings they were built with. */
+let setPaths: (IconPaths | null)[] = []
+let setBuiltFor = ''
+let setRun = 0
+let pick: ((i: number) => void) | null = null
+
+/** Lets a click in the set choose the drawing the whole app works on. */
+export function onSheetPick(fn: (i: number) => void) {
+  pick = fn
+}
+
+/** Called with every drawing of a sheet (or null when the photo is one drawing). */
+export function setSheet(next: { mask: Mask; name: string }[] | null, current: number) {
+  const changed = next?.length !== pieces?.length || next?.some((p, i) => p.mask !== pieces?.[i].mask)
+  pieces = next
+  picked = current
+  if (changed) {
+    setPaths = []
+    setBuiltFor = ''
+  }
+  $('icon-set-pane').hidden = !pieces
+  buildSetSoon()
+}
+
+let setTimer = 0
+function buildSetSoon() {
+  clearTimeout(setTimer)
+  setTimer = window.setTimeout(buildSet, 200)
+}
+
+/** Build every icon of the set in the current style, one at a time, drawing each as it lands. */
+async function buildSet() {
+  if (!pieces || $('icon-app').hidden) return
+  const key = shapeKey(style)
+  if (key !== setBuiltFor) {
+    setPaths = []
+    setBuiltFor = key
+  }
+  const run = ++setRun
+  drawSet()
+  for (let i = 0; i < pieces.length; i++) {
+    if (setPaths[i]) continue
+    $('icon-set-stats').textContent = `Building ${i + 1} of ${pieces.length}…`
+    const built = await buildIcon(pieces[i].mask, style)
+    if (run !== setRun || !pieces) return
+    setPaths[i] = built.paths
+    drawSet()
+  }
+  $('icon-set-stats').textContent = `${pieces.length} icons · ${style.variants.length} variant${style.variants.length === 1 ? '' : 's'} × ${style.directions.length} direction${style.directions.length === 1 ? '' : 's'} each`
+}
+
+function drawSet() {
+  if (!pieces) return
+  const v = style.favicon.variant
+  $('icon-set').replaceChildren(
+    ...pieces.map((p, i) => {
+      const btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'set-tile'
+      btn.setAttribute('role', 'option')
+      btn.setAttribute('aria-selected', String(i === picked))
+      btn.title = `${style.prefix}-${p.name}`
+      const paths = setPaths[i]
+      btn.innerHTML = paths ? standaloneSvg(v, 'base', paths, style, { scheme: style.light }) : '<span class="set-wait">…</span>'
+      const num = document.createElement('span')
+      num.className = 'set-num'
+      num.textContent = String(i + 1)
+      btn.append(num)
+      btn.addEventListener('click', () => pick?.(i))
+      return btn
+    }),
+  )
+}
+
+$('dl-set').addEventListener('click', async (e) => {
+  if (!pieces) return
+  const btn = e.currentTarget as HTMLButtonElement
+  btn.disabled = true
+  try {
+    // Finish any icons still building, in this style.
+    const key = shapeKey(style)
+    if (key !== setBuiltFor) {
+      setPaths = []
+      setBuiltFor = key
+    }
+    for (let i = 0; i < pieces.length; i++) {
+      $('icon-set-stats').textContent = `Building ${i + 1} of ${pieces.length}…`
+      setPaths[i] ??= (await buildIcon(pieces[i].mask, style)).paths
+    }
+    const icons = pieces.map((p, i) => ({ name: slug(p.name), paths: setPaths[i]! }))
+    const root = `${slug(maskName)}-icon-set`
+    const files: ZipFile[] = []
+    const set = spriteSet(icons, style)
+    files.push({ path: `${root}/sprite/${root}.svg`, data: set.svg })
+    files.push({ path: `${root}/sprite/${root}.json`, data: JSON.stringify(set.manifest, null, 1) + '\n' })
+    for (const icon of icons) {
+      for (const v of style.variants) {
+        for (const d of style.directions) {
+          const file = d === 'base' ? icon.name : `${icon.name}-${d}`
+          files.push({ path: `${root}/svg/${v}/${file}.svg`, data: standaloneSvg(v, d, icon.paths, style, { scheme: null }) })
+        }
+      }
+    }
+    files.push({ path: `${root}/style.json`, data: JSON.stringify(book.named(), null, 2) + '\n' })
+    const bytes = zip(files)
+    download(new Blob([bytes.buffer as ArrayBuffer], { type: 'application/zip' }), `${root}.zip`)
+    drawSet()
+    $('icon-set-stats').textContent = `${icons.length} icons packed: one sprite, ${files.length - 3} SVGs`
+  } finally {
+    btn.disabled = false
+  }
+})
 
 fillFields(style)
 box.refresh()

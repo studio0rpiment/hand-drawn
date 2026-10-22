@@ -132,6 +132,36 @@ export interface ManifestEntry {
  * plus the matching hand-icons manifest entry.
  */
 export function sprite(name: string, p: IconPaths, s: IconStyle): { svg: string; entry: ManifestEntry } {
+  const part = spritePart(name, p, s)
+  return { svg: wrapSprite([part]), entry: part.entry }
+}
+
+/** One sprite holding a whole set of icons, with the hand-icons manifest for all of them. */
+export function spriteSet(
+  icons: { name: string; paths: IconPaths }[],
+  s: IconStyle,
+): { svg: string; manifest: { viewBox: number; stroke: number; icons: (ManifestEntry & { number: number })[] } } {
+  const parts = icons.map((i) => spritePart(i.name, i.paths, s))
+  return {
+    svg: wrapSprite(parts),
+    manifest: { viewBox: s.canvas, stroke: s.stroke, icons: parts.map((p, i) => ({ number: i + 1, ...p.entry })) },
+  }
+}
+
+interface SpritePart {
+  defs: string[]
+  symbols: string[]
+  entry: ManifestEntry
+}
+
+function wrapSprite(parts: SpritePart[]): string {
+  return (
+    '<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">' +
+    `<defs>${parts.flatMap((p) => p.defs).join('')}</defs>${parts.flatMap((p) => p.symbols).join('')}</svg>`
+  )
+}
+
+function spritePart(name: string, p: IconPaths, s: IconStyle): SpritePart {
   const S = s.canvas
   const pre = `${s.prefix}-p-${name}`
   const solid = p.solid !== p.ink
@@ -161,8 +191,5 @@ export function sprite(name: string, p: IconPaths, s: IconStyle): { svg: string;
       symbols.push(`<symbol id="${id}" viewBox="0 0 ${S} ${S}">${bg}${body}</symbol>`)
     }
   }
-  const svg =
-    '<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">' +
-    `<defs>${defs.join('')}</defs>${symbols.join('')}</svg>`
-  return { svg, entry: { name, solid, directions: [...s.directions], symbols: ids } }
+  return { defs, symbols, entry: { name, solid, directions: [...s.directions], symbols: ids } }
 }
