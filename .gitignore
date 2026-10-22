@@ -7,3 +7,4 @@ public/fonts/
 
 # pCloud's sync conflict copies ("file [conflicted].ts").
 *\[conflicted\]*
+__pycache__/
