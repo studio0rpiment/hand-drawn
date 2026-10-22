@@ -59,7 +59,22 @@ export function cellOrigin(i: number): { x: number; y: number } {
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 /** The sheet as an SVG at true size (prints 1:1 on A4). `page` is 0 or 1. */
-export function sheetSvg(page: number): string {
+/**
+ * Letters to trace, printed under the guides in the same light blue (so they
+ * drop out when the photo is read), sized so capitals reach the cap line.
+ * `squeeze` narrows a letter (0–1) that would not fit its box in that font.
+ */
+export interface TraceLetters {
+  family: string
+  /** Font size in mm. */
+  size: number
+  squeeze: (char: string) => number
+}
+
+/** The font size (mm) at which a font with this cap height (in em) fills the cap guide. */
+export const traceSize = (capHeightEm: number) => (GUIDES.baseline - GUIDES.cap) / capHeightEm
+
+export function sheetSvg(page: number, trace?: TraceLetters): string {
   const slots = SHEETS[page]
   const parts: string[] = []
   parts.push(`<rect width="${PAGE.width}" height="${PAGE.height}" fill="#fff"/>`)
@@ -80,11 +95,21 @@ export function sheetSvg(page: number): string {
     parts.push(guide(y + GUIDES.x, x, '#c6d6e5', 0.2, '1.2 0.8'))
     parts.push(guide(y + GUIDES.baseline, x, '#a9c2da', 0.3))
     parts.push(guide(y + GUIDES.descender, x, '#dbe5ee', 0.15, '0.6 0.6'))
+    if (trace) {
+      const cx = x + GRID.cellW / 2
+      const k = trace.squeeze(slot.char)
+      parts.push(
+        `<text x="${cx}" y="${y + GUIDES.baseline}" font-size="${trace.size}" text-anchor="middle" font-family="${esc(trace.family)}" fill="#c6d6e5"` +
+          (k < 1 ? ` transform="translate(${cx} 0) scale(${k.toFixed(3)} 1) translate(${-cx} 0)"` : '') +
+          `>${esc(slot.char)}</text>`,
+      )
+    }
     const label = slot.mark ? `${slot.char} ${slot.mark}` : slot.char
     parts.push(`<text x="${x + 0.8}" y="${y + 3.2}" font-size="2.6" font-family="Helvetica, Arial, sans-serif" fill="#a7b4c0">${esc(label)}</text>`)
   })
-  const note =
-    page === 0
+  const note = trace
+    ? `Hand Drawn · letter sheet ${page + 1} of 2 · trace each light letter with your marker; the light print drops out when the photo is read`
+    : page === 0
       ? 'Hand Drawn · letter sheet 1 of 2 · sit each letter on the solid line; capitals reach the upper dashed line, small letters the lower one'
       : 'Hand Drawn · letter sheet 2 of 2 · draw accent marks on their own; they are placed on letters for you'
   parts.push(`<text x="${PAGE.width / 2}" y="${PAGE.height - 6}" font-size="2.4" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" fill="#a7b4c0">${esc(note)}</text>`)

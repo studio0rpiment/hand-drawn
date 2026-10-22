@@ -11,7 +11,7 @@ import { traceKey, traceSheet } from './make'
 import { COMPOSITES, type Cmd } from './outline'
 import { readSheet, type SheetRead } from './read'
 import { sampleSheetPhoto } from './sample'
-import { SHEETS, sheetSvg } from './sheet'
+import { GRID, SHEETS, sheetSvg, traceSize, type TraceLetters } from './sheet'
 import { BUILT_IN, readFontStyle, type FontStyle } from './style'
 
 const units = (v: number) => `${v}`
@@ -109,11 +109,28 @@ function download(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000)
 }
 
+/**
+ * With "letters to trace" ticked: a plain sans in light blue in each box, for
+ * trying the whole font pipeline by tracing instead of drawing from scratch.
+ * Helvetica and Arial both have caps 0.716 em tall.
+ */
+function traceLetters(): TraceLetters | undefined {
+  if (!$<HTMLInputElement>('sheet-trace').checked) return undefined
+  const family = 'Helvetica, Arial, sans-serif'
+  const size = traceSize(0.716)
+  const ctx = document.createElement('canvas').getContext('2d')!
+  ctx.font = `100px ${family}`
+  const room = GRID.cellW - 2.5
+  return { family, size, squeeze: (c) => Math.min(1, room / ((ctx.measureText(c).width / 100) * size)) }
+}
+
+const sheetFor = (page: number) => sheetSvg(page, traceLetters())
+
 function printSheet(page: number) {
   // A hidden frame at true A4 size; the SVG is in millimetres.
   const frame = document.createElement('iframe')
   frame.style.cssText = 'position:fixed;width:0;height:0;border:0'
-  frame.srcdoc = `<!doctype html><style>@page{size:A4;margin:0}html,body{margin:0}svg{display:block}</style>${sheetSvg(page)}`
+  frame.srcdoc = `<!doctype html><style>@page{size:A4;margin:0}html,body{margin:0}svg{display:block}</style>${sheetFor(page)}`
   frame.onload = () => {
     frame.contentWindow?.print()
     setTimeout(() => frame.remove(), 1000)
@@ -124,8 +141,8 @@ function printSheet(page: number) {
 $('sheet-print-1').addEventListener('click', () => printSheet(0))
 $('sheet-print-2').addEventListener('click', () => printSheet(1))
 $('sheet-svg').addEventListener('click', () => {
-  download(new Blob([sheetSvg(0)], { type: 'image/svg+xml' }), 'letter-sheet-1.svg')
-  setTimeout(() => download(new Blob([sheetSvg(1)], { type: 'image/svg+xml' }), 'letter-sheet-2.svg'), 300)
+  download(new Blob([sheetFor(0)], { type: 'image/svg+xml' }), 'letter-sheet-1.svg')
+  setTimeout(() => download(new Blob([sheetFor(1)], { type: 'image/svg+xml' }), 'letter-sheet-2.svg'), 300)
 })
 for (const page of [0, 1]) {
   $(`sheet-sample-${page + 1}`).addEventListener('click', async () => {
@@ -272,7 +289,7 @@ $('font-css').addEventListener('click', async (e) => {
   const btn = e.currentTarget as HTMLButtonElement
   const family = $<HTMLInputElement>('font-family').value || 'My Hand'
   await navigator.clipboard.writeText(
-    `@font-face {\n  font-family: "${family}";\n  src: url("${fileName()}.otf") format("opentype");\n  font-display: swap;\n}\n`,
+    `@font-face {\n  font-family: "${family.replace(/["\\]/g, '\\$&')}";\n  src: url("${fileName()}.otf") format("opentype");\n  font-display: swap;\n}\n`,
   )
   flash(btn)
 })
