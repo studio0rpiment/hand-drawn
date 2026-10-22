@@ -1106,7 +1106,7 @@ h3 {
 
 .globe-rim {
   fill: none;
-  stroke: var(--text);
+  stroke: var(--globe-ink);
   stroke-width: 1.3;
   stroke-linecap: round;
   stroke-linejoin: round;
