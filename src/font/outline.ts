@@ -142,19 +142,39 @@ export const COMPOSITES: { char: string; base: string; mark: MarkName }[] = [
   return { char, base, mark: COMBINING[comb] }
 })
 
-/** Put an accent on a letter: above it with the style's gap, or a cedilla below, centred on the letter. */
-export function placeMark(base: Cmd[], mark: Cmd[], name: MarkName, s: FontStyle): Cmd[] {
+export interface MarkPlace {
+  /** The letter's optical centre (top band, or bottom for a cedilla); default the middle of its box. */
+  centre?: number | null
+  /** A capital: less room above it and a slightly smaller accent (Cheng). */
+  upper?: boolean
+  /** Bottom of the i's dot: a dieresis on a small letter lines up with it (Cheng). */
+  dotBottom?: number | null
+}
+
+/**
+ * Put an accent on a letter, after Cheng (Designing Type, pp. 200–211): over
+ * the letter's optical centre, an acute nudged right and a grave left so their
+ * thin ends sit over it; on capitals a narrower gap (two thirds) and a slightly
+ * smaller accent (88%, our figure); a dieresis on a small letter at the height
+ * of the i's dot; a cedilla tucked under, from the bottom's optical centre.
+ */
+export function placeMark(base: Cmd[], mark: Cmd[], name: MarkName, s: FontStyle, at: MarkPlace = {}): Cmd[] {
   const b = bbox(base)
   const m0 = bbox(mark)
   if (!b || !m0) return base
+  const k = s.marks.scale * (at.upper ? 0.88 : 1)
   const mcx = (m0.xMin + m0.xMax) / 2
-  const scaled = map(mark, (x, y) => ({ x: mcx + (x - mcx) * s.marks.scale, y: m0.yMin + (y - m0.yMin) * s.marks.scale }))
+  const scaled = map(mark, (x, y) => ({ x: mcx + (x - mcx) * k, y: m0.yMin + (y - m0.yMin) * k }))
   const m = bbox(scaled)!
-  const dx = (b.xMin + b.xMax) / 2 - (m.xMin + m.xMax) / 2
-  const dy =
-    name === 'cedilla'
-      ? Math.min(b.yMin, 0) + 20 - m.yMax // tucked just under the letter
-      : b.yMax + s.marks.gap - m.yMin
+  const width = m.xMax - m.xMin
+  const shift = name === 'acute' ? width / 3 : name === 'grave' ? -width / 3 : 0
+  const centre = at.centre ?? (b.xMin + b.xMax) / 2
+  const dx = centre + shift - (m.xMin + m.xMax) / 2
+  const gap = at.upper ? (s.marks.gap * 2) / 3 : s.marks.gap
+  let dy: number
+  if (name === 'cedilla') dy = Math.min(b.yMin, 0) + 20 - m.yMax // tucked just under the letter
+  else if (name === 'dieresis' && !at.upper && at.dotBottom != null) dy = Math.max(b.yMax + gap * 0.5, at.dotBottom) - m.yMin
+  else dy = b.yMax + gap - m.yMin
   return [...base, ...translate(scaled, dx, dy)]
 }
 

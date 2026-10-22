@@ -2,7 +2,7 @@ import { parse } from 'opentype.js'
 import { describe, expect, it } from 'vitest'
 import { ASCENDER, assemble, kerning, outlines } from '../src/font/assemble'
 import { CAP_HEIGHT, X_HEIGHT, bbox, dotless, fromTraced, placeMark, shapeGlyph, space, type Cmd } from '../src/font/outline'
-import { classifySide, overshoot, profile } from '../src/font/metrics'
+import { classifySide, opticalCentre, overshoot, profile, tracyRefs, tracyValue, TRACY_CAPS } from '../src/font/metrics'
 import type { BuiltGlyph } from '../src/font/assemble'
 import { BASELINE_PX, READ_BOX, RES, dropSpill, readSheet } from '../src/font/read'
 import { GUIDES, MARKER, MARKERS, PAGE2_FLAG, SHEETS, UNITS, cellOrigin, sheetSvg } from '../src/font/sheet'
@@ -119,9 +119,29 @@ describe('outlines', () => {
     const placed = placeMark(e, acute, 'acute', AS_DRAWN).slice(5)
     const b = bbox(placed)!
     expect(b.yMin).toBeCloseTo(X_HEIGHT + AS_DRAWN.marks.gap)
-    expect((b.xMin + b.xMax) / 2).toBeCloseTo(250)
+    // Centred, then an acute nudged right by a third of its width so its thin end sits over the centre (Cheng).
+    expect((b.xMin + b.xMax) / 2).toBeCloseTo(250 + 80 / 3)
+    const grave = bbox(placeMark(e, acute, 'grave', AS_DRAWN).slice(5))!
+    expect((grave.xMin + grave.xMax) / 2).toBeCloseTo(250 - 80 / 3)
     const ced = bbox(placeMark(e, rect(0, 0, 60, 120), 'cedilla', AS_DRAWN).slice(5))!
     expect(ced.yMax).toBeCloseTo(20)
+  })
+
+  it('gives capitals a narrower gap and a smaller accent, and lines a dieresis up with the i’s dot', () => {
+    const E = rect(100, 0, 400, 700)
+    const mark = rect(0, 900, 80, 1000)
+    const cap = bbox(placeMark(E, mark, 'acute', AS_DRAWN, { upper: true }).slice(5))!
+    expect(cap.yMin).toBeCloseTo(700 + (AS_DRAWN.marks.gap * 2) / 3)
+    expect(cap.yMax - cap.yMin).toBeCloseTo(100 * 0.88)
+    const u = rect(100, 0, 400, X_HEIGHT)
+    const dots = bbox(placeMark(u, mark, 'dieresis', AS_DRAWN, { dotBottom: X_HEIGHT + 90 }).slice(5))!
+    expect(dots.yMin).toBeCloseTo(X_HEIGHT + 90)
+  })
+
+  it('centres on where the top of a letter is, not its box', () => {
+    // A letter whose top is all at the left, like an h’s ascender.
+    const h = [...rect(0, 0, 60, 700), ...rect(0, 0, 300, 400)]
+    expect(opticalCentre(h, 'top')!).toBeLessThan(60)
   })
 
   it('leans, and bounces the same way every time', () => {
@@ -196,6 +216,19 @@ describe('type design rules (Hochuli, Cheng)', () => {
     { t: 'L', x: 210, y: 0 },
     { t: 'Z' },
   ]
+
+  it('spaces by Tracy’s method: references from the H and n counters, minimum beside A', () => {
+    const r = tracyRefs(300, 200)
+    expect(r.H).toBeCloseTo(102)
+    expect(r.nLeft).toBeCloseTo(56)
+    expect(r.nRight).toBeLessThan(r.nLeft)
+    expect(r.O).toBeLessThan(r.H)
+    expect(r.o).toBeLessThan(r.nLeft)
+    const [l, rr] = TRACY_CAPS.A
+    expect(tracyValue(l, true, r)).toBe(r.min)
+    expect(tracyValue(rr, true, r)).toBe(r.min)
+    expect(tracyValue(TRACY_CAPS.D[1], true, r)).toBe(r.O)
+  })
 
   it('tells straight, round, diagonal and open sides apart', () => {
     const side = (cmds: Cmd[], lo: number, hi: number) => {

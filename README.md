@@ -153,31 +153,41 @@ Font styles, like the others, can be saved, exported and imported:
 ### Type design rules
 
 From Jost Hochuli, *Detail in Typography*, and Karen Cheng, *Designing Type*
-(the parts of Cheng's book we could read, up to the serif capitals). Where
-the books give no number, the default is ours and the code says so.
+(read in full from a local copy). Where the books give no number, the default
+is ours and the code says so.
 
-- **Spacing by letter shape** (*Space by letter shape*): each side of each
-  letter is classed as straight, round, diagonal or open from its outline.
-  Straight sides get the most room, round 60% of it, open 30%, diagonal 20%.
-  The straight room is half the counter of your own drawn n (small letters)
-  and H (capitals). Counters set the rhythm (Hochuli); each side shape needs
-  its own sidebearing (Cheng).
-- **Kerning** (*Kern pairs automatically*): Hochuli's pairs (Av, Ta, Ve, Wo,
-  Ya, P., T, …) and every pair where a facing side is diagonal or open. Each
-  gap is brought toward the gap between two straight letters (nn, HH),
-  judged more by the upper half of the letters (we read by it, Hochuli), and
-  ink never touches. Written as GPOS kerning, which browsers and apps apply.
-- **Word space** 250 units, a quarter of the em; **line spacing** about 1.2
-  (Hochuli, after Tinker).
+- **Spacing** (*Space by letter shape*): Walter Tracy's method as Cheng sets
+  it out (pp. 220–221). The drawn H and n give the references: each H side is
+  a third of the space between its stems, the n's left 28% of its counter and
+  its right a little less, and O and o a little less than H and n. Every other
+  letter takes its sides from Tracy's table: A V W X Y T at the minimum, L as
+  H then minimum, D as H then O, c as o then a little less, and so on. Letters
+  Tracy leaves to the eye (S a g s t z f) are spaced from their measured side
+  shape. Accented letters space like their base letter.
+- **Punctuation and figures** (Cheng, pp. 224–225): comma, full stop, colon,
+  semicolon and single quotes centred in a quarter em; double quotes and ?
+  in about 40%; ! a little more than a quarter; tabular figures in an en.
+- **Kerning** (*Kern pairs automatically*): Hochuli's pairs, Cheng's table of
+  commonly kerned pairs (p. 227), and every pair where a facing side is
+  diagonal or open. Each gap is brought toward that of two straight letters
+  (nn, HH), judged more by the upper half of the letters (Hochuli), never
+  letting ink touch, and kept well under Cheng's 3000 pairs. Written as GPOS
+  kerning, which browsers and apps apply.
+- **Accents** (Cheng, pp. 200–211): centred on the letter's optical centre,
+  not its box; an acute nudged right and a grave left so the thin end sits
+  over it; on capitals a narrower gap (two thirds) and a slightly smaller
+  accent; a dieresis on small letters at the height of the i's dot; a
+  cedilla hung from the optical centre of the letter's bottom.
+- **Word space** 250 units, a quarter of the em (Hochuli; Cheng: slightly
+  more than a quarter); **line spacing** about 1.2 (Hochuli, after Tinker).
 - **Overshoot**: O C G Q S, o c e s and 0 3 6 8 pass the guide lines by
   1.5% of the cap height if drawn without it (Cheng: about 2% for an O;
   Hochuli: circles must pass the lines to look as tall as squares).
 - **Even out weight** (off by default, on in *Tidy*): a letter more than 12%
   heavier or lighter than its group's median stroke is thickened or thinned
-  toward it (Cheng: one family, one weight; caps and small letters are
-  measured separately).
-- **Tabular figures** (option): every figure the same width (Hochuli).
-- **Room before : ; ? !** (option, usual in French).
+  toward it (Cheng: one family, one weight).
+- **Room before : ; ? !** (option): moves them right, away from the letter
+  before (Cheng; usual in French).
 - **Checks**: the Font tab lists what the books would point out, such as a
   group drawn consistently taller than its guide, letters that stray from
   their group, overshoots added, weights evened out, and slant past 10°

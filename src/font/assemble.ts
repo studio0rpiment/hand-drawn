@@ -3,15 +3,24 @@
 import { Font, Glyph, Path } from 'opentype.js'
 import { addKerning, type KernPair } from './kern'
 import {
+  CHENG_PAIRS,
+  FIGURE_WIDTH,
   HOCHULI_PAIRS,
-  SIDE_SHARE,
+  PUNCTUATION_WIDTH,
+  TRACY_CAPS,
+  TRACY_LOWER,
   classifySide,
+  codeForSide,
   counterWidth,
   kernValue,
+  opticalCentre,
   overshoot,
   pairGap,
   profile,
+  tracyRefs,
+  tracyValue,
   type Side,
+  type TracyRefs,
 } from './metrics'
 import {
   CAP_HEIGHT,
@@ -79,11 +88,20 @@ export function outlines(drawn: Map<string, Cmd[]>, s: FontStyle): Map<string, {
   }
   const i = drawn.get('i')
   if (i && !drawn.has('ı')) out.set('ı', { cmds: dotless(i), composite: true })
+  // The bottom of the i's dot: what's left of the i once the dotless stem is taken away.
+  const stem = out.get('ı')?.cmds
+  const dotBottom = i && stem ? bbox(i.slice(stem.length))?.yMin ?? null : null
   for (const c of COMPOSITES) {
     if (drawn.has(c.char)) continue
     const base = c.base === 'i' ? out.get('ı')?.cmds : drawn.get(c.base)
     const mark = drawn.get(markChar(c.mark))
-    if (base && mark) out.set(c.char, { cmds: placeMark(base, mark, c.mark, s), composite: true })
+    if (!base || !mark) continue
+    const at = {
+      centre: opticalCentre(base, c.mark === 'cedilla' ? 'bottom' : 'top'),
+      upper: c.base !== c.base.toLowerCase(),
+      dotBottom,
+    }
+    out.set(c.char, { cmds: placeMark(base, mark, c.mark, s, at), composite: true })
   }
   return out
 }
@@ -182,16 +200,15 @@ export function assemble(
     const p = profile(o.cmds, lo, hi, 24)
     sides.set(c, { left: classifySide(p.left, -1, hi - lo), right: classifySide(p.right, 1, hi - lo) })
   }
-  // A straight side's room: half the counter of the drawn n (lowercase) and H (capitals);
-  // the style's "space beside letters" scales it (40 = as measured).
+  // Tracy's method (Cheng): reference sidebearings from the drawn H and n;
+  // the style's "space beside letters" scales them (40 = as measured).
   const scale = s.spacing.side / 40
-  const fromCounter = (c: string, mid: number, share: number) => {
+  const counter = (c: string, mid: number) => {
     const o = base.get(c)
-    const w = o ? counterWidth(o.cmds, mid) : null
-    return w ? Math.max(15, Math.min(160, w * share)) : 50
+    return o ? counterWidth(o.cmds, mid) : null
   }
-  const lowerRoom = fromCounter('n', X_HEIGHT / 2, 0.5) * scale
-  const upperRoom = fromCounter('H', CAP_HEIGHT / 2, 0.55) * scale
+  const measured = tracyRefs(counter('H', CAP_HEIGHT / 2), counter('n', X_HEIGHT / 2))
+  const refs: TracyRefs = Object.fromEntries(Object.entries(measured).map(([k, v]) => [k, v * scale])) as unknown as TracyRefs
 
   const shaped = new Map<string, { cmds: Cmd[]; composite: boolean }>()
   for (const [char, o] of base) shaped.set(char, { cmds: shapeGlyph(o.cmds, char, s), composite: o.composite })
@@ -213,17 +230,26 @@ export function assemble(
       sp = space(o.cmds, s, mono)
     } else {
       const b = bbox(o.cmds)!
-      const room = isUpper(char) || isFigure(char) ? upperRoom : lowerRoom
-      const side = sides.get(char) ?? { left: 'straight', right: 'straight' }
-      // Punctuation and symbols: a steady share of the lowercase room.
+      const ink = b.xMax - b.xMin
+      const centred = (w: number) => ({ cmds: translate(o.cmds, (w - ink) / 2 - b.xMin, 0), advance: Math.round(w + s.spacing.tracking) })
+      // Accented letters space like their base letter.
+      const key = [...char.normalize('NFD')][0].replace('ı', 'i')
+      const upper = isUpper(key) || isFigure(key)
+      const side = sides.get(char) ?? { left: 'straight' as Side, right: 'straight' as Side }
+      const codes = (upper ? TRACY_CAPS : TRACY_LOWER)[key] ?? [codeForSide(side.left, upper), codeForSide(side.right, upper)]
       const letter = /[\p{L}\p{N}]/u.test(char)
-      let left = letter ? room * SIDE_SHARE[side.left] : lowerRoom * 0.7
-      const right = letter ? room * SIDE_SHARE[side.right] : lowerRoom * 0.7
-      if (s.spacing.punctuation && ':;?!'.includes(char)) left += lowerRoom * 0.6
+      // Symbols without a set width: the n's room either side.
+      let left = letter ? tracyValue(codes[0], upper, refs) : refs.nLeft * 0.8
+      const right = letter ? tracyValue(codes[1], upper, refs) : refs.nLeft * 0.8
+      // Some typographers move ! ? : ; to the right, away from the letter before (Cheng, Hochuli).
+      if (s.spacing.punctuation && ':;?!'.includes(char)) left += refs.nLeft * 0.6
+      const fixed = PUNCTUATION_WIDTH[char]
       if (s.figures === 'tabular' && isFigure(char)) {
-        // Every figure the same width, centred, so columns line up.
-        const w = figureWidth + 2 * upperRoom
-        sp = { cmds: translate(o.cmds, (w - (b.xMax - b.xMin)) / 2 - b.xMin, 0), advance: Math.round(w + s.spacing.tracking) }
+        // Figures centred in an en, or wider if a figure needs it, so columns line up (Cheng).
+        sp = centred(Math.max(FIGURE_WIDTH, figureWidth + 2 * refs.min))
+      } else if (fixed && !s.spacing.punctuation) {
+        // Punctuation centred in its customary width (Cheng, pp. 224–225).
+        sp = centred(Math.max(fixed, ink + 2 * refs.min))
       } else {
         sp = {
           cmds: translate(o.cmds, left - b.xMin, 0),
@@ -302,7 +328,7 @@ export function kerning(glyphs: BuiltGlyph[]): KernPair[] {
       return [g.char, { left: classifySide(p.left, -1, hi - lo), right: classifySide(p.right, 1, hi - lo) }] as const
     }),
   )
-  const candidates = new Set<string>(HOCHULI_PAIRS)
+  const candidates = new Set<string>([...HOCHULI_PAIRS, ...CHENG_PAIRS])
   const letters = glyphs.map((g) => g.char).filter((c) => /[A-Za-z0-9.,]/.test(c))
   for (const a of letters) {
     for (const b of letters) {
