@@ -6,6 +6,7 @@ import { setMask, showIcon } from './icon/ui'
 import { samplePhoto } from './sample'
 import { decorate, favicon, flash, handSliders, installSprite, reserveHoverWidths } from './ui/hand'
 import { privacyNotice, privacySettings } from './ui/privacy'
+import { globePair } from './ui/sphere'
 import { setArt, showTexture } from './texture/ui'
 import { complexity } from './svgpath'
 import { toSvg, trace, type TraceResult } from './trace'
@@ -446,7 +447,8 @@ $('dl-png').addEventListener('click', () => {
 
 showOutputs()
 
-// Every view's controls exist by now: draw the sliders and add the icons.
+// Related pairs become one globe; then every remaining slider is drawn and the icons added.
+globePair({ input: sliders.flatten, hint: '← →' }, { input: sliders.level, hint: '↑ ↓' }, 'Even out light and ink cut-off')
 handSliders()
 decorate()
 reserveHoverWidths()
