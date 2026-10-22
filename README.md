@@ -165,13 +165,13 @@ its own way (left–right, top–bottom, both or neither, picked from the
 slider's name), so the bends differ down the page and stay put between visits. The real slider
 sits invisibly on top, so keyboard, screen readers and touch work as usual.
 
-Text is set lowercase in NaN Success Titling, a variable font with one axis,
-width: it rests at its most compressed (100) and the letters of buttons, tabs,
-labels and headings widen to 150 under the pointer. Buttons reserve their
-widened size up front, so hovering never reflows the page. The font is
-licensed and not in this repository: put `NaNSuccessTitling-Variable.woff2`
-in `public/fonts/` (git-ignored) to use it; without it the app falls back to
-the system sans-serif, still lowercase.
+Text is set lowercase in NaN Gothic UI Mono ExtraLight, the typeface of the
+musician-site template's admin; letters of buttons, tabs, labels and headings
+spread a little under the pointer. Buttons reserve their spread width up
+front, so hovering never reflows the page. The font is licensed and not in
+this repository: put `NaNGothicUIMono-ExtraLight.woff2`, `-Regular.woff2` and
+`-Bold.woff2` in `public/fonts/` (git-ignored) to use it; without them the app
+falls back to the system monospace, still lowercase.
 hand-icons is installed straight from its GitHub repository.
 
 ## Licence note

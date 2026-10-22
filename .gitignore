@@ -4,3 +4,6 @@ dist/
 
 # Licensed fonts (e.g. NaN Success Titling) stay on this machine: their licences forbid redistributing them.
 public/fonts/
+
+# pCloud's sync conflict copies ("file [conflicted].ts").
+*\[conflicted\]*

@@ -1,8 +1,27 @@
-/* NaN Success Titling (Jérémy Landes, Studio Triple / NaN), licensed: kept in
-   public/fonts on this machine only. Its one axis is width, 100 (compressed) to 1000. */
+/* NaN Gothic UI Mono (Luke Prowse / NaN), as in the musician-site template's
+   admin. Licensed: kept in public/fonts on this machine only. Three static
+   weights; the thin one (ExtraLight) is the app's text. */
 @font-face {
-  font-family: 'NaN Success Titling';
-  src: url('/fonts/NaNSuccessTitling-Variable.woff2') format('woff2');
+  font-family: 'NaN Gothic UI Mono';
+  src: url('/fonts/NaNGothicUIMono-ExtraLight.woff2') format('woff2');
+  font-weight: 200 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NaN Gothic UI Mono';
+  src: url('/fonts/NaNGothicUIMono-Regular.woff2') format('woff2');
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NaN Gothic UI Mono';
+  src: url('/fonts/NaNGothicUIMono-Bold.woff2') format('woff2');
+  font-weight: 600 900;
+  font-style: normal;
   font-display: swap;
 }
 
@@ -21,13 +40,12 @@
   /* The part of a slider past its value. */
   --rest: #4a4640;
   --radius: 0.5rem;
-  /* Resting and hovered widths on the font's wdth axis. */
-  --narrow: 'wdth' 100;
-  --wide: 'wdth' 150;
-  font-family: 'NaN Success Titling', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  font-variation-settings: var(--narrow);
-  /* A compressed titling face reads small; everything in rem scales with this. */
-  font-size: 112.5%;
+  /* Letter spacing at rest and under the pointer: the type opens up on hover. */
+  --track: 0em;
+  --track-wide: 0.08em;
+  font-family: 'NaN Gothic UI Mono', ui-monospace, monospace;
+  font-weight: 200;
+  font-size: 100%;
   text-transform: lowercase;
 }
 
@@ -37,23 +55,36 @@ select {
   text-transform: inherit;
 }
 
-/* What people type keeps its own case and a plain face. */
+/* What people type keeps its own capitals. */
 input[type='text'],
 textarea {
   text-transform: none;
-  font-variation-settings: normal;
-  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: inherit;
 }
 
-/* Letters widen a little under the pointer. */
+/* On green the thinnest weight is too faint; the title gets Regular rather than the browser's Bold. */
+.button.primary,
+h1 {
+  font-weight: 400;
+}
+
+/* A choice stays on one line with its button. */
+.toggle label,
+.check {
+  white-space: nowrap;
+}
+
+/* Letters spread a little under the pointer. `.is-wide` is the same look,
+   used to measure how much room it needs (see reserveHoverWidths). */
 :where(.button, .tab, label, legend, h1, h2, h3, figcaption, select) {
-  transition: font-variation-settings 0.25s ease;
+  letter-spacing: var(--track);
+  transition: letter-spacing 0.25s ease;
 }
 
-/* :is (not :where) so this outweighs the buttons' `font: inherit`, which resets the width. */
 :is(.button, .tab, label, legend, h1, h2, h3, figcaption, select):hover,
-:is(.button, .tab):focus-visible {
-  font-variation-settings: var(--wide);
+:is(.button, .tab):focus-visible,
+.is-wide {
+  letter-spacing: var(--track-wide);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -92,7 +123,7 @@ h1 {
 
 h2 {
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.04em;
   color: var(--quiet);
   margin: 0 0 0.5rem;
@@ -192,7 +223,7 @@ fieldset {
 }
 
 legend {
-  font-weight: 600;
+  font-weight: 400;
   font-size: 0.875rem;
   padding: 0 0.25rem;
 }
@@ -363,7 +394,8 @@ input[type='color'] {
 
 .toggle {
   display: flex;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
   font-size: 0.8125rem;
 }
 
@@ -492,6 +524,7 @@ input[type='color'] {
 
 .tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.25rem;
   margin-right: auto;
   margin-left: 1rem;
@@ -571,7 +604,7 @@ select {
 
 h3 {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 400;
   margin: 0 0 0.5rem;
   opacity: 0.7;
 }
