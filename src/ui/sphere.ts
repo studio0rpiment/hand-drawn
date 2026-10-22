@@ -113,10 +113,11 @@ let count = 0
 
 /**
  * Replace two range inputs (each inside its own `label.slider`) with one
- * globe, placed in `into`. The y value shows at the globe's top right, the
- * x value at its bottom right, and both names in a list underneath.
+ * globe, placed in `into` under a `title` saying what the pair is for. The y
+ * value shows at the globe's top right, the x value at its bottom right, and
+ * both names in a list underneath.
  */
-export function globePair(x: GlobeAxis, y: GlobeAxis, into: HTMLElement) {
+export function globePair(title: string, x: GlobeAxis, y: GlobeAxis, into: HTMLElement) {
   const seed = 31 + ++count * 7
   const xLabel = x.input.closest('label')!
   const yLabel = y.input.closest('label')!
@@ -131,7 +132,7 @@ export function globePair(x: GlobeAxis, y: GlobeAxis, into: HTMLElement) {
   svg.setAttribute('class', 'globe')
   svg.setAttribute('tabindex', '0')
   svg.setAttribute('role', 'group')
-  svg.setAttribute('aria-label', `${xName} and ${yName}. Left and right change ${xName}, up and down change ${yName}.`)
+  svg.setAttribute('aria-label', `${title}: ${xName} and ${yName}. Left and right change ${xName}, up and down change ${yName}.`)
   svg.innerHTML = `
     <circle r="1" class="globe-body"/>
     <path class="globe-grid"/>
@@ -152,7 +153,10 @@ export function globePair(x: GlobeAxis, y: GlobeAxis, into: HTMLElement) {
   const ball = document.createElement('div')
   ball.className = 'globe-ball'
   ball.append(svg, yOut, xOut)
-  block.append(ball, names)
+  const heading = document.createElement('h3')
+  heading.className = 'globe-title'
+  heading.textContent = title
+  block.append(heading, ball, names)
   into.append(block)
 
   // The inputs stay, labelled and working, out of sight and out of the tab order.

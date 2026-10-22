@@ -606,10 +606,10 @@ showOutputs()
 
 // Related pairs become one globe; then every remaining slider is drawn and the icons added.
 const arc = $('globe-arc')
-globePair({ input: sliders.flatten }, { input: sliders.level, whole: true }, arc)
-globePair({ input: sliders.weight, whole: true }, { input: sliders.speck, whole: true }, arc)
-globePair({ input: sliders.pad, whole: true }, { input: sliders.trim }, arc)
-globePair({ input: sliders.smooth }, { input: sliders.simplify }, arc)
+globePair('Light', { input: sliders.flatten }, { input: sliders.level, whole: true }, arc)
+globePair('Ink', { input: sliders.weight, whole: true }, { input: sliders.speck, whole: true }, arc)
+globePair('Frame', { input: sliders.pad, whole: true }, { input: sliders.trim }, arc)
+globePair('Curves', { input: sliders.smooth }, { input: sliders.simplify }, arc)
 
 // The photo inset: small in the corner, enlarged to place the sheet corners.
 $('inset-size').addEventListener('click', (e) => {

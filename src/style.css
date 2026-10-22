@@ -62,9 +62,8 @@ textarea {
   font-family: inherit;
 }
 
-/* On green the thinnest weight is too faint; the title gets Regular rather than the browser's Bold. */
-.button.primary,
-h1 {
+/* On the accent the thinnest weight is too faint. */
+.button.primary {
   font-weight: 400;
 }
 
@@ -115,8 +114,11 @@ body {
   background: var(--surface);
 }
 
+/* The wordmark: bold, in the accent. */
 h1 {
   font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--accent);
   margin: 0;
   letter-spacing: 0.01em;
 }
@@ -1041,6 +1043,14 @@ h3 {
   gap: 0.4rem;
   width: 100%;
   max-width: 10rem;
+}
+
+/* What the pair is for, above the ball. */
+.globe-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--text);
 }
 
 .globe-ball {
