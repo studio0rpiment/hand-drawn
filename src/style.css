@@ -179,14 +179,15 @@ h2 {
 
 main {
   display: grid;
-  grid-template-columns: 18rem 1fr 1fr;
+  grid-template-columns: 18rem minmax(0, 1fr);
   gap: 1rem;
   padding: 1rem;
   align-items: start;
 }
 
 main.empty .controls,
-main.empty .pane {
+main.empty .pane,
+main.empty .workspace {
   display: none;
 }
 
@@ -519,24 +520,12 @@ input[type='color'] {
   display: none;
 }
 
-@media (max-width: 75rem) {
-  main {
-    grid-template-columns: 18rem 1fr;
-  }
-  main .pane:last-child {
-    grid-column: 2;
-  }
-  .pane {
-    position: static;
-  }
-}
-
 @media (max-width: 48rem) {
   main {
     grid-template-columns: 1fr;
   }
-  main .pane:last-child {
-    grid-column: auto;
+  .pane {
+    position: static;
   }
   .controls {
     order: 3;
@@ -949,7 +938,88 @@ h3 {
   color: #ff2fb4;
 }
 
-/* ---- Globe: two related settings on one sphere ---- */
+/* ---- Logo workspace: the result large, the photo small in its corner, globes in an arc ---- */
+
+.workspace {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.result-wrap {
+  position: relative;
+}
+
+.result-wrap #result-stage {
+  min-height: 16rem;
+}
+
+/* Leave room for the globes below without scrolling. */
+.result-wrap #result-stage canvas,
+.result-wrap #vector-view svg {
+  max-height: 52vh;
+}
+
+.photo-inset {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 2;
+  width: min(30%, 13rem);
+  display: grid;
+  gap: 0.3rem;
+  transition: width 0.25s ease;
+}
+
+.photo-inset.big {
+  width: min(92%, 40rem);
+}
+
+.photo-inset .stage {
+  border-color: var(--accent);
+  box-shadow: 0 0.4rem 1.4rem rgb(0 0 0 / 0.55);
+}
+
+.inset-size {
+  justify-self: start;
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.375rem;
+  background: var(--surface);
+  color: var(--quiet);
+  cursor: pointer;
+}
+
+.inset-size:hover {
+  color: var(--accent);
+}
+
+/* Two by two when narrow; when all four fit in a row, they sit on a gentle
+   arc under the image: the outer ones higher, the inner ones lower. */
+.globe-arc {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-items: center;
+  gap: 1.25rem 0.5rem;
+  padding: 0.5rem 0 1rem;
+}
+
+@container (min-width: 40rem) {
+  .globe-arc {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding-bottom: 3rem;
+  }
+
+  .globe-arc > .globe-pair:nth-child(2),
+  .globe-arc > .globe-pair:nth-child(3) {
+    translate: 0 2rem;
+  }
+}
+
+/* ---- Globe: two related settings on one ball ---- */
 
 .visually-hidden {
   position: absolute;
@@ -961,23 +1031,23 @@ h3 {
 }
 
 .globe-pair {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.9rem;
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 10rem;
 }
 
-/* Beside the globe when there's room, below it when there isn't. */
-.globe-pair .globe-legend {
-  flex: 1 1 10rem;
-  min-width: 10rem;
+.globe-ball {
+  position: relative;
+  width: min(7.5rem, 70%);
+  aspect-ratio: 1;
 }
 
 .globe {
-  flex: none;
-  width: 9rem;
-  height: 9rem;
+  display: block;
+  width: 100%;
+  height: 100%;
   cursor: grab;
   touch-action: none;
   overflow: visible;
@@ -988,48 +1058,40 @@ h3 {
 }
 
 .globe:focus-visible {
-  outline: 1px dashed var(--accent);
-  outline-offset: 0.3rem;
-  border-radius: 50%;
+  outline: none;
 }
 
-/* A lit ball: brightest up and to the left, falling off to the rim. */
-.globe-lit {
-  stop-color: #3e3b33;
+.globe:focus-visible .globe-rim {
+  stroke: var(--accent);
 }
 
-.globe-mid {
-  stop-color: #1f1e1b;
-}
-
-.globe-dark {
-  stop-color: #0a0a09;
+.globe-body {
+  fill: var(--surface);
 }
 
 .globe-grid,
-.globe-track,
 .globe-rim {
   fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 
+/* Hand-drawn meridians and parallels, on the ball, rolling with it. */
 .globe-grid {
-  stroke: var(--rest);
-  stroke-width: 0.6;
-  opacity: 0.7;
-}
-
-/* The meridian and parallel through the handle: one line per value. */
-.globe-track {
-  stroke: var(--accent);
+  stroke: #8f877c;
   stroke-width: 1;
-  stroke-dasharray: 3 3;
-  opacity: 0.6;
+  opacity: 0.75;
 }
 
 .globe-rim {
-  stroke: var(--line);
-  stroke-width: 1;
+  stroke: var(--text);
+  stroke-width: 1.3;
+}
+
+.globe-rim-2 {
+  stroke-width: 0.8;
+  opacity: 0.45;
 }
 
 .globe-handle {
@@ -1038,30 +1100,41 @@ h3 {
 }
 
 .globe-handle use {
-  transform: scale(1.3);
+  transform: scale(1.6);
   transform-box: fill-box;
   transform-origin: center;
 }
 
-.globe-legend {
-  display: grid;
-  gap: 0.6rem;
+/* The values in the corners: y at the top right, x at the bottom right. */
+.globe-val {
+  position: absolute;
+  right: -1rem;
   font-size: 0.8125rem;
-}
-
-.globe-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-
-.globe-row output {
   color: var(--accent);
-  margin-left: auto;
+  pointer-events: none;
 }
 
-.globe-hint {
-  color: var(--quiet);
-  font-size: 0.75rem;
+.globe-val-y {
+  top: -0.2rem;
 }
+
+.globe-val-x {
+  bottom: -0.2rem;
+}
+
+.globe-names {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.1rem;
+  font-size: 0.75rem;
+  color: var(--quiet);
+  text-align: left;
+  justify-self: stretch;
+}
+
+.globe-names span {
+  color: var(--text);
+}
+

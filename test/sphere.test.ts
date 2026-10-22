@@ -1,30 +1,27 @@
 import { describe, expect, it } from 'vitest'
-import { project, unproject } from '../src/ui/sphere'
+import { markAt, rotate, toAngle, toFrac } from '../src/ui/sphere'
 
 describe('globe', () => {
-  it('reads back the values it draws, anywhere on the reachable cap', () => {
-    for (const px of [0, 0.1, 0.35, 0.5, 0.9, 1]) {
-      for (const py of [0, 0.25, 0.5, 0.77, 1]) {
-        const p = project(px, py)
-        const back = unproject(p.x, p.y)
-        expect(back.px).toBeCloseTo(px, 6)
-        expect(back.py).toBeCloseTo(py, 6)
-      }
-    }
+  it('maps values to roll angles and back, continuously', () => {
+    for (const f of [0, 0.013, 0.35, 0.5, 0.777, 1]) expect(toFrac(toAngle(f))).toBeCloseTo(f, 9)
+    expect(toAngle(0.5)).toBe(0)
   })
 
-  it('puts the middle values at the centre, facing the viewer', () => {
-    const p = project(0.5, 0.5)
-    expect([p.x, p.y, p.z]).toEqual([0, 0, 1])
+  it('faces the viewer at rest, and rolls right and up for positive angles', () => {
+    expect(markAt(0, 0)).toEqual([0, 0, 1])
+    expect(markAt(0.3, 0)[0]).toBeGreaterThan(0)
+    expect(markAt(0, 0.3)[1]).toBeGreaterThan(0)
   })
 
-  it('foreshortens towards the rim', () => {
-    expect(project(0.95, 0.5).z).toBeLessThan(project(0.6, 0.5).z)
-    expect(project(1, 1).z).toBeGreaterThan(0)
+  it('keeps the mark in sight even at both extremes', () => {
+    for (const fx of [0, 1]) for (const fy of [0, 1]) expect(markAt(toAngle(fx), toAngle(fy))[2]).toBeGreaterThan(0.1)
   })
 
-  it('clamps points past the reachable edge to the nearest value', () => {
-    expect(unproject(1.5, 0)).toEqual({ px: 1, py: 0.5 })
-    expect(unproject(0, -2)).toEqual({ px: 0.5, py: 0 })
+  it('rolls the whole ball rigidly (lengths and angles kept)', () => {
+    const a = rotate([0.3, -0.5, 0.81], 0.7, -0.4)
+    const b = rotate([0, 1, 0], 0.7, -0.4)
+    expect(Math.hypot(...a)).toBeCloseTo(Math.hypot(0.3, -0.5, 0.81), 9)
+    const dot = (p: number[], q: number[]) => p[0] * q[0] + p[1] * q[1] + p[2] * q[2]
+    expect(dot(a, b)).toBeCloseTo(dot([0.3, -0.5, 0.81], [0, 1, 0]), 9)
   })
 })

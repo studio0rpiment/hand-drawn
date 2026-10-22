@@ -102,15 +102,7 @@
         </fieldset>
       </aside>
 
-      <section class="pane" aria-label="Photo">
-        <h2>Photo</h2>
-        <div class="stage" id="photo-stage">
-          <canvas id="photo"></canvas>
-          <svg id="handles" aria-label="Sheet corners"></svg>
-        </div>
-      </section>
-
-      <section class="pane" aria-label="Result">
+      <section class="workspace" aria-label="Result">
         <div class="pane-head">
           <h2>Result</h2>
           <div class="toggle" role="radiogroup" aria-label="Show">
@@ -119,11 +111,22 @@
             <label><input type="radio" name="view" value="flat" /> Straightened</label>
           </div>
         </div>
-        <div class="stage checker" id="result-stage">
-          <canvas id="ink-view" hidden></canvas>
-          <canvas id="flat-view" hidden></canvas>
-          <div id="vector-view"></div>
+        <div class="result-wrap">
+          <div class="stage checker" id="result-stage">
+            <canvas id="ink-view" hidden></canvas>
+            <canvas id="flat-view" hidden></canvas>
+            <div id="vector-view"></div>
+          </div>
+          <!-- The original photo, small in the corner; enlarge it to place the sheet corners. -->
+          <div class="photo-inset" id="photo-inset">
+            <div class="stage" id="photo-stage">
+              <canvas id="photo"></canvas>
+              <svg id="handles" aria-label="Sheet corners"></svg>
+            </div>
+            <button id="inset-size" class="inset-size" type="button" aria-pressed="false">Enlarge photo</button>
+          </div>
         </div>
+        <div class="globe-arc" id="globe-arc" aria-label="Settings in pairs"></div>
       </section>
     </main>
 
