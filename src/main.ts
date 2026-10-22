@@ -1,5 +1,5 @@
 import { cropMask, despeckle, flattenLight, inkBox, lineWeight, threshold, trimEdges } from './clean'
-import { otsu, toGray, type GrayImage, type Mask, type Quad, type RGBAImage } from './image'
+import { otsu, shrinkGray, toGray, type GrayImage, type Mask, type Quad, type RGBAImage } from './image'
 import { findPaper, fullFrame, quadSize, warp } from './paper'
 import { setPage, showFont, useLoader } from './font/ui'
 import { setMask, showIcon } from './icon/ui'
@@ -248,36 +248,65 @@ function straighten() {
 let flattenedFor = -1
 let flattened: GrayImage | null = null
 
+// While a globe rolls, the drawing is worked out on a half-size copy so it can
+// keep up; when the globe comes to rest, a full-size pass follows.
+const PREVIEW = 2
+let previewGray: GrayImage | null = null
+let previewFor = -1
+let previewFlat: GrayImage | null = null
+
 function makeInk() {
   if (!state.flat) return
   if (!state.gray) {
     state.gray = toGray(state.flat)
     flattenedFor = -1
+    previewGray = null
+    previewFor = -1
   }
+  const rolling = document.documentElement.dataset.rolling === '1'
   const strength = Number(sliders.flatten.value)
-  if (flattenedFor !== strength || !flattened) {
-    flattened = flattenLight(state.gray, strength)
-    flattenedFor = strength
+  let base: GrayImage
+  // Pixel-based settings scale with the working size.
+  let k = 1
+  if (rolling) {
+    previewGray ??= shrinkGray(state.gray, PREVIEW)
+    if (previewFor !== strength || !previewFlat) {
+      previewFlat = flattenLight(previewGray, strength)
+      previewFor = strength
+    }
+    base = previewFlat
+    k = PREVIEW
+  } else {
+    if (flattenedFor !== strength || !flattened) {
+      flattened = flattenLight(state.gray, strength)
+      flattenedFor = strength
+    }
+    base = flattened
   }
-  if (levelAuto.checked) sliders.level.value = String(otsu(flattened))
-  let mask = threshold(flattened, Number(sliders.level.value))
+  if (levelAuto.checked) sliders.level.value = String(otsu(base))
+  let mask = threshold(base, Number(sliders.level.value))
   mask = trimEdges(mask, Number(sliders.trim.value))
   // Specks go before the weight change, so thickening never grows them past the limit.
-  mask = despeckle(mask, Number(sliders.speck.value))
-  mask = lineWeight(mask, Number(sliders.weight.value))
-  const box = inkBox(mask, Number(sliders.pad.value))
+  mask = despeckle(mask, Number(sliders.speck.value) / (k * k))
+  mask = lineWeight(mask, Math.round(Number(sliders.weight.value) / k))
+  const box = inkBox(mask, Math.round(Number(sliders.pad.value) / k))
   state.mask = box ? cropMask(mask, box) : null
-  setMask(state.mask, state.name)
-  // The Font view reads the whole straightened page, not the cropped drawing.
-  setPage(flattened)
-  // Textures keep the photo's own tones, so they get the light-evened grey too.
-  setArt(box && state.mask ? { gray: cropMask(flattened, box), mask: state.mask } : null, state.name)
-  $<HTMLButtonElement>('icon-tab').disabled = !state.mask
-  $<HTMLButtonElement>('texture-tab').disabled = !state.mask
+  if (!rolling) {
+    setMask(state.mask, state.name)
+    // The Font view reads the whole straightened page, not the cropped drawing.
+    setPage(base)
+    // Textures keep the photo's own tones, so they get the light-evened grey too.
+    setArt(box && state.mask ? { gray: cropMask(base, box), mask: state.mask } : null, state.name)
+    $<HTMLButtonElement>('icon-tab').disabled = !state.mask
+    $<HTMLButtonElement>('texture-tab').disabled = !state.mask
+  }
   showOutputs()
   drawInk()
   traceSoon()
 }
+
+// A globe came to rest: redo the drawing at full size.
+addEventListener('globe-rest', () => schedule(makeInk))
 
 function drawInk() {
   const m = state.mask
@@ -316,11 +345,14 @@ function maskImage(m: Mask): ImageData {
   return img
 }
 
-let traceTimer = 0
-let traceRun = 0
+// Trace as often as tracing allows, so the drawing follows a globe while it
+// rolls: start at once, and if anything changes mid-trace, run once more with
+// the latest settings when it finishes.
+let tracing = false
+let traceAgain = false
 function traceSoon() {
-  clearTimeout(traceTimer)
-  traceTimer = window.setTimeout(runTrace, 200)
+  if (tracing) traceAgain = true
+  else void runTrace()
 }
 
 async function runTrace() {
@@ -331,15 +363,21 @@ async function runTrace() {
     stats.textContent = 'No ink found. Try a higher ink cut-off.'
     return
   }
-  const run = ++traceRun
-  const result = await trace(m, {
-    ignore: 2,
-    smoothness: Number(sliders.smooth.value),
-    simplify: Number(sliders.simplify.value),
-  })
-  if (run !== traceRun) return
-  state.traced = result
-  drawVector()
+  tracing = true
+  try {
+    state.traced = await trace(m, {
+      ignore: 2,
+      smoothness: Number(sliders.smooth.value),
+      simplify: Number(sliders.simplify.value),
+    })
+    drawVector()
+  } finally {
+    tracing = false
+  }
+  if (traceAgain) {
+    traceAgain = false
+    void runTrace()
+  }
 }
 
 function svgText() {

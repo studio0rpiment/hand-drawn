@@ -249,11 +249,20 @@ export function globePair(x: GlobeAxis, y: GlobeAxis, into: HTMLElement) {
       } else {
         frame = 0
         send(true)
+        rest()
       }
     }
   })()
   const animate = () => {
     if (!frame) frame = requestAnimationFrame(tick)
+  }
+
+  // While rolling, the page may work on quicker previews (see main.ts); say when it stops.
+  const rolling = () => (document.documentElement.dataset.rolling = '1')
+  const rest = () => {
+    if (document.documentElement.dataset.rolling !== '1') return
+    delete document.documentElement.dataset.rolling
+    dispatchEvent(new Event('globe-rest'))
   }
 
   // Rolling under the pointer: the surface follows the drag, one radius of drag per radian.
@@ -267,6 +276,7 @@ export function globePair(x: GlobeAxis, y: GlobeAxis, into: HTMLElement) {
     vLon = vLat = 0
     drag = { x: e.clientX, y: e.clientY, t: e.timeStamp }
     block.classList.add('dragging')
+    rolling()
   })
   svg.addEventListener('pointermove', (e) => {
     if (!drag) return
@@ -289,8 +299,25 @@ export function globePair(x: GlobeAxis, y: GlobeAxis, into: HTMLElement) {
     if (e.timeStamp - drag.t > 80) vLon = vLat = 0
     drag = null
     block.classList.remove('dragging')
+    if (!vLon && !vLat) {
+      // Let go without a throw: at rest now, no frames needed.
+      send(true)
+      rest()
+      return
+    }
     animate()
+    // Momentum fades within a second; if no frames run (a background tab), still come to rest.
+    clearTimeout(restTimer)
+    restTimer = window.setTimeout(() => {
+      if (document.documentElement.dataset.rolling !== '1') return
+      cancelAnimationFrame(frame)
+      frame = 0
+      vLon = vLat = 0
+      send(true)
+      rest()
+    }, 1500)
   }
+  let restTimer = 0
   svg.addEventListener('pointerup', release)
   svg.addEventListener('pointercancel', release)
 

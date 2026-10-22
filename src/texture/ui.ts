@@ -87,6 +87,7 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 const book = new StyleBook<TextureStyle>({ noun: 'texture', key: 'sketch-to-mark.texture-styles', builtIn: BUILT_IN, read: readTextureStyle })
 let style = book.current
 
+let rawArt: Art | null = null
 let art: Art | null = null
 let artName = 'drawing'
 let print: Print | null = null
@@ -118,7 +119,8 @@ function renderSoon() {
 }
 
 function render() {
-  if (!art || $('texture-app').hidden) return
+  if (!rawArt || $('texture-app').hidden) return
+  art ??= resizeArt(rawArt)
   const t0 = performance.now()
   const key = printKey(style)
   if (!print || printedFor !== key) {
@@ -178,7 +180,9 @@ $('texture-css').addEventListener('click', async (e) => {
 
 /** Called with each new drawing from the Logo view: the light-evened photo and the ink, cropped alike. */
 export function setArt(next: Art | null, name: string) {
-  art = next ? resizeArt(next) : null
+  // Resized only when the Texture view draws, not on every change made in the Logo view.
+  rawArt = next
+  art = null
   artName = name
   print = null
   renderSoon()

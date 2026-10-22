@@ -43,7 +43,8 @@ export function toGray(img: RGBAImage): GrayImage {
 /** Otsu's threshold: the gray level that best splits the histogram in two. */
 export function otsu(gray: GrayImage): number {
   const hist = new Float64Array(256)
-  for (const v of gray.data) hist[v]++
+  const d = gray.data
+  for (let i = 0; i < d.length; i++) hist[d[i]]++
   const total = gray.data.length
   let sumAll = 0
   for (let i = 0; i < 256; i++) sumAll += i * hist[i]

@@ -1057,8 +1057,18 @@ h3 {
   cursor: grabbing;
 }
 
+/* No browser focus box or tap highlight when the ball is touched; keyboard focus shows on the rim instead. */
+.globe,
+.globe:focus,
 .globe:focus-visible {
   outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.globe-pair {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .globe:focus-visible .globe-rim {

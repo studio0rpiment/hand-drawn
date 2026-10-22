@@ -100,31 +100,31 @@ function removeSmall(data: Uint8Array, w: number, h: number, value: number, minA
   const out = data.slice()
   const seen = new Uint8Array(data.length)
   const stack = new Int32Array(data.length)
-  const region: number[] = []
+  // Only regions smaller than minArea are ever flipped, so record at most that many pixels;
+  // a big region (the open paper) is still walked, to mark it seen, but not stored.
+  const region = new Int32Array(Math.max(1, minArea))
   for (let start = 0; start < data.length; start++) {
     if (data[start] !== value || seen[start]) continue
     let top = 0
-    region.length = 0
+    let area = 0
     let touchesEdge = false
     stack[top++] = start
     seen[start] = 1
     while (top > 0) {
       const p = stack[--top]
-      region.push(p)
+      if (area < minArea) region[area] = p
+      area++
       const x = p % w
       const y = (p - x) / w
       if (x === 0 || y === 0 || x === w - 1 || y === h - 1) touchesEdge = true
-      const around = [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, y > 0 ? p - w : -1, y < h - 1 ? p + w : -1]
-      for (const q of around) {
-        if (q >= 0 && data[q] === value && !seen[q]) {
-          seen[q] = 1
-          stack[top++] = q
-        }
-      }
+      if (x > 0 && data[p - 1] === value && !seen[p - 1]) (seen[p - 1] = 1), (stack[top++] = p - 1)
+      if (x < w - 1 && data[p + 1] === value && !seen[p + 1]) (seen[p + 1] = 1), (stack[top++] = p + 1)
+      if (y > 0 && data[p - w] === value && !seen[p - w]) (seen[p - w] = 1), (stack[top++] = p - w)
+      if (y < h - 1 && data[p + w] === value && !seen[p + w]) (seen[p + w] = 1), (stack[top++] = p + w)
     }
     // The open paper around the drawing touches the edge; never fill it in.
-    if (region.length < minArea && !(value === 0 && touchesEdge)) {
-      for (const p of region) out[p] = 1 - value
+    if (area < minArea && !(value === 0 && touchesEdge)) {
+      for (let i = 0; i < area; i++) out[region[i]] = 1 - value
     }
   }
   return out
