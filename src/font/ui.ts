@@ -134,6 +134,9 @@ for (const page of [0, 1]) {
   })
 }
 
+/** The last photo opened wasn't a letter sheet (its corner squares weren't found). */
+let notSheet = false
+
 function showSheetState() {
   const lines = reads.map((r, page) => {
     if (!r) return `Page ${page + 1}: not read yet. Photograph it and open the photo.`
@@ -141,6 +144,7 @@ function showSheetState() {
     const markers = r.markers === 4 ? 'all corner markers found' : `${r.markers} of 4 corner markers found; boxes may be off`
     return `Page ${page + 1}: ${drawn === undefined ? '…' : `${drawn} of ${SHEETS[page].length} boxes drawn`} · ${markers}`
   })
+  if (notSheet) lines.unshift('The last photo isn’t a letter sheet: its corner squares weren’t found.')
   $('sheet-state').innerHTML = lines.map((l) => `<span>${l}</span>`).join('')
 }
 
@@ -159,8 +163,12 @@ async function build() {
   if (pendingPage && pendingPage !== lastPage) {
     lastPage = pendingPage
     const r = readSheet(pendingPage)
-    reads[r.page] = r
-    delete traced[r.page]
+    // Only a photo of the letter sheet: at least three of its corner squares must be there.
+    if (r.markers >= 3) {
+      reads[r.page] = r
+      delete traced[r.page]
+      notSheet = false
+    } else notSheet = true
   }
   const mine = ++run
   const key = traceKey(style)
