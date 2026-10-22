@@ -35,6 +35,7 @@ declare module 'opentype.js' {
     descender: number
     names: Record<string, Record<string, Record<string, string>>>
     charToGlyph(c: string): Glyph
+    getKerningValue(left: Glyph, right: Glyph): number
     toArrayBuffer(): ArrayBuffer
   }
   export function parse(buffer: ArrayBuffer): Font

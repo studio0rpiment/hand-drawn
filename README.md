@@ -144,11 +144,44 @@ Font styles, like the others, can be saved, exported and imported:
 
 | | Settings |
 | --- | --- |
-| Ink | cut-off (or automatic), speck size, weight (thicker / thinner strokes) |
+| Ink | cut-off (or automatic), speck size, weight (thicker / thinner strokes), even out weight |
 | Outline | smoothness, curve simplification |
-| Spacing | space beside letters, tracking, word space, monospaced, extra line spacing |
-| Character | slant, bounce (random rise per letter), wobble (random turn), variation |
+| Spacing | space by letter shape, automatic kerning, space beside letters, tracking, word space, monospaced, tabular figures, room before : ; ? !, extra line spacing |
+| Character | slant, bounce (random rise per letter), wobble (random turn), variation, overshoot of round letters |
 | Accents | gap above letters, accent size |
+
+### Type design rules
+
+From Jost Hochuli, *Detail in Typography*, and Karen Cheng, *Designing Type*
+(the parts of Cheng's book we could read, up to the serif capitals). Where
+the books give no number, the default is ours and the code says so.
+
+- **Spacing by letter shape** (*Space by letter shape*): each side of each
+  letter is classed as straight, round, diagonal or open from its outline.
+  Straight sides get the most room, round 60% of it, open 30%, diagonal 20%.
+  The straight room is half the counter of your own drawn n (small letters)
+  and H (capitals). Counters set the rhythm (Hochuli); each side shape needs
+  its own sidebearing (Cheng).
+- **Kerning** (*Kern pairs automatically*): Hochuli's pairs (Av, Ta, Ve, Wo,
+  Ya, P., T, …) and every pair where a facing side is diagonal or open. Each
+  gap is brought toward the gap between two straight letters (nn, HH),
+  judged more by the upper half of the letters (we read by it, Hochuli), and
+  ink never touches. Written as GPOS kerning, which browsers and apps apply.
+- **Word space** 250 units, a quarter of the em; **line spacing** about 1.2
+  (Hochuli, after Tinker).
+- **Overshoot**: O C G Q S, o c e s and 0 3 6 8 pass the guide lines by
+  1.5% of the cap height if drawn without it (Cheng: about 2% for an O;
+  Hochuli: circles must pass the lines to look as tall as squares).
+- **Even out weight** (off by default, on in *Tidy*): a letter more than 12%
+  heavier or lighter than its group's median stroke is thickened or thinned
+  toward it (Cheng: one family, one weight; caps and small letters are
+  measured separately).
+- **Tabular figures** (option): every figure the same width (Hochuli).
+- **Room before : ; ? !** (option, usual in French).
+- **Checks**: the Font tab lists what the books would point out, such as a
+  group drawn consistently taller than its guide, letters that stray from
+  their group, overshoots added, weights evened out, and slant past 10°
+  (Hochuli warns against electronic slanting).
 
 Built-ins: As drawn, Tidy, Bouncy, Bold marker, Slanted, Typewriter. The style
 name becomes the font's style name, so one drawing can give a family (*My Hand

@@ -1,7 +1,9 @@
 import { parse } from 'opentype.js'
 import { describe, expect, it } from 'vitest'
-import { ASCENDER, assemble, outlines } from '../src/font/assemble'
+import { ASCENDER, assemble, kerning, outlines } from '../src/font/assemble'
 import { CAP_HEIGHT, X_HEIGHT, bbox, dotless, fromTraced, placeMark, shapeGlyph, space, type Cmd } from '../src/font/outline'
+import { classifySide, overshoot, profile } from '../src/font/metrics'
+import type { BuiltGlyph } from '../src/font/assemble'
 import { BASELINE_PX, READ_BOX, RES, dropSpill, readSheet } from '../src/font/read'
 import { GUIDES, MARKER, MARKERS, PAGE2_FLAG, SHEETS, UNITS, cellOrigin, sheetSvg } from '../src/font/sheet'
 import { AS_DRAWN, BUILT_IN, readFontStyle } from '../src/font/style'
@@ -158,7 +160,8 @@ describe('font', () => {
   })
 
   it('writes an OpenType font that reads back', () => {
-    const built = assemble(drawn, AS_DRAWN, { family: 'Test Hand' })
+    // Even spacing here, so the widths are easy to predict.
+    const built = assemble(drawn, { ...AS_DRAWN, spacing: { ...AS_DRAWN.spacing, optical: false } }, { family: 'Test Hand' })
     const f = parse(built.buffer)
     expect(f.unitsPerEm).toBe(1000)
     expect(f.ascender).toBe(ASCENDER + AS_DRAWN.lineGap / 2)
@@ -170,5 +173,76 @@ describe('font', () => {
 
   it('reads every built-in style back unchanged', () => {
     for (const s of BUILT_IN) expect(readFontStyle(JSON.parse(JSON.stringify(s)))).toEqual(s)
+  })
+})
+
+describe('type design rules (Hochuli, Cheng)', () => {
+  const ring = (cx: number, cy: number, r: number, steps = 48): Cmd[] => {
+    const out: Cmd[] = []
+    for (let i = 0; i <= steps; i++) {
+      const a = (i / steps) * Math.PI * 2
+      out.push({ t: i ? 'L' : 'M', x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r })
+    }
+    out.push({ t: 'Z' })
+    return out
+  }
+  const V: Cmd[] = [
+    { t: 'M', x: 0, y: 700 },
+    { t: 'L', x: 80, y: 700 },
+    { t: 'L', x: 250, y: 60 },
+    { t: 'L', x: 420, y: 700 },
+    { t: 'L', x: 500, y: 700 },
+    { t: 'L', x: 290, y: 0 },
+    { t: 'L', x: 210, y: 0 },
+    { t: 'Z' },
+  ]
+
+  it('tells straight, round, diagonal and open sides apart', () => {
+    const side = (cmds: Cmd[], lo: number, hi: number) => {
+      const p = profile(cmds, lo, hi, 24)
+      return [classifySide(p.left, -1, hi - lo), classifySide(p.right, 1, hi - lo)]
+    }
+    expect(side(rect(0, 0, 80, 700), 0, 700)).toEqual(['straight', 'straight'])
+    expect(side(ring(300, 350, 350), 0, 700)).toEqual(['round', 'round'])
+    expect(side(V, 0, 700)).toEqual(['diagonal', 'diagonal'])
+    // An L: straight stem, open right side above the foot.
+    const L = [...rect(0, 0, 80, 700), ...rect(0, 0, 400, 80)]
+    expect(side(L, 0, 700)[1]).toBe('open')
+  })
+
+  it('makes a round letter overshoot its lines, and leaves an odd-sized one alone', () => {
+    const o = overshoot(ring(300, 350, 350), 0, 700, 10.5)
+    expect(o.changed).toBe(true)
+    const b = bbox(o.cmds)!
+    expect(b.yMax).toBeCloseTo(710.5, 0)
+    expect(b.yMin).toBeCloseTo(-10.5, 0)
+    expect(overshoot(ring(300, 200, 150), 0, 700, 10.5).changed).toBe(false)
+  })
+
+  it('kerns an open pair tighter, and never lets ink touch', () => {
+    const glyphs = [
+      { char: 'H', cmds: [...rect(40, 0, 100, 700), ...rect(360, 0, 460, 700)], advance: 500, composite: false },
+      { char: 'V', cmds: V.map((c) => (c.t === 'Z' ? c : { ...c, x: c.x + 20 })), advance: 540, composite: false },
+      { char: 'A', cmds: V.map((c) => (c.t === 'Z' ? c : { ...c, x: c.x + 20, y: 700 - c.y })), advance: 540, composite: false },
+    ] as BuiltGlyph[]
+    const pairs = kerning(glyphs)
+    const av = pairs.find((p) => p.left === 4 && p.right === 3)
+    expect(av?.value).toBeLessThan(0)
+    // Applied, the closest approach of A and V is still at least 20 units.
+    expect(pairs.every((p) => Math.abs(p.value) <= 120)).toBe(true)
+  })
+
+  it('writes the kerning into the font file, where it reads back', () => {
+    const font = { ...AS_DRAWN, overshoot: false }
+    const withV = new Map<string, Cmd[]>([
+      ['n', [...rect(0, 0, 60, X_HEIGHT), ...rect(260, 0, 320, X_HEIGHT), ...rect(0, X_HEIGHT - 60, 320, X_HEIGHT)]],
+      ['H', [...rect(0, 0, 80, 700), ...rect(400, 0, 480, 700), ...rect(0, 320, 480, 380)]],
+    ])
+    withV.set('A', V.map((c) => (c.t === 'Z' ? c : { ...c, y: 700 - c.y })))
+    withV.set('V', V)
+    const built = assemble(withV, font, { family: 'Test Hand' })
+    expect(built.kerns).toBeGreaterThan(0)
+    const f = parse(built.buffer)
+    expect(f.getKerningValue(f.charToGlyph('A'), f.charToGlyph('V'))).toBeLessThan(0)
   })
 })

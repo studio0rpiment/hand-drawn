@@ -10,6 +10,8 @@ export interface FontStyle {
     speck: number
     /** Thicken (+) or thin (−) every stroke, in pixels at 10 px/mm. */
     weight: number
+    /** Even out letters much heavier or lighter than the rest of their group (Cheng: one family, one weight). */
+    balance: boolean
   }
   trace: { smoothness: number; simplify: number }
   spacing: {
@@ -21,7 +23,17 @@ export interface FontStyle {
     space: number
     /** Every glyph the same width, letters centred. */
     mono: boolean
+    /** Space each side by its shape, from the drawn n and H (Hochuli, Cheng); off: the same room beside every letter. */
+    optical: boolean
+    /** Extra room before : ; ? ! (Hochuli; usual in French). */
+    punctuation: boolean
   }
+  /** Kern the pairs whose shapes leave holes or collide. */
+  kerning: boolean
+  /** Round letters pass the guide lines a little, so they look as tall as flat ones (Cheng, Hochuli). */
+  overshoot: boolean
+  /** Figures: as drawn, or all the same width so columns line up (Hochuli). */
+  figures: 'proportional' | 'tabular'
   shape: {
     /** Lean in degrees, positive to the right. */
     slant: number
@@ -43,21 +55,32 @@ export interface FontStyle {
 
 export const AS_DRAWN: FontStyle = {
   name: 'As drawn',
-  ink: { cutoff: 0, speck: 30, weight: 0 },
+  ink: { cutoff: 0, speck: 30, weight: 0, balance: false },
   trace: { smoothness: 1, simplify: 0.2 },
-  spacing: { side: 40, tracking: 0, space: 300, mono: false },
+  // Word space a quarter of the em (Hochuli).
+  spacing: { side: 40, tracking: 0, space: 250, mono: false, optical: true, punctuation: false },
+  kerning: true,
+  overshoot: true,
+  figures: 'proportional',
   shape: { slant: 0, bounce: 0, wobble: 0, seed: 1 },
   marks: { gap: 40, scale: 1 },
-  lineGap: 100,
+  // Line height about 1.2 (Hochuli, after Tinker).
+  lineGap: 200,
 }
 
 export const BUILT_IN: FontStyle[] = [
   AS_DRAWN,
-  { ...AS_DRAWN, name: 'Tidy', trace: { smoothness: 1.2, simplify: 0.6 }, spacing: { ...AS_DRAWN.spacing, side: 50 } },
+  {
+    ...AS_DRAWN,
+    name: 'Tidy',
+    ink: { ...AS_DRAWN.ink, balance: true },
+    trace: { smoothness: 1.2, simplify: 0.6 },
+    spacing: { ...AS_DRAWN.spacing, side: 50 },
+  },
   { ...AS_DRAWN, name: 'Bouncy', shape: { slant: 0, bounce: 45, wobble: 4, seed: 3 } },
   { ...AS_DRAWN, name: 'Bold marker', ink: { ...AS_DRAWN.ink, weight: 3 }, spacing: { ...AS_DRAWN.spacing, side: 50 } },
   { ...AS_DRAWN, name: 'Slanted', shape: { ...AS_DRAWN.shape, slant: 12 } },
-  { ...AS_DRAWN, name: 'Typewriter', spacing: { ...AS_DRAWN.spacing, mono: true, side: 30 } },
+  { ...AS_DRAWN, name: 'Typewriter', spacing: { ...AS_DRAWN.spacing, mono: true, side: 30, optical: false }, kerning: false, figures: 'tabular' },
 ]
 
 export function readFontStyle(raw: unknown, base: FontStyle = AS_DRAWN): FontStyle {
@@ -78,6 +101,7 @@ export function readFontStyle(raw: unknown, base: FontStyle = AS_DRAWN): FontSty
       cutoff: int(i.cutoff, base.ink.cutoff, 0, 254),
       speck: int(i.speck, base.ink.speck, 0, 2000),
       weight: int(i.weight, base.ink.weight, -4, 6),
+      balance: bool(i.balance, base.ink.balance),
     },
     trace: {
       smoothness: num(t.smoothness, base.trace.smoothness, 0, 1.34),
@@ -88,7 +112,12 @@ export function readFontStyle(raw: unknown, base: FontStyle = AS_DRAWN): FontSty
       tracking: int(sp.tracking, base.spacing.tracking, -200, 400),
       space: int(sp.space, base.spacing.space, 50, 1000),
       mono: bool(sp.mono, base.spacing.mono),
+      optical: bool(sp.optical, base.spacing.optical),
+      punctuation: bool(sp.punctuation, base.spacing.punctuation),
     },
+    kerning: bool(r.kerning, base.kerning),
+    overshoot: bool(r.overshoot, base.overshoot),
+    figures: r.figures === 'tabular' || r.figures === 'proportional' ? r.figures : base.figures,
     shape: {
       slant: num(sh.slant, base.shape.slant, -30, 30),
       bounce: int(sh.bounce, base.shape.bounce, 0, 200),

@@ -216,10 +216,15 @@ main:not(.empty) .intro {
 
 .controls {
   display: grid;
+  /* One column as wide as the panel, not as wide as its widest row. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
+  min-width: 0;
 }
 
 fieldset {
+  /* Browsers size fieldsets to their widest content; let them fit their column instead. */
+  min-width: 0;
   margin: 0;
   padding: 0.75rem;
   border: 1px solid var(--line);
@@ -1213,4 +1218,19 @@ h3 {
 
 .set-wait {
   color: #a49b92;
+}
+
+.font-checks {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  color: var(--quiet);
+}
+
+.check-chars {
+  color: var(--accent);
+  text-transform: none;
+  letter-spacing: 0.08em;
 }

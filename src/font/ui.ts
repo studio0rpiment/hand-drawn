@@ -6,7 +6,7 @@ import { slug } from '../icon/style'
 import { buildFields, fixed, plain, type FieldGroup } from '../ui/fields'
 import { StyleBook, styleBox } from '../ui/styles'
 import { flash } from '../ui/hand'
-import { assemble, ASCENDER, DESCENDER, type BuiltGlyph } from './assemble'
+import { assemble, ASCENDER, DESCENDER, type BuiltGlyph, type Check } from './assemble'
 import { traceKey, traceSheet } from './make'
 import { COMPOSITES, type Cmd } from './outline'
 import { readSheet, type SheetRead } from './read'
@@ -25,28 +25,36 @@ const GROUPS: FieldGroup[] = [
       { kind: 'range', path: 'ink.cutoff', label: 'Ink cut-off (0 = automatic)', min: 0, max: 250, step: 1, fmt: (v) => (v ? `${v}` : 'auto') },
       { kind: 'range', path: 'ink.speck', label: 'Remove specks under', min: 0, max: 400, step: 5, fmt: plain },
       { kind: 'range', path: 'ink.weight', label: 'Weight', min: -4, max: 6, step: 1, fmt: (v) => (v > 0 ? `+${v}` : `${v}`) },
+      { kind: 'check', path: 'ink.balance', label: 'Even out letters heavier or lighter than the rest' },
       { kind: 'range', path: 'trace.smoothness', label: 'Smoothness', min: 0, max: 1.33, step: 0.01, fmt: fixed(2) },
       { kind: 'range', path: 'trace.simplify', label: 'Simplify curves', min: 0, max: 1.5, step: 0.05, fmt: fixed(2) },
     ],
   },
   {
     legend: 'Spacing',
+    hint: 'After Hochuli and Cheng: straight sides get the most room, round less, diagonal and open least; word space about a quarter of the em; lines about 1.2.',
     fields: [
+      { kind: 'check', path: 'spacing.optical', label: 'Space by letter shape' },
+      { kind: 'check', path: 'kerning', label: 'Kern pairs automatically' },
       { kind: 'range', path: 'spacing.side', label: 'Space beside letters', min: -50, max: 200, step: 5, fmt: units },
       { kind: 'range', path: 'spacing.tracking', label: 'Tracking', min: -150, max: 300, step: 5, fmt: units },
       { kind: 'range', path: 'spacing.space', label: 'Word space', min: 100, max: 800, step: 10, fmt: units },
       { kind: 'check', path: 'spacing.mono', label: 'Monospaced' },
+      { kind: 'select', path: 'figures', label: 'Figures', options: ['proportional', 'tabular'] },
+      { kind: 'check', path: 'spacing.punctuation', label: 'Room before : ; ? !' },
       { kind: 'range', path: 'lineGap', label: 'Extra line spacing', min: 0, max: 600, step: 10, fmt: units },
     ],
   },
   {
     legend: 'Character',
+    hint: 'Hochuli: slanting past about 10° distorts letters.',
     presets: [{ label: 'Shuffle', path: 'shape.seed', value: () => Math.floor(Math.random() * 1000000), icon: 'scatter-fill' }],
     fields: [
       { kind: 'range', path: 'shape.slant', label: 'Slant', min: -20, max: 30, step: 1, fmt: degrees },
       { kind: 'range', path: 'shape.bounce', label: 'Bounce', min: 0, max: 150, step: 5, fmt: units },
       { kind: 'range', path: 'shape.wobble', label: 'Wobble', min: 0, max: 15, step: 0.5, fmt: degrees },
       { kind: 'range', path: 'shape.seed', label: 'Variation', min: 0, max: 999, step: 1, fmt: plain },
+      { kind: 'check', path: 'overshoot', label: 'Round letters overshoot the lines' },
     ],
   },
   {
@@ -69,10 +77,10 @@ let style = book.current
 
 /** One read per sheet page; a new photo of a page replaces that page. */
 const reads: (SheetRead | null)[] = [null, null]
-const traced: { key: string; outlines: Map<string, Cmd[]> }[] = []
+const traced: { key: string; outlines: Map<string, Cmd[]>; balanced: string[] }[] = []
 let lastPage: GrayImage | null = null
 let pendingPage: GrayImage | null = null
-let built: { buffer: ArrayBuffer; glyphs: BuiltGlyph[] } | null = null
+let built: ReturnType<typeof assemble> | null = null
 let load: ((src: CanvasImageSource, w: number, h: number, name: string) => void) | null = null
 
 const box = styleBox(book, () => applied())
@@ -160,9 +168,9 @@ async function build() {
     const r = reads[page]
     if (!r || traced[page]?.key === key) continue
     $('font-stats').textContent = `Tracing page ${page + 1}…`
-    const outlines = await traceSheet(r, style)
+    const result = await traceSheet(r, style)
     if (mine !== run) return
-    traced[page] = { key, outlines }
+    traced[page] = { key, ...result }
   }
   showSheetState()
   const drawn = new Map<string, Cmd[]>()
@@ -176,8 +184,10 @@ async function build() {
   await preview(built.buffer)
   if (mine !== run) return
   renderGlyphs(built.glyphs, drawn)
+  renderChecks(built.checks, traced.flatMap((t) => t?.balanced ?? []))
   const made = built.glyphs.filter((g) => g.composite).length
-  $('font-stats').textContent = `${built.glyphs.length} characters (${made} made from accents) · ${(built.buffer.byteLength / 1024).toFixed(0)} KB`
+  const kerned = built.kerns ? ` · ${built.kerns} kerning pairs` : ''
+  $('font-stats').textContent = `${built.glyphs.length} characters (${made} made from accents)${kerned} · ${(built.buffer.byteLength / 1024).toFixed(0)} KB`
 }
 
 let face: FontFace | null = null
@@ -192,6 +202,26 @@ async function preview(buffer: ArrayBuffer) {
   if (face) document.fonts.delete(face)
   face = next
   $('font-sample').style.fontFamily = `"${name}", system-ui`
+}
+
+/** What the books would point out about the drawn letters, and what was adjusted. */
+function renderChecks(checks: Check[], balanced: string[]) {
+  const items = [...checks]
+  if (balanced.length) {
+    items.push({ kind: 'weight', chars: balanced.join(' '), note: 'Heavier or lighter than the rest of their group; evened out (Cheng: one family, one weight).' })
+  }
+  const list = $('font-checks')
+  list.replaceChildren(
+    ...items.map((c) => {
+      const li = document.createElement('li')
+      const chars = document.createElement('span')
+      chars.className = 'check-chars'
+      chars.textContent = c.chars
+      li.append(chars, ` ${c.note}`)
+      return li
+    }),
+  )
+  $('font-checks-pane').hidden = items.length === 0
 }
 
 function glyphSvg(g: BuiltGlyph): string {
