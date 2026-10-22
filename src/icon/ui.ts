@@ -70,6 +70,7 @@ const GROUPS: FieldGroup[] = [
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T
 
+// Storage keys keep the project's first name, sketch-to-mark, so styles saved before the rename still load.
 const book = new StyleBook<IconStyle>({ noun: 'icon', key: 'sketch-to-mark.styles', builtIn: BUILT_IN, read: readStyle })
 let style = book.current
 

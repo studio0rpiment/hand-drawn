@@ -85,8 +85,8 @@ export function sheetSvg(page: number): string {
   })
   const note =
     page === 0
-      ? 'Sketch to Mark · letter sheet 1 of 2 · sit each letter on the solid line; capitals reach the upper dashed line, small letters the lower one'
-      : 'Sketch to Mark · letter sheet 2 of 2 · draw accent marks on their own; they are placed on letters for you'
+      ? 'Hand Drawn · letter sheet 1 of 2 · sit each letter on the solid line; capitals reach the upper dashed line, small letters the lower one'
+      : 'Hand Drawn · letter sheet 2 of 2 · draw accent marks on their own; they are placed on letters for you'
   parts.push(`<text x="${PAGE.width / 2}" y="${PAGE.height - 6}" font-size="2.4" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" fill="#a7b4c0">${esc(note)}</text>`)
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${PAGE.width}mm" height="${PAGE.height}mm" viewBox="0 0 ${PAGE.width} ${PAGE.height}">${parts.join('')}</svg>`
 }

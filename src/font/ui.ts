@@ -63,6 +63,7 @@ const SAMPLE_TEXT =
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T
 
+// Storage keys keep the project's first name, sketch-to-mark, so styles saved before the rename still load.
 const book = new StyleBook<FontStyle>({ noun: 'font', key: 'sketch-to-mark.font-styles', builtIn: BUILT_IN, read: readFontStyle })
 let style = book.current
 

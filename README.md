@@ -1,6 +1,7 @@
-# Sketch to Mark
+# Hand Drawn
 
-Turn a phone photo of a hand drawing into clean design files. Runs entirely in
+Turn your sketches into SVG icons, logos, textures, and typefaces. Take a
+phone photo of a drawing and get clean design files back. Runs entirely in
 the browser; nothing is uploaded.
 
 ```bash

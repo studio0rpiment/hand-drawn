@@ -121,6 +121,12 @@ h1 {
   letter-spacing: 0.01em;
 }
 
+.tagline {
+  margin: 0.1rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--quiet);
+}
+
 h2 {
   font-size: 0.8125rem;
   font-weight: 400;
