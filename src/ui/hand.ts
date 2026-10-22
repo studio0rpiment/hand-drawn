@@ -36,14 +36,18 @@ export interface Flip {
   y: boolean
 }
 
-/** A drawn line from the sprite, turned horizontal and cropped to its ink, as an SVG that stretches. */
-function drawnLine(pathId: string, cls: string, flip: Flip): SVGSVGElement {
+/**
+ * A drawn line from the sprite, cropped to its ink, as an SVG that stretches:
+ * laid along the slider (a quarter turn) for the track, or upright for the handle.
+ */
+function drawnLine(pathId: string, cls: string, flip: Flip, upright = false): SVGSVGElement {
   const svg = document.createElementNS(SVG_NS, 'svg')
   svg.setAttribute('class', cls)
   svg.setAttribute('aria-hidden', 'true')
   svg.setAttribute('preserveAspectRatio', 'none')
-  const box = lineBox(pathId)
-  const [bx, by, bw, bh] = box.split(' ').map(Number)
+  const b = inkBox(pathId)
+  // rotate(-90) maps (x, y) to (y, −x).
+  const [bx, by, bw, bh] = upright ? [b.x, b.y, b.width, b.height] : [b.y, -(b.x + b.width), b.height, b.width]
   // Mirrors happen inside the drawing, about the middle of its box, so the
   // slider's fill still runs left to right.
   const mirror = [
@@ -53,9 +57,9 @@ function drawnLine(pathId: string, cls: string, flip: Flip): SVGSVGElement {
   const use = document.createElementNS(SVG_NS, 'use')
   use.setAttribute('href', `#${pathId}`)
   // The lines are drawn upright; a quarter turn lays them along the slider.
-  use.setAttribute('transform', `${mirror} rotate(-90)`.trim())
+  use.setAttribute('transform', `${mirror}${upright ? '' : ' rotate(-90)'}`.trim())
   svg.append(use)
-  svg.setAttribute('viewBox', box)
+  svg.setAttribute('viewBox', `${bx} ${by} ${bw} ${bh}`)
   return svg
 }
 
@@ -68,10 +72,10 @@ export function flipFor(name: string): Flip {
   return { x: (h & 1) === 1, y: (h & 2) === 2 }
 }
 
-const boxes = new Map<string, string>()
+const boxes = new Map<string, DOMRect>()
 
-/** The turned line's bounding box, measured once in an off-screen SVG. */
-function lineBox(pathId: string): string {
+/** A sprite path's bounding box as drawn, measured once in an off-screen SVG. */
+function inkBox(pathId: string): DOMRect {
   let box = boxes.get(pathId)
   if (box) return box
   const probe = document.createElementNS(SVG_NS, 'svg')
@@ -80,17 +84,16 @@ function lineBox(pathId: string): string {
   use.setAttribute('href', `#${pathId}`)
   probe.append(use)
   document.body.append(probe)
-  const b = use.getBBox()
+  box = use.getBBox()
   probe.remove()
-  // rotate(-90) maps (x, y) to (y, −x).
-  box = `${b.y} ${-(b.x + b.width)} ${b.height} ${b.width}`
   boxes.set(pathId, box)
   return box
 }
 
 /**
- * Draw a range input with Kevin's single marker line: bright up to the value,
- * muted after it, and the blob as the handle. The real input
+ * Draw a range input with Kevin's single marker line (hand-icons 11,
+ * line-solid): bright up to the value, muted after it, and the same line
+ * standing upright as the handle. The real input
  * stays on top, invisible, so keyboard, screen readers and pointer all work.
  */
 export function handSlider(input: HTMLInputElement) {
@@ -104,11 +107,7 @@ export function handSlider(input: HTMLInputElement) {
   const flip = flipFor(input.id || input.name || input.closest('label')?.textContent || '')
   const rest = drawnLine('hi-p-line-solid', 'hr-line hr-rest', flip)
   const done = drawnLine('hi-p-line-solid', 'hr-line hr-done', flip)
-  const thumb = document.createElementNS(SVG_NS, 'svg')
-  thumb.setAttribute('class', 'hr-thumb')
-  thumb.setAttribute('aria-hidden', 'true')
-  thumb.setAttribute('viewBox', '0 0 1024 1024')
-  thumb.innerHTML = '<use href="#hi-blob-fill"/>'
+  const thumb = drawnLine('hi-p-line-solid', 'hr-thumb', flip, true)
   input.replaceWith(wrap)
   wrap.append(rest, done, thumb, input)
 
@@ -136,11 +135,11 @@ export function handSliders(root: ParentNode = document) {
   root.querySelectorAll<HTMLInputElement>('input[type="range"]').forEach(handSlider)
 }
 
-/** The tab icon: the star scribble in grasshopper green. */
+/** The tab icon: the star scribble in the accent (Pantone 115 C). */
 export function favicon() {
   const d = document.getElementById('hi-p-star-scribble-solid')?.getAttribute('d')
   if (!d) return
-  const svg = `<svg xmlns="${SVG_NS}" viewBox="0 0 1024 1024"><path d="${d}" fill="#869c42"/></svg>`
+  const svg = `<svg xmlns="${SVG_NS}" viewBox="0 0 1024 1024"><path d="${d}" fill="#fdda24"/></svg>`
   const link = document.createElement('link')
   link.rel = 'icon'
   link.type = 'image/svg+xml'

@@ -33,10 +33,10 @@
   --text: #efe9e2;
   --quiet: #a49b92;
   --line: #2f2c28;
-  /* A brighter grasshopper (same hue as the Orpiment grasshopper, #869c42). Text on it is dark. */
-  --accent: #a6c83c;
+  /* Pantone 115 C. Text on it is dark. */
+  --accent: #fdda24;
   --accent-text: #121210;
-  --handle: #a6c83c;
+  --handle: #fdda24;
   /* The part of a slider past its value. */
   --rest: #4a4640;
   --radius: 0.5rem;
@@ -266,7 +266,9 @@ input[type='range'] {
 /* Sliders: Kevin's single marker line, bright up to the value and muted after, the blob as handle. */
 .hand-range {
   --p: 0;
-  --knob: 1.35rem;
+  /* The handle: Kevin's line stood upright, a short thick marker stroke. */
+  --knob: 0.4rem;
+  --knob-height: 1.5rem;
   position: relative;
   display: block;
   height: 1.6rem;
@@ -300,25 +302,23 @@ input[type='range'] {
   top: 50%;
   left: calc(var(--p) * (100% - var(--knob)));
   width: var(--knob);
-  height: var(--knob);
-  /* The sprite paints in currentColor; a halo in the page colour lifts the blob off the green line. */
-  color: var(--accent);
-  stroke: var(--surface);
-  stroke-width: 70;
-  paint-order: stroke;
-  /* A little turn as it moves, like a blob of ink rolling along. */
-  transform: translateY(-50%) rotate(calc(var(--p) * 140deg));
+  height: var(--knob-height);
+  fill: var(--accent);
+  /* A thin halo in the page colour lifts the stroke off the bright track. */
+  filter: drop-shadow(0.08rem 0 0 var(--surface)) drop-shadow(-0.08rem 0 0 var(--surface));
+  /* Tilts a little as it travels, like a pen leaning into the stroke. */
+  transform: translateY(-50%) rotate(calc((var(--p) - 0.5) * 14deg));
   transition: scale 0.12s;
   pointer-events: none;
 }
 
 .hand-range:hover .hr-thumb {
-  scale: 1.15;
+  scale: 1.12;
 }
 
 .hand-range:focus-within .hr-thumb {
-  scale: 1.25;
-  filter: drop-shadow(0 0 0.15rem var(--accent));
+  scale: 1.2;
+  filter: drop-shadow(0.08rem 0 0 var(--surface)) drop-shadow(-0.08rem 0 0 var(--surface)) drop-shadow(0 0 0.2rem var(--accent));
 }
 
 .hand-range input[type='range'] {
@@ -329,6 +329,23 @@ input[type='range'] {
   margin: 0;
   opacity: 0;
   cursor: pointer;
+}
+
+/* The invisible native handle matches the drawn one, so a click lands where the stroke is drawn. */
+.hand-range input[type='range'] {
+  appearance: none;
+}
+
+.hand-range input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  width: var(--knob);
+  height: var(--knob-height);
+}
+
+.hand-range input[type='range']::-moz-range-thumb {
+  width: var(--knob);
+  height: var(--knob-height);
+  border: 0;
 }
 
 .intro-mark {

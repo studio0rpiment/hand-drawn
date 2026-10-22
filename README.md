@@ -158,12 +158,13 @@ the sheet with a system handwriting font, to try it without drawing.
 
 The app wears Kevin's [hand-icons](https://github.com/studio0rpiment/hand-icons):
 the icons on tabs and buttons come from its sprite, and every slider is drawn
-with its single marker line (`line-solid`: bright up to the value, muted
-after) with the blob as the handle, in a brighter take on the Orpiment
-grasshopper green, on a dark background. Each slider shows the line mirrored
-its own way (left–right, top–bottom, both or neither, picked from the
-slider's name), so the bends differ down the page and stay put between visits. The real slider
-sits invisibly on top, so keyboard, screen readers and touch work as usual.
+with its single marker line (11, `line-solid`): bright up to the value, muted
+after, and the same line stood upright as the handle, in Pantone 115 C yellow
+(#FDDA24) on a dark background. Each slider shows the line mirrored its own
+way (left–right, top–bottom, both or neither, picked from the slider's name),
+so the bends differ down the page and stay put between visits. The real
+slider sits invisibly on top, so keyboard, screen readers and touch work as
+usual.
 
 Text is set lowercase in NaN Gothic UI Mono ExtraLight, the typeface of the
 musician-site template's admin; letters of buttons, tabs, labels and headings
