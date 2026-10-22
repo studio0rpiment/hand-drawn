@@ -155,6 +155,14 @@ the sheet with a system handwriting font, to try it without drawing.
 - [x] Stage 3: texture and stamp art (stamp, risograph, halftone, ink; seamless patterns), driven by styles
 - [x] Stage 4: font from a drawn letter sheet, with accents built in, driven by styles
 
+## Globe sheet
+
+The globes' lines are to be hand-drawn. `guides/globe-guide.pdf` (A4
+landscape, print at 100%) has a 2:1 map for the meridians and parallels,
+which wraps around the ball so they roll with it, and a circle for the rim,
+in light blue guides that drop out when the photo is read. `guides/globe-guide.py`
+regenerates the SVG.
+
 ## Privacy
 
 Hand Drawn sets no cookies, has no analytics or tracking, and loads nothing
