@@ -28,6 +28,13 @@ pnpm test
 2. **Logo** — traces the ink with potrace and exports an SVG in plain pixel
    coordinates, a single evenodd path, in the scan's colours or its own, with
    or without a background. A transparent PNG of the cleaned ink too.
+   **Fine tuning** works on the vector only: rotate (±15°, to straighten a
+   drawing), line spread (edges out or in by up to a pixel, finer than the
+   scan's line weight), ignore spots under a size, and a square artboard.
+
+Every control updates as it moves: while a globe rolls or a slider is
+dragged, the drawing is worked out on a half-size copy, and a full-size pass
+follows when it is let go.
 3. **Icon** — turns the cleaned ink into an icon family under a
    *style* (see below): line, fill and tint variants, rotations and mirrors,
    an optional container, light and dark colours (by default the scan's, with

@@ -162,6 +162,24 @@
         </fieldset>
 
         <fieldset>
+          <legend>Fine tuning</legend>
+          <p class="hint">On the vector only; the scan stays as it is.</p>
+          <label class="slider">
+            <span>Rotate <output id="rotate-out"></output></span>
+            <input id="rotate" type="range" min="-15" max="15" step="0.1" value="0" />
+          </label>
+          <label class="slider">
+            <span>Line spread <output id="spread-out"></output></span>
+            <input id="spread" type="range" min="-1" max="1" step="0.05" value="0" />
+          </label>
+          <label class="slider">
+            <span>Ignore spots under <output id="ignore-out"></output></span>
+            <input id="ignore" type="range" min="0" max="200" step="1" value="2" />
+          </label>
+          <label class="check"><input id="square" type="checkbox" /> Square artboard</label>
+        </fieldset>
+
+        <fieldset>
           <legend>Colour</legend>
           <label class="check"><input id="logo-scan-colours" type="checkbox" checked /> Colours from the scan</label>
           <div class="row" id="logo-own-colours" hidden>

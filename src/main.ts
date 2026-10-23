@@ -11,6 +11,7 @@ import { privacyNotice, privacySettings } from './ui/privacy'
 import { globePair } from './ui/sphere'
 import { setArt, showTexture } from './texture/ui'
 import { complexity } from './svgpath'
+import { fineTune, type FineTune } from './finetune'
 import { hexRgb, hslHex, measureColours, rgbHsl, type RGB } from './colour'
 import { scanColours, setScanColours } from './ui/scan-colour'
 import { toSvg, trace, type TraceResult } from './trace'
@@ -41,7 +42,24 @@ const sliders = {
   smooth: $<HTMLInputElement>('smooth'),
   simplify: $<HTMLInputElement>('simplify'),
   gap: $<HTMLInputElement>('gap'),
+  rotate: $<HTMLInputElement>('rotate'),
+  spread: $<HTMLInputElement>('spread'),
+  ignore: $<HTMLInputElement>('ignore'),
 }
+const square = $<HTMLInputElement>('square')
+
+/** How much smaller than full size the current mask is (2 for the quick preview). */
+let maskScale = 1
+
+/** The Logo tab's fine tuning; pixel amounts shrink with the preview. */
+function tuning(): FineTune {
+  return { rotate: Number(sliders.rotate.value), spread: Number(sliders.spread.value) / maskScale, square: square.checked }
+}
+const traceSettings = () => ({
+  ignore: Number(sliders.ignore.value) / (maskScale * maskScale),
+  smoothness: Number(sliders.smooth.value),
+  simplify: Number(sliders.simplify.value),
+})
 const sheetOn = $<HTMLInputElement>('sheet-on')
 const levelAuto = $<HTMLInputElement>('level-auto')
 const inkColor = $<HTMLInputElement>('ink')
@@ -301,6 +319,9 @@ let previewGray: GrayImage | null = null
 let previewFor = -1
 let previewFlat: GrayImage | null = null
 
+/** The cleaned ink of the last run, for the base image and settings it came from. */
+let clean: { base: GrayImage; key: string; mask: Mask; boxes: { gap: number; list: Box[] } | null } | null = null
+
 function makeInk() {
   if (!state.flat) return
   if (!state.gray) {
@@ -330,17 +351,28 @@ function makeInk() {
     base = flattened
   }
   if (levelAuto.checked) sliders.level.value = String(otsu(base))
-  let mask = threshold(base, Number(sliders.level.value))
-  mask = trimEdges(mask, Number(sliders.trim.value))
-  // Specks go before the weight change, so thickening never grows them past the limit.
-  mask = despeckle(mask, Number(sliders.speck.value) / (k * k))
-  mask = lineWeight(mask, Math.round(Number(sliders.weight.value) / k))
+  // The cleaned ink is kept while only the crop changes (space around, the
+  // picked drawing), so those don't redo the cleanup.
+  const key = [sliders.level.value, sliders.trim.value, sliders.speck.value, sliders.weight.value].join('|')
+  if (!clean || clean.base !== base || clean.key !== key) {
+    let m = threshold(base, Number(sliders.level.value))
+    m = trimEdges(m, Number(sliders.trim.value))
+    // Specks go before the weight change, so thickening never grows them past the limit.
+    m = despeckle(m, Number(sliders.speck.value) / (k * k))
+    m = lineWeight(m, Math.round(Number(sliders.weight.value) / k))
+    clean = { base, key, mask: m, boxes: null }
+  }
+  const mask = clean.mask
   const pad = Math.round(Number(sliders.pad.value) / k)
   let box: Box | null
   if (sheetOn.checked) {
     // A sheet of drawings: find each one; the picked one is what the views work on.
-    const minArea = Math.max(30, Number(sliders.speck.value)) / (k * k)
-    const boxes = splitDrawings(mask, Number(sliders.gap.value) / k, minArea)
+    const gap = Number(sliders.gap.value) / k
+    if (!clean.boxes || clean.boxes.gap !== gap) {
+      const minArea = Math.max(30, Number(sliders.speck.value)) / (k * k)
+      clean.boxes = { gap, list: splitDrawings(mask, gap, minArea) }
+    }
+    const boxes = clean.boxes.list
     state.sheet = { mask, boxes }
     state.pick = Math.min(state.pick, Math.max(0, boxes.length - 1))
     box = boxes.length ? padBox(boxes[state.pick], pad, mask.width, mask.height) : null
@@ -349,6 +381,7 @@ function makeInk() {
     box = inkBox(mask, pad)
   }
   state.mask = box ? cropMask(mask, box) : null
+  maskScale = k
   if (!rolling && measuredFor !== state.flat) {
     measuredFor = state.flat
     readColours(state.flat, mask)
@@ -426,6 +459,22 @@ logoScan.addEventListener('change', () => {
 // A globe came to rest: redo the drawing at full size.
 addEventListener('globe-rest', () => schedule(makeInk))
 
+// Sliders work like the globes: while one is dragged, the quick half-size
+// preview follows it, and the full-size pass runs when it is let go.
+let sliding = false
+document.addEventListener('pointerdown', (e) => {
+  const t = e.target as HTMLElement
+  if (!(t instanceof HTMLInputElement) || t.type !== 'range' || !t.closest('#app, #logo-app')) return
+  sliding = true
+  document.documentElement.dataset.rolling = '1'
+})
+addEventListener('pointerup', () => {
+  if (!sliding) return
+  sliding = false
+  delete document.documentElement.dataset.rolling
+  dispatchEvent(new Event('globe-rest'))
+})
+
 // ---- Sheets of drawings ----
 
 const two = (n: number) => String(n).padStart(2, '0')
@@ -499,7 +548,7 @@ $('dl-all').addEventListener('click', async (e) => {
   if (!pieces.length) return
   const btn = e.currentTarget as HTMLButtonElement
   btn.disabled = true
-  const settings = { ignore: 2, smoothness: Number(sliders.smooth.value), simplify: Number(sliders.simplify.value) }
+  const settings = traceSettings()
   const style = logoColours()
   const files = []
   for (const [i, p] of pieces.entries()) {
@@ -509,7 +558,7 @@ $('dl-all').addEventListener('click', async (e) => {
     const m = p.mask
     const padded: Mask = { width: m.width + 2 * pad, height: m.height + 2 * pad, data: new Uint8Array((m.width + 2 * pad) * (m.height + 2 * pad)) }
     for (let y = 0; y < m.height; y++) padded.data.set(m.data.subarray(y * m.width, (y + 1) * m.width), (y + pad) * padded.width + pad)
-    files.push({ path: `${state.name}-drawings/${p.name}.svg`, data: toSvg(await trace(padded, settings), style) })
+    files.push({ path: `${state.name}-drawings/${p.name}.svg`, data: toSvg(await trace(fineTune(padded, tuning()), settings), style) })
   }
   const bytes = zip(files)
   download(new Blob([bytes.buffer as ArrayBuffer], { type: 'application/zip' }), `${state.name}-drawings.zip`)
@@ -570,11 +619,7 @@ async function runTrace() {
   }
   tracing = true
   try {
-    state.traced = await trace(m, {
-      ignore: 2,
-      smoothness: Number(sliders.smooth.value),
-      simplify: Number(sliders.simplify.value),
-    })
+    state.traced = await trace(fineTune(m, tuning()), traceSettings())
     drawVector()
   } finally {
     tracing = false
@@ -610,6 +655,9 @@ const formats: Record<keyof typeof sliders, (v: number) => string> = {
   smooth: (v) => v.toFixed(2),
   simplify: (v) => v.toFixed(2),
   gap: (v) => `${v} px`,
+  rotate: (v) => `${v > 0 ? '+' : ''}${v.toFixed(1)}°`,
+  spread: (v) => `${v > 0 ? '+' : ''}${v.toFixed(2)} px`,
+  ignore: (v) => (v ? `${v} px` : 'off'),
 }
 
 function showOutputs() {
@@ -632,7 +680,8 @@ sliders.level.addEventListener('input', () => {
   schedule(makeInk)
 })
 levelAuto.addEventListener('change', () => schedule(makeInk))
-for (const k of ['smooth', 'simplify'] as const) {
+square.addEventListener('change', traceSoon)
+for (const k of ['smooth', 'simplify', 'rotate', 'spread', 'ignore'] as const) {
   sliders[k].addEventListener('input', () => {
     showOutputs()
     traceSoon()
@@ -699,6 +748,7 @@ globePair('Ink', { input: sliders.weight, whole: true }, { input: sliders.speck,
 globePair('Ink colour', { input: colourIn['ink-h'], whole: true }, { input: colourIn['ink-s'], whole: true }, arc)
 globePair('Paper colour', { input: colourIn['paper-h'], whole: true }, { input: colourIn['paper-s'], whole: true }, arc)
 globePair('Curves', { input: sliders.smooth }, { input: sliders.simplify }, $('logo-globes'))
+globePair('Tune', { input: sliders.rotate }, { input: sliders.spread }, $('logo-globes'))
 colourChanged()
 
 // The photo inset: small in the corner, enlarged to place the sheet corners.
