@@ -14,7 +14,8 @@
         <p class="tagline">turn your sketches into SVG icons, logos, textures, and typefaces</p>
       </div>
       <nav class="tabs" aria-label="Tools">
-        <button class="tab" type="button" data-view="app" aria-pressed="true" data-icon="blob-fill">Logo</button>
+        <button class="tab" type="button" data-view="app" aria-pressed="true" data-icon="horizon-fill">Scan</button>
+        <button id="logo-tab" class="tab" type="button" data-view="logo-app" aria-pressed="false" disabled data-icon="blob-fill">Logo</button>
         <button id="icon-tab" class="tab" type="button" data-view="icon-app" aria-pressed="false" disabled data-icon="triangle-y-fill">Icon</button>
         <button id="texture-tab" class="tab" type="button" data-view="texture-app" aria-pressed="false" disabled data-icon="hatch-heavy-fill">Texture</button>
         <button id="font-tab" class="tab" type="button" data-view="font-app" aria-pressed="false" data-icon="spiral-tight-fill">Font</button>
@@ -35,27 +36,13 @@
         <p class="quiet small">Nothing is stored or tracked</p>
       </section>
 
-      <aside class="controls" aria-label="Settings">
+      <aside class="controls" aria-label="Scan settings">
         <fieldset>
           <legend>1 · Paper</legend>
           <p class="hint">Drag the corners onto the sheet's corners.</p>
           <div class="row">
             <button id="detect" class="button small" type="button">Find the sheet</button>
             <button id="whole" class="button small" type="button">Use whole photo</button>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>Sheet</legend>
-          <label class="check accent"><input id="sheet-on" type="checkbox" /> Several drawings on this sheet</label>
-          <p class="hint">For a page of icons, or of logo iterations: each drawing is found and numbered, row by row.</p>
-          <label class="slider">
-            <span>Parts closer than this are one drawing <output id="gap-out"></output></span>
-            <input id="gap" type="range" min="4" max="160" step="1" value="30" />
-          </label>
-          <p class="hint" id="sheet-count" aria-live="polite"></p>
-          <div class="row">
-            <button id="dl-all" class="button small" type="button" data-icon="arrow-bar-fill-r90">Download all SVGs</button>
           </div>
         </fieldset>
 
@@ -82,55 +69,66 @@
             <span>Trim edges <output id="trim-out"></output></span>
             <input id="trim" type="range" min="0" max="0.08" step="0.005" value="0.015" />
           </label>
-          <label class="slider">
-            <span>Space around <output id="pad-out"></output></span>
-            <input id="pad" type="range" min="0" max="200" step="4" value="32" />
-          </label>
         </fieldset>
 
         <fieldset>
-          <legend>3 · Vector</legend>
+          <legend>3 · Colour</legend>
+          <p class="hint">Read from the photo; every output uses these unless it is set to its own.</p>
           <label class="slider">
-            <span>Smoothness <output id="smooth-out"></output></span>
-            <input id="smooth" type="range" min="0" max="1.33" step="0.01" value="1" />
+            <span>Ink hue <output id="ink-h-out"></output></span>
+            <input id="ink-h" type="range" min="0" max="360" step="1" value="260" />
           </label>
           <label class="slider">
-            <span>Simplify curves <output id="simplify-out"></output></span>
-            <input id="simplify" type="range" min="0" max="1.5" step="0.05" value="0.2" />
+            <span>Ink saturation <output id="ink-s-out"></output></span>
+            <input id="ink-s" type="range" min="0" max="100" step="1" value="16" />
+          </label>
+          <label class="slider">
+            <span>Ink lightness <output id="ink-l-out"></output></span>
+            <input id="ink-l" type="range" min="0" max="100" step="1" value="12" />
+          </label>
+          <label class="check"><input id="paper-on" type="checkbox" /> Keep the paper (off: transparent)</label>
+          <label class="slider">
+            <span>Paper hue <output id="paper-h-out"></output></span>
+            <input id="paper-h" type="range" min="0" max="360" step="1" value="40" />
+          </label>
+          <label class="slider">
+            <span>Paper saturation <output id="paper-s-out"></output></span>
+            <input id="paper-s" type="range" min="0" max="100" step="1" value="20" />
+          </label>
+          <label class="slider">
+            <span>Paper lightness <output id="paper-l-out"></output></span>
+            <input id="paper-l" type="range" min="0" max="100" step="1" value="96" />
           </label>
           <div class="row">
-            <label class="swatch">Ink <input id="ink" type="color" value="#1d1a24" /></label>
-            <label class="swatch">Background <input id="bg" type="color" value="#ffffff" /></label>
-            <label class="check"><input id="bg-on" type="checkbox" /> Fill</label>
+            <button id="measure" class="button small" type="button" data-icon="c-spiral-fill">Read colours from the photo</button>
           </div>
         </fieldset>
 
         <fieldset>
-          <legend>Export</legend>
-          <div class="row">
-            <button id="dl-svg" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">Download SVG</button>
-            <button id="copy-svg" class="button small" type="button" data-icon="equals-fill">Copy SVG</button>
-            <button id="dl-png" class="button small" type="button" data-icon="arrow-bar-fill-r90">Download PNG</button>
-          </div>
-          <p class="stats" id="stats" aria-live="polite"></p>
+          <legend>Sheet</legend>
+          <label class="check accent"><input id="sheet-on" type="checkbox" /> Several drawings on this sheet</label>
+          <p class="hint">For a page of icons, or of logo iterations: each drawing is found and numbered, row by row. Pick one in the tray; every output works on it.</p>
+          <label class="slider">
+            <span>Parts closer than this are one drawing <output id="gap-out"></output></span>
+            <input id="gap" type="range" min="4" max="160" step="1" value="30" />
+          </label>
+          <p class="hint" id="sheet-count" aria-live="polite"></p>
         </fieldset>
       </aside>
 
-      <section class="workspace" aria-label="Result">
+      <section class="workspace" aria-label="Scan">
         <div class="pane-head">
-          <h2>Result</h2>
+          <h2>Scan</h2>
           <div class="toggle" role="radiogroup" aria-label="Show">
-            <label><input type="radio" name="view" value="vector" checked /> Vector</label>
-            <label><input type="radio" name="view" value="ink" /> Ink</label>
+            <label><input type="radio" name="view" value="ink" checked /> Ink</label>
             <label><input type="radio" name="view" value="flat" /> Straightened</label>
           </div>
         </div>
         <div class="pieces" id="pieces" role="listbox" aria-label="Drawings on this sheet" hidden></div>
         <div class="result-wrap">
           <div class="stage checker" id="result-stage">
-            <canvas id="ink-view" hidden></canvas>
+            <canvas id="ink-view"></canvas>
             <canvas id="flat-view" hidden></canvas>
-            <div id="vector-view"></div>
           </div>
           <!-- The original photo, small in the corner; enlarge it to place the sheet corners. -->
           <div class="photo-inset" id="photo-inset">
@@ -145,12 +143,66 @@
       </section>
     </main>
 
+    <main id="logo-app" class="logo-app" hidden>
+      <aside class="controls" aria-label="Logo settings">
+        <fieldset>
+          <legend>Vector</legend>
+          <label class="slider">
+            <span>Smoothness <output id="smooth-out"></output></span>
+            <input id="smooth" type="range" min="0" max="1.33" step="0.01" value="1" />
+          </label>
+          <label class="slider">
+            <span>Simplify curves <output id="simplify-out"></output></span>
+            <input id="simplify" type="range" min="0" max="1.5" step="0.05" value="0.2" />
+          </label>
+          <label class="slider">
+            <span>Space around <output id="pad-out"></output></span>
+            <input id="pad" type="range" min="0" max="200" step="4" value="32" />
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Colour</legend>
+          <label class="check"><input id="logo-scan-colours" type="checkbox" checked /> Colours from the scan</label>
+          <div class="row" id="logo-own-colours" hidden>
+            <label class="swatch">Ink <input id="ink" type="color" value="#1d1a24" /></label>
+            <label class="swatch">Background <input id="bg" type="color" value="#ffffff" /></label>
+            <label class="check"><input id="bg-on" type="checkbox" /> Fill</label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Export</legend>
+          <div class="row">
+            <button id="dl-svg" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">Download SVG</button>
+            <button id="copy-svg" class="button small" type="button" data-icon="equals-fill">Copy SVG</button>
+            <button id="dl-png" class="button small" type="button" data-icon="arrow-bar-fill-r90">Download PNG</button>
+          </div>
+          <div class="row">
+            <button id="dl-all" class="button small" type="button" data-icon="arrow-bar-fill-r90">Download all SVGs</button>
+          </div>
+          <p class="stats" id="stats" aria-live="polite"></p>
+        </fieldset>
+      </aside>
+
+      <section class="workspace" aria-label="Logo">
+        <div class="pane-head">
+          <h2>Logo</h2>
+        </div>
+        <div class="stage checker logo-stage" id="logo-stage">
+          <div id="vector-view"></div>
+        </div>
+        <div class="globe-arc" id="logo-globes" aria-label="Settings in pairs"></div>
+      </section>
+    </main>
+
     <main id="icon-app" class="icon-app" hidden>
       <aside class="controls" aria-label="Icon style">
         <div id="icon-style-box"></div>
         <fieldset>
           <legend>Icon</legend>
           <label class="field">Name <input id="icon-name" type="text" spellcheck="false" /></label>
+          <label class="check"><input id="icon-scan-colours" type="checkbox" checked /> Colours from the scan</label>
         </fieldset>
         <div id="style-fields"></div>
         <fieldset>
@@ -187,6 +239,10 @@
     <main id="texture-app" class="texture-app" hidden>
       <aside class="controls" aria-label="Texture style">
         <div id="texture-style-box"></div>
+        <fieldset>
+          <legend>Colour</legend>
+          <label class="check"><input id="texture-scan-colours" type="checkbox" checked /> Colours from the scan</label>
+        </fieldset>
         <div id="texture-fields"></div>
         <fieldset>
           <legend>Export</legend>

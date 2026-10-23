@@ -11,6 +11,8 @@ import { privacyNotice, privacySettings } from './ui/privacy'
 import { globePair } from './ui/sphere'
 import { setArt, showTexture } from './texture/ui'
 import { complexity } from './svgpath'
+import { hexRgb, hslHex, measureColours, rgbHsl, type RGB } from './colour'
+import { scanColours, setScanColours } from './ui/scan-colour'
 import { toSvg, trace, type TraceResult } from './trace'
 
 installSprite()
@@ -26,6 +28,7 @@ const handles = document.getElementById('handles') as unknown as SVGSVGElement
 const inkCanvas = $<HTMLCanvasElement>('ink-view')
 const flatCanvas = $<HTMLCanvasElement>('flat-view')
 const vectorView = $('vector-view')
+const logoTab = $<HTMLButtonElement>('logo-tab')
 const stats = $('stats')
 
 const sliders = {
@@ -44,6 +47,19 @@ const levelAuto = $<HTMLInputElement>('level-auto')
 const inkColor = $<HTMLInputElement>('ink')
 const bgColor = $<HTMLInputElement>('bg')
 const bgOn = $<HTMLInputElement>('bg-on')
+const logoScan = $<HTMLInputElement>('logo-scan-colours')
+
+// The scan's colours, in HSL; read from each new photo, then the user's to adjust.
+const colourIn = {
+  'ink-h': $<HTMLInputElement>('ink-h'),
+  'ink-s': $<HTMLInputElement>('ink-s'),
+  'ink-l': $<HTMLInputElement>('ink-l'),
+  'paper-h': $<HTMLInputElement>('paper-h'),
+  'paper-s': $<HTMLInputElement>('paper-s'),
+  'paper-l': $<HTMLInputElement>('paper-l'),
+}
+const paperOn = $<HTMLInputElement>('paper-on')
+const hslOf = (k: 'ink' | 'paper') => ({ h: Number(colourIn[`${k}-h`].value), s: Number(colourIn[`${k}-s`].value), l: Number(colourIn[`${k}-l`].value) })
 
 const state: {
   name: string
@@ -333,12 +349,17 @@ function makeInk() {
     box = inkBox(mask, pad)
   }
   state.mask = box ? cropMask(mask, box) : null
+  if (!rolling && measuredFor !== state.flat) {
+    measuredFor = state.flat
+    readColours(state.flat, mask)
+  }
   if (!rolling) {
     setMask(state.mask, state.name)
     // The Font view reads the whole straightened page, not the cropped drawing.
     setPage(base)
     // Textures keep the photo's own tones, so they get the light-evened grey too.
     setArt(box && state.mask ? { gray: cropMask(base, box), mask: state.mask } : null, state.name)
+    logoTab.disabled = !state.mask
     $<HTMLButtonElement>('icon-tab').disabled = !state.mask
     $<HTMLButtonElement>('texture-tab').disabled = !state.mask
     showSheet()
@@ -347,6 +368,60 @@ function makeInk() {
   drawInk()
   traceSoon()
 }
+
+// ---- Colour ----
+
+// The straightened photo the colours were last read from; a new one is read again.
+let measuredFor: RGBAImage | null = null
+
+/** Set the colour controls from the photo (the globes roll there). */
+function readColours(flat: RGBAImage, mask: Mask) {
+  const got = measureColours(flat, mask)
+  if (!got) return
+  for (const [k, rgb] of [['ink', got.ink], ['paper', got.paper]] as [string, RGB][]) {
+    const c = rgbHsl(rgb)
+    for (const [axis, v] of [['h', c.h], ['s', c.s], ['l', c.l]] as const) {
+      colourIn[`${k}-${axis}` as keyof typeof colourIn].value = String(Math.round(v))
+    }
+  }
+  colourChanged()
+}
+
+/** After any colour control moved: share the colours and repaint what shows them. */
+function colourChanged() {
+  setScanColours({ ink: hslHex(hslOf('ink')), paper: paperOn.checked ? hslHex(hslOf('paper')) : null })
+  showColourOutputs()
+  drawInk()
+  showSheet()
+  drawVector()
+}
+
+const colourFormats = { h: (v: number) => `${v}°`, s: (v: number) => `${v}%`, l: (v: number) => `${v}%` }
+function showColourOutputs() {
+  for (const [k, el] of Object.entries(colourIn)) $(`${k}-out`).textContent = colourFormats[k.slice(-1) as 'h' | 's' | 'l'](Number(el.value))
+  for (const k of ['paper-h', 'paper-s', 'paper-l'] as const) colourIn[k].closest('label')!.classList.toggle('off', !paperOn.checked)
+}
+
+for (const el of Object.values(colourIn)) el.addEventListener('input', colourChanged)
+paperOn.addEventListener('change', colourChanged)
+$('measure').addEventListener('click', () => {
+  measuredFor = null
+  schedule(makeInk)
+})
+
+/** The logo's colours: the scan's, or its own. */
+function logoColours() {
+  if (logoScan.checked) {
+    const c = scanColours()
+    return { ink: c.ink, background: c.paper }
+  }
+  return { ink: inkColor.value, background: bgOn.checked ? bgColor.value : null }
+}
+
+logoScan.addEventListener('change', () => {
+  $('logo-own-colours').hidden = logoScan.checked
+  drawVector()
+})
 
 // A globe came to rest: redo the drawing at full size.
 addEventListener('globe-rest', () => schedule(makeInk))
@@ -377,7 +452,7 @@ function showSheet() {
     setSheet(null, 0)
     return
   }
-  const [r, g, b] = hexRgb(inkColor.value)
+  const [r, g, b] = hexRgb(scanColours().ink)
   strip.replaceChildren(
     ...sh.boxes.map((box, i) => {
       const btn = document.createElement('button')
@@ -425,7 +500,7 @@ $('dl-all').addEventListener('click', async (e) => {
   const btn = e.currentTarget as HTMLButtonElement
   btn.disabled = true
   const settings = { ignore: 2, smoothness: Number(sliders.smooth.value), simplify: Number(sliders.simplify.value) }
-  const style = { ink: inkColor.value, background: bgOn.checked ? bgColor.value : null }
+  const style = logoColours()
   const files = []
   for (const [i, p] of pieces.entries()) {
     stats.textContent = `Tracing ${i + 1} of ${pieces.length}…`
@@ -453,23 +528,19 @@ function drawInk() {
   inkCanvas.getContext('2d')!.putImageData(maskImage(m), 0, 0)
 }
 
-function hexRgb(hex: string): [number, number, number] {
-  const n = parseInt(hex.slice(1), 16)
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
-}
-
-/** The mask in the ink colour, on the background colour or transparent. */
+/** The mask in the scan's ink colour, on its paper colour or transparent. */
 function maskImage(m: Mask): ImageData {
   const img = new ImageData(m.width, m.height)
-  const [r, g, b] = hexRgb(inkColor.value)
-  const [br, bg, bb] = hexRgb(bgColor.value)
+  const { ink, paper } = scanColours()
+  const [r, g, b] = hexRgb(ink)
+  const [br, bg, bb] = hexRgb(paper ?? '#ffffff')
   for (let i = 0, j = 0; i < m.data.length; i++, j += 4) {
     if (m.data[i]) {
       img.data[j] = r
       img.data[j + 1] = g
       img.data[j + 2] = b
       img.data[j + 3] = 255
-    } else if (bgOn.checked) {
+    } else if (paper) {
       img.data[j] = br
       img.data[j + 1] = bg
       img.data[j + 2] = bb
@@ -515,7 +586,7 @@ async function runTrace() {
 }
 
 function svgText() {
-  return toSvg(state.traced!, { ink: inkColor.value, background: bgOn.checked ? bgColor.value : null })
+  return toSvg(state.traced!, logoColours())
 }
 
 function drawVector() {
@@ -567,14 +638,9 @@ for (const k of ['smooth', 'simplify'] as const) {
     traceSoon()
   })
 }
-for (const el of [inkColor, bgColor, bgOn]) {
-  el.addEventListener('input', () => {
-    drawInk()
-    drawVector()
-  })
-}
+for (const el of [inkColor, bgColor, bgOn]) el.addEventListener('input', drawVector)
 
-const views = { vector: vectorView, ink: inkCanvas, flat: flatCanvas }
+const views = { ink: inkCanvas, flat: flatCanvas }
 document.querySelectorAll<HTMLInputElement>('input[name="view"]').forEach((r) =>
   r.addEventListener('change', () => {
     for (const [k, el] of Object.entries(views)) el.hidden = k !== r.value
@@ -630,8 +696,10 @@ showOutputs()
 const arc = $('globe-arc')
 globePair('Light', { input: sliders.flatten }, { input: sliders.level, whole: true }, arc)
 globePair('Ink', { input: sliders.weight, whole: true }, { input: sliders.speck, whole: true }, arc)
-globePair('Frame', { input: sliders.pad, whole: true }, { input: sliders.trim }, arc)
-globePair('Curves', { input: sliders.smooth }, { input: sliders.simplify }, arc)
+globePair('Ink colour', { input: colourIn['ink-h'], whole: true }, { input: colourIn['ink-s'], whole: true }, arc)
+globePair('Paper colour', { input: colourIn['paper-h'], whole: true }, { input: colourIn['paper-s'], whole: true }, arc)
+globePair('Curves', { input: sliders.smooth }, { input: sliders.simplify }, $('logo-globes'))
+colourChanged()
 
 // The photo inset: small in the corner, enlarged to place the sheet corners.
 $('inset-size').addEventListener('click', (e) => {

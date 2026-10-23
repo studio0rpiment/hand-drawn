@@ -12,22 +12,30 @@ pnpm test
 
 ## How it works
 
-1. **Paper** — finds the sheet in the photo (the largest bright region, grown
-   into shadowed parts) and straightens it. Drag the four corners to correct it;
-   arrow keys nudge a focused corner (Shift for bigger steps).
-2. **Ink** — evens out the light by dividing by an estimate of the bare paper,
-   picks an ink cut-off (Otsu), trims the edges, removes specks and fills
-   pinholes, adjusts line weight and crops to the drawing.
-3. **Vector** — traces the ink with potrace and exports an SVG in plain pixel
-   coordinates, a single evenodd path, in any ink colour, with or without a
-   background. A transparent PNG of the cleaned ink is exported too.
-4. **Icon** — the second tab turns the cleaned ink into an icon family under a
+1. **Scan** — the first tab captures the drawing, once, for every output:
+   - **Paper:** finds the sheet in the photo (the largest bright region,
+     grown into shadowed parts) and straightens it. Drag the four corners to
+     correct it; arrow keys nudge a focused corner (Shift for bigger steps).
+   - **Ink:** evens out the light by dividing by an estimate of the bare
+     paper, picks an ink cut-off (Otsu), trims the edges, removes specks and
+     fills pinholes, and adjusts line weight.
+   - **Colour:** reads the ink and paper colours from the photo (the middle
+     of each, so blended edges, shadows and glare don't count) and lets you
+     adjust them in hue, saturation and lightness, or leave the paper out.
+     Logo, icons and textures use these colours unless set to their own.
+   - **Sheet:** finds every drawing on a page; the one picked in the tray is
+     what every output works on.
+2. **Logo** — traces the ink with potrace and exports an SVG in plain pixel
+   coordinates, a single evenodd path, in the scan's colours or its own, with
+   or without a background. A transparent PNG of the cleaned ink too.
+3. **Icon** — turns the cleaned ink into an icon family under a
    *style* (see below): line, fill and tint variants, rotations and mirrors,
-   an optional container, light and dark colours, favicons and a sprite.
-5. **Texture** — the third tab prints the drawing with its hand-made quality
+   an optional container, light and dark colours (by default the scan's, with
+   the dark version's lightness turned over), favicons and a sprite.
+4. **Texture** — prints the drawing with its hand-made quality
    kept: rubber stamp, risograph, halftone or the ink as drawn, once or as a
    seamless repeating tile. Also driven by styles.
-6. **Font** — the fourth tab prints a two-page letter sheet, reads photos of
+5. **Font** — prints a two-page letter sheet, reads photos of
    it, and builds an OpenType font under a font style.
 
 The code is split so the image processing (`src/image.ts`, `src/paper.ts`,
@@ -38,11 +46,11 @@ field-driven style controls.
 
 ## Sheets of drawings
 
-Tick **Several drawings on this sheet** (Logo panel) for a page of icons or of
+Tick **Several drawings on this sheet** (Scan panel) for a page of icons or of
 logo iterations. Every separate drawing is found and numbered row by row;
 ink closer than the chosen distance counts as one drawing, and a mark inside
 another drawing (a dot in a ring) always stays with it. A strip of numbered
-thumbnails above the result picks the drawing the views work on.
+thumbnails above the scan picks the drawing every output works on.
 
 - **Logo:** *Download all SVGs* traces every drawing with the current settings
   into one zip, for comparing iterations.

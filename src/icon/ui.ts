@@ -1,7 +1,9 @@
 // The Icon view: style controls from the shared field list, live previews of
 // the family and the favicon sizes, and the exports.
 
+import { flipLightness } from '../colour'
 import type { Mask } from '../image'
+import { onScanColours, scanColours } from '../ui/scan-colour'
 import { buildFields, fixed, pct, plain, type FieldGroup } from '../ui/fields'
 import { StyleBook, styleBox } from '../ui/styles'
 import { flash } from '../ui/hand'
@@ -50,6 +52,8 @@ const GROUPS: FieldGroup[] = [
   },
   {
     legend: 'Colours',
+    // Hidden while the icons take the scan's colours.
+    when: () => !$<HTMLInputElement>('icon-scan-colours').checked,
     fields: [
       { kind: 'color', path: 'light.ink', label: 'Light: ink' },
       { kind: 'color', path: 'light.bg', label: 'background' },
@@ -73,7 +77,18 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 
 // Storage keys keep the project's first name, sketch-to-mark, so styles saved before the rename still load.
 const book = new StyleBook<IconStyle>({ noun: 'icon', key: 'sketch-to-mark.styles', builtIn: BUILT_IN, read: readStyle })
-let style = book.current
+/**
+ * The style as drawn: the edited one, with the scan's colours when "Colours
+ * from the scan" is on (the dark version turns their lightness over). The
+ * book keeps the style's own colours either way.
+ */
+function withScan(s: IconStyle): IconStyle {
+  if (!$<HTMLInputElement>('icon-scan-colours').checked) return s
+  const { ink, paper } = scanColours()
+  const bg = paper ?? '#ffffff'
+  return { ...s, light: { ink, bg }, dark: { ink: flipLightness(ink), bg: flipLightness(bg) } }
+}
+let style = withScan(book.current)
 
 let mask: Mask | null = null
 let maskName = 'mark'
@@ -86,7 +101,7 @@ let dirty = true
 
 const box = styleBox(book, () => applied())
 $('icon-style-box').replaceWith(box.element)
-const fillFields = buildFields($('style-fields'), GROUPS, 'icon', () => style, update)
+const fillFields = buildFields($('style-fields'), GROUPS, 'icon', () => book.current, update)
 
 /** Every edit goes through here: validate, remember, redraw. */
 function update(next: IconStyle) {
@@ -96,8 +111,8 @@ function update(next: IconStyle) {
 
 /** After the edited style changed: sync the controls, retrace if the shape changed, else redraw. */
 function applied() {
-  style = book.current
-  fillFields(style)
+  style = withScan(book.current)
+  fillFields(book.current)
   box.refresh()
   if (shapeKey(style) !== builtFor) retraceSoon()
   else render()
@@ -105,6 +120,11 @@ function applied() {
   if (shapeKey(style) !== setBuiltFor) buildSetSoon()
   else drawSet()
 }
+
+$('icon-scan-colours').addEventListener('change', applied)
+onScanColours(() => {
+  if ($<HTMLInputElement>('icon-scan-colours').checked) applied()
+})
 
 const nameInput = $<HTMLInputElement>('icon-name')
 nameInput.addEventListener('input', () => {
@@ -414,5 +434,5 @@ $('dl-set').addEventListener('click', async (e) => {
   }
 })
 
-fillFields(style)
+fillFields(book.current)
 box.refresh()

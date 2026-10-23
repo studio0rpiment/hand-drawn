@@ -1,6 +1,7 @@
 // The Texture view: print the drawing as stamp, riso, halftone or plain ink,
 // lay it out once or as a seamless tile, and export a PNG.
 
+import { onScanColours, scanColours } from '../ui/scan-colour'
 import { slug } from '../icon/style'
 import { buildFields, fixed, pct, plain, type FieldGroup } from '../ui/fields'
 import { StyleBook, styleBox } from '../ui/styles'
@@ -60,11 +61,18 @@ const GROUPS: FieldGroup[] = [
   {
     legend: 'Colours',
     fields: [
-      { kind: 'color', path: 'colors.ink', label: 'Ink' },
       { kind: 'color', path: 'colors.ink2', label: 'Second ink' },
+      { kind: 'range', path: 'colors.paperGrain', label: 'Paper texture', min: 0, max: 1, step: 0.05, fmt: pct },
+    ],
+  },
+  {
+    legend: 'Own colours',
+    // Hidden while the texture takes the scan's ink and paper.
+    when: () => !$<HTMLInputElement>('texture-scan-colours').checked,
+    fields: [
+      { kind: 'color', path: 'colors.ink', label: 'Ink' },
       { kind: 'color', path: 'colors.paper', label: 'Paper' },
       { kind: 'check', path: 'colors.onPaper', label: 'Print on paper (off: transparent)' },
-      { kind: 'range', path: 'colors.paperGrain', label: 'Paper texture', min: 0, max: 1, step: 0.05, fmt: pct },
     ],
   },
   {
@@ -85,7 +93,13 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 
 // Storage keys keep the project's first name, sketch-to-mark, so styles saved before the rename still load.
 const book = new StyleBook<TextureStyle>({ noun: 'texture', key: 'sketch-to-mark.texture-styles', builtIn: BUILT_IN, read: readTextureStyle })
-let style = book.current
+/** The style as drawn: with the scan's ink and paper when "Colours from the scan" is on. */
+function withScan(s: TextureStyle): TextureStyle {
+  if (!$<HTMLInputElement>('texture-scan-colours').checked) return s
+  const { ink, paper } = scanColours()
+  return { ...s, colors: { ...s.colors, ink, paper: paper ?? s.colors.paper, onPaper: paper !== null } }
+}
+let style = withScan(book.current)
 
 let rawArt: Art | null = null
 let art: Art | null = null
@@ -96,7 +110,7 @@ let result: HTMLCanvasElement | null = null
 
 const box = styleBox(book, () => applied())
 $('texture-style-box').replaceWith(box.element)
-const fillFields = buildFields($('texture-fields'), GROUPS, 'tex', () => style, update)
+const fillFields = buildFields($('texture-fields'), GROUPS, 'tex', () => book.current, update)
 
 function update(next: TextureStyle) {
   book.edit(next)
@@ -104,8 +118,8 @@ function update(next: TextureStyle) {
 }
 
 function applied() {
-  style = book.current
-  fillFields(style)
+  style = withScan(book.current)
+  fillFields(book.current)
   box.refresh()
   renderSoon()
 }
@@ -192,5 +206,10 @@ export function showTexture() {
   renderSoon()
 }
 
-fillFields(style)
+$('texture-scan-colours').addEventListener('change', applied)
+onScanColours(() => {
+  if ($<HTMLInputElement>('texture-scan-colours').checked) applied()
+})
+
+fillFields(book.current)
 box.refresh()

@@ -965,8 +965,17 @@ h3 {
 
 /* Leave room for the globes below without scrolling. */
 .result-wrap #result-stage canvas,
-.result-wrap #vector-view svg {
+.logo-stage svg {
   max-height: 52vh;
+}
+
+.logo-stage {
+  min-height: 16rem;
+}
+
+/* Paper colour controls rest while the paper is left out. */
+label.off {
+  opacity: 0.4;
 }
 
 .photo-inset {
