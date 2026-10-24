@@ -415,15 +415,15 @@ input[type='color'] {
   min-width: 0;
 }
 
-/* The preview stays in view while the settings beside it scroll; if it is
-   taller than the window, it scrolls on its own. */
+/* The preview stays in view while the settings beside it scroll. Scrolling
+   over the preview moves the settings; a preview taller than the window
+   scrolls its own content first, then hands the scroll on. */
 .workspace,
 .icon-preview {
   position: sticky;
   top: 1rem;
   max-height: calc(100vh - 2rem);
   overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 .pane-head {
