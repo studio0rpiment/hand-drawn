@@ -3,7 +3,7 @@
 
 import { otsu, type GrayImage, type Mask, type Point, type Quad } from '../image'
 import { applyHomography, rectToQuad } from '../paper'
-import { GRID, GUIDES, MARKER, MARKERS, PAGE, PAGE2_FLAG, SHEETS, cellOrigin } from './sheet'
+import { FLAG, GRID, GUIDES, MARKER, MARKERS, PAGE, PAGE_FLAGS, SHEETS, cellOrigin } from './sheet'
 
 /** Boxes are cut out at this many pixels per millimetre. */
 export const RES = 10
@@ -22,7 +22,7 @@ export const READ_SPILL = 8
 export const BASELINE_PX = (GUIDES.baseline - READ_BOX.y) * RES
 
 export interface SheetRead {
-  /** 0 for page 1, 1 for page 2. */
+  /** 0 for page 1, 1 for page 2, 2 for page 3. */
   page: number
   /** How many of the four corner markers were found (4 means the boxes are placed precisely). */
   markers: number
@@ -195,17 +195,23 @@ export function readSheet(gray: GrayImage, corners?: Quad): SheetRead {
   }
   const level = otsu({ width: samples.length, height: 1, data: Uint8Array.from(samples) })
 
-  // Page 2 carries a solid square at the top centre.
-  let dark = 0
-  let n = 0
-  const half = PAGE2_FLAG.size * 0.3
-  for (let y = -half; y <= half; y += 0.25) {
-    for (let x = -half; x <= half; x += 0.25) {
-      if (sample(PAGE2_FLAG.x + x, PAGE2_FLAG.y + y) <= level) dark++
-      n++
+  // The page, from the small squares along its top edge (see PAGE_FLAGS).
+  const flagAt = (fx: number): boolean => {
+    let dark = 0
+    let n = 0
+    const half = FLAG.size * 0.3
+    for (let y = -half; y <= half; y += 0.25) {
+      for (let x = -half; x <= half; x += 0.25) {
+        if (sample(fx + x, FLAG.y + y) <= level) dark++
+        n++
+      }
     }
+    return dark / n > 0.5
   }
-  const page = dark / n > 0.5 ? 1 : 0
+  const spots = [...new Set(PAGE_FLAGS.flat())]
+  const marked = new Set(spots.filter(flagAt))
+  const which = PAGE_FLAGS.findIndex((f) => f.length === marked.size && f.every((x) => marked.has(x)))
+  const page = which < 0 ? 0 : which
 
   const margin = READ_SPILL * RES
   const w = Math.round(READ_BOX.width * RES) + 2 * margin

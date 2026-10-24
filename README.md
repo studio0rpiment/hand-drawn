@@ -154,6 +154,10 @@ letter reaching in stays with the neighbour.
 
 Page 1 holds A–Z, a–z, 0–9 and `.,!?'"-&`. Page 2 holds
 `()[]:;/@#%+=*_<>«»€$£¿¡ßœŒæÆøØ‘’“”–…·` and seven accents (´ ` ˆ ¨ ˜ ¸ ˚).
+Page 3 is optional and holds the rest of the keyboard, signs, fractions and
+arrows: `{}|\^~§©®™°±×÷¢¥¶†‡•‹›„‚ªºµ¹²³½¼¾ÐðÞþŁł←→↑↓`. The pages are told
+apart by small squares along the top edge: none on page 1, one in the middle
+on page 2, two on page 3.
 Accented letters for German, French and Spanish (À–ÿ, Ç, Ñ, Å …) are built
 from a drawn letter plus a drawn accent, centred over it, with a dotless i
 under accents on i. Anything drawn in its own box wins.
@@ -218,8 +222,8 @@ height 700 of a 1000 em) and an `@font-face` rule. **Sample page 1 / 2** fill
 the sheet with a system handwriting font, to try it without drawing. Tick **with letters to trace** before
 printing to get light Helvetica letters in every box (wide capitals are
 narrowed to fit): trace them with a marker to test the whole font pipeline.
-The light print drops out when the photo is read. A ready-made copy is in
-`guides/letter-sheet-trace.pdf`.
+The light print drops out when the photo is read. A ready-made copy of all three
+pages is in `guides/letter-sheet-trace.pdf`.
 
 ## Photos
 

@@ -5,7 +5,7 @@ import { CAP_HEIGHT, X_HEIGHT, bbox, dotless, fromTraced, placeMark, shapeGlyph,
 import { classifySide, opticalCentre, overshoot, profile, tracyRefs, tracyValue, TRACY_CAPS } from '../src/font/metrics'
 import type { BuiltGlyph } from '../src/font/assemble'
 import { BASELINE_PX, READ_BOX, RES, findSheetMarkers, ownInk, readSheet } from '../src/font/read'
-import { GUIDES, MARKER, MARKERS, PAGE2_FLAG, SHEETS, UNITS, cellOrigin, sheetSvg } from '../src/font/sheet'
+import { FLAG, GUIDES, MARKER, MARKERS, PAGE_FLAGS, SHEETS, UNITS, cellOrigin, sheetSvg } from '../src/font/sheet'
 import { AS_DRAWN, BUILT_IN, readFontStyle } from '../src/font/style'
 import type { GrayImage } from '../src/image'
 
@@ -23,7 +23,7 @@ const rect = (x0: number, y0: number, x1: number, y1: number): Cmd[] => [
  * markers, optionally the page-2 flag, and a solid block drawn in box 0
  * from cap height to the baseline.
  */
-function photo(page2: boolean): GrayImage {
+function photo(page: number): GrayImage {
   const w = 900
   const h = 1250
   const toPx = (x: number, y: number) => ({ x: 4.15 * x + 0.03 * y + 8, y: 4.12 * y + 0.02 * x + 6 })
@@ -37,7 +37,7 @@ function photo(page2: boolean): GrayImage {
     }
   }
   for (const m of MARKERS) fill(m.x - MARKER.size / 2, m.y - MARKER.size / 2, m.x + MARKER.size / 2, m.y + MARKER.size / 2)
-  if (page2) fill(PAGE2_FLAG.x - 2.5, PAGE2_FLAG.y - 2.5, PAGE2_FLAG.x + 2.5, PAGE2_FLAG.y + 2.5)
+  for (const x of PAGE_FLAGS[page]) fill(x - FLAG.size / 2, FLAG.y - FLAG.size / 2, x + FLAG.size / 2, FLAG.y + FLAG.size / 2)
   const o = cellOrigin(0)
   fill(o.x + 4, o.y + GUIDES.cap, o.x + 13, o.y + GUIDES.baseline)
   return { data, width: w, height: h }
@@ -47,6 +47,11 @@ describe('sheet', () => {
   it('has a box for every character and draws them all', () => {
     expect(SHEETS[0].length).toBeLessThanOrEqual(70)
     expect(SHEETS[1].length).toBeLessThanOrEqual(70)
+    expect(SHEETS[2].length).toBeLessThanOrEqual(70)
+    // No character is asked for twice.
+    const all = SHEETS.flat().map((s) => s.char)
+    expect(new Set(all).size).toBe(all.length)
+    expect((sheetSvg(2).match(/<rect/g) ?? []).length).toBe(1 + 4 + 2 + SHEETS[2].length)
     const svg = sheetSvg(1)
     expect(svg).toContain('width="210mm"')
     expect(svg).toContain('ß')
@@ -62,10 +67,10 @@ describe('sheet', () => {
 
 describe('readSheet', () => {
   it('finds the markers, the page and the drawing in its box', () => {
-    for (const page2 of [false, true]) {
-      const r = readSheet(photo(page2))
+    for (const page of [0, 1, 2]) {
+      const r = readSheet(photo(page))
       expect(r.markers).toBe(4)
-      expect(r.page).toBe(page2 ? 1 : 0)
+      expect(r.page).toBe(page)
       expect(r.cells.length).toBe(SHEETS[r.page].length)
       const c = r.cells[0]
       const at = (xmm: number, ymm: number) => c.data[Math.round((ymm - READ_BOX.y) * RES) * c.width + r.margin + Math.round((xmm - READ_BOX.x) * RES)]
@@ -85,8 +90,8 @@ describe('readSheet', () => {
 
 describe('findSheetMarkers', () => {
   it('finds the four corner squares anywhere in a photo, not the page-2 flag', () => {
-    for (const page2 of [false, true]) {
-      const g = photo(page2)
+    for (const page of [0, 1, 2]) {
+      const g = photo(page)
       // The same sheet on a darker table, off-centre in a bigger photo.
       const w = g.width + 300
       const h = g.height + 200
@@ -99,7 +104,7 @@ describe('findSheetMarkers', () => {
         expect(Math.abs(p.x - expected[i].x)).toBeLessThan(4)
         expect(Math.abs(p.y - expected[i].y)).toBeLessThan(4)
       })
-      expect(readSheet({ width: w, height: h, data }, q).page).toBe(page2 ? 1 : 0)
+      expect(readSheet({ width: w, height: h, data }, q).page).toBe(page)
     }
   })
 })

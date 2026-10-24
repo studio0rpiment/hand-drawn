@@ -77,7 +77,7 @@ const book = new StyleBook<FontStyle>({ noun: 'font', key: 'sketch-to-mark.font-
 let style = book.current
 
 /** One read per sheet page; a new photo of a page replaces that page. */
-const reads: (SheetRead | null)[] = [null, null]
+const reads: (SheetRead | null)[] = SHEETS.map(() => null)
 const traced: { key: string; outlines: Map<string, Cmd[]>; balanced: string[] }[] = []
 /** Pages waiting to be read, by the photo they came from (a photo's latest version replaces its earlier one). */
 const pendingPages = new Map<RGBAImage, GrayImage>()
@@ -139,13 +139,14 @@ function printSheet(page: number) {
   document.body.append(frame)
 }
 
-$('sheet-print-1').addEventListener('click', () => printSheet(0))
-$('sheet-print-2').addEventListener('click', () => printSheet(1))
+const PAGES = SHEETS.map((_, i) => i)
 $('sheet-svg').addEventListener('click', () => {
-  download(new Blob([sheetFor(0)], { type: 'image/svg+xml' }), 'letter-sheet-1.svg')
-  setTimeout(() => download(new Blob([sheetFor(1)], { type: 'image/svg+xml' }), 'letter-sheet-2.svg'), 300)
+  PAGES.forEach((page) =>
+    setTimeout(() => download(new Blob([sheetFor(page)], { type: 'image/svg+xml' }), `letter-sheet-${page + 1}.svg`), page * 300),
+  )
 })
-for (const page of [0, 1]) {
+for (const page of PAGES) {
+  $(`sheet-print-${page + 1}`).addEventListener('click', () => printSheet(page))
   $(`sheet-sample-${page + 1}`).addEventListener('click', async () => {
     const c = await sampleSheetPhoto(page)
     load?.(c, c.width, c.height, `letter-sheet-${page + 1}`)
@@ -157,7 +158,7 @@ let notSheet = false
 
 function showSheetState() {
   const lines = reads.map((r, page) => {
-    if (!r) return `Page ${page + 1}: not read yet. Photograph it and open the photo.`
+    if (!r) return `Page ${page + 1}: not read yet${page === 2 ? ' (optional)' : ''}. Photograph it and open the photo.`
     const drawn = traced[page]?.outlines.size
     const markers = r.markers === 4 ? 'all corner markers found' : `${r.markers} of 4 corner markers found; boxes may be off`
     return `Page ${page + 1}: ${drawn === undefined ? '…' : `${drawn} of ${SHEETS[page].length} boxes drawn`} · ${markers}`
@@ -194,7 +195,7 @@ async function build() {
   pendingPages.clear()
   const mine = ++run
   const key = traceKey(style)
-  for (const page of [0, 1]) {
+  for (const page of PAGES) {
     const r = reads[page]
     if (!r || traced[page]?.key === key) continue
     $('font-stats').textContent = `Tracing page ${page + 1}…`

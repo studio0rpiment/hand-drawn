@@ -11,8 +11,12 @@ export const MARKERS = [
   { x: PAGE.width - MARKER.inset, y: PAGE.height - MARKER.inset },
   { x: MARKER.inset, y: PAGE.height - MARKER.inset },
 ]
-/** An extra square, top centre, printed only on page 2. */
-export const PAGE2_FLAG = { x: PAGE.width / 2, y: MARKER.inset, size: 5 }
+/**
+ * Small squares along the top edge tell the pages apart: none on page 1, one
+ * in the middle on page 2, two either side of the middle on page 3.
+ */
+export const FLAG = { y: MARKER.inset, size: 5 }
+export const PAGE_FLAGS: number[][] = [[], [PAGE.width / 2], [PAGE.width / 2 - 20, PAGE.width / 2 + 20]]
 
 export const GRID = { x: 20, y: 30, cols: 10, rows: 7, cellW: 17, cellH: 36 }
 
@@ -49,6 +53,8 @@ export const SHEETS: Slot[][] = [
     ...chars('()[]:;/@#%+=*_<>«»€$£¿¡ßœŒæÆøØ‘’“”–…·'),
     ...(Object.entries(MARK_CHARS) as [MarkName, string][]).map(([mark, char]) => ({ char, mark })),
   ],
+  // Page 3: the rest of the keyboard, signs, fractions and arrows.
+  chars('{}|\\^~§©®™°±×÷¢¥¶†‡•‹›„‚ªºµ¹²³½¼¾ÐðÞþŁł←→↑↓'),
 ]
 
 /** Top-left of box `i` on the page, in mm. */
@@ -81,9 +87,8 @@ export function sheetSvg(page: number, trace?: TraceLetters): string {
   for (const m of MARKERS) {
     parts.push(`<rect x="${m.x - MARKER.size / 2}" y="${m.y - MARKER.size / 2}" width="${MARKER.size}" height="${MARKER.size}" fill="#000"/>`)
   }
-  if (page === 1) {
-    const f = PAGE2_FLAG
-    parts.push(`<rect x="${f.x - f.size / 2}" y="${f.y - f.size / 2}" width="${f.size}" height="${f.size}" fill="#000"/>`)
+  for (const x of PAGE_FLAGS[page]) {
+    parts.push(`<rect x="${x - FLAG.size / 2}" y="${FLAG.y - FLAG.size / 2}" width="${FLAG.size}" height="${FLAG.size}" fill="#000"/>`)
   }
   const guide = (y: number, x: number, color: string, w: number, dash = '') =>
     `<line x1="${x + 0.6}" x2="${x + GRID.cellW - 0.6}" y1="${y}" y2="${y}" stroke="${color}" stroke-width="${w}"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`
@@ -108,10 +113,12 @@ export function sheetSvg(page: number, trace?: TraceLetters): string {
     parts.push(`<text x="${x + 0.8}" y="${y + 3.2}" font-size="2.6" font-family="Helvetica, Arial, sans-serif" fill="#a7b4c0">${esc(label)}</text>`)
   })
   const note = trace
-    ? `Hand Drawn · letter sheet ${page + 1} of 2 · trace each light letter with your marker; the light print drops out when the photo is read`
-    : page === 0
-      ? 'Hand Drawn · letter sheet 1 of 2 · sit each letter on the solid line; capitals reach the upper dashed line, small letters the lower one'
-      : 'Hand Drawn · letter sheet 2 of 2 · draw accent marks on their own; they are placed on letters for you'
+    ? `Hand Drawn · letter sheet ${page + 1} of ${SHEETS.length} · trace each light letter with your marker; the light print drops out when the photo is read`
+    : [
+        'sit each letter on the solid line; capitals reach the upper dashed line, small letters the lower one',
+        'draw accent marks on their own; they are placed on letters for you',
+        'signs, fractions and arrows; small figures (¹ ² ³) sit up high, as they will in the font',
+      ].map((t, i) => `Hand Drawn · letter sheet ${i + 1} of ${SHEETS.length} · ${t}`)[page]
   parts.push(`<text x="${PAGE.width / 2}" y="${PAGE.height - 6}" font-size="2.4" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" fill="#a7b4c0">${esc(note)}</text>`)
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${PAGE.width}mm" height="${PAGE.height}mm" viewBox="0 0 ${PAGE.width} ${PAGE.height}">${parts.join('')}</svg>`
 }
