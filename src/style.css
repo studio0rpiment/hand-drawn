@@ -1281,9 +1281,13 @@ label.off {
 
 /* ---- The empty Scan view ---- */
 
+/* Scan, large: at least as wide as the two buttons under it (both scale with
+   the text size), narrowed to the screen on a phone. */
 .intro-title {
-  font-size: 1.5rem;
-  margin: 0 0 1.25rem;
+  font-size: min(9rem, 24vw);
+  font-weight: 200;
+  line-height: 1;
+  margin: 0 0 1.5rem;
   color: var(--accent);
 }
 
