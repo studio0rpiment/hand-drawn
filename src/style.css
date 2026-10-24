@@ -200,7 +200,7 @@ main:not(.empty) .intro {
 .intro {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 6rem 1rem;
+  padding: 3rem 1.5rem;
   border: 2px dashed var(--line);
   border-radius: 1rem;
   font-size: 1.0625rem;
@@ -1283,4 +1283,46 @@ label.off {
 
 .size-row input {
   width: 100%;
+}
+
+/* ---- First steps: the intro's three steps, and a flag beside the tabs ---- */
+
+.intro-title {
+  font-size: 1.25rem;
+  margin: 0.5rem 0 1.25rem;
+  color: var(--accent);
+}
+
+.steps {
+  max-width: 36rem;
+  margin: 0 auto 1.5rem;
+  padding-left: 1.5rem;
+  text-align: left;
+  display: grid;
+  gap: 0.75rem;
+  font-size: 0.9375rem;
+}
+
+.steps b {
+  color: var(--accent);
+  font-weight: 400;
+}
+
+.intro-actions {
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.flag {
+  align-self: center;
+  font-size: 0.8125rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 0.375rem;
+  background: var(--accent);
+  color: var(--accent-text);
+  white-space: nowrap;
+}
+
+.flag[hidden] {
+  display: none;
 }

@@ -13,8 +13,9 @@ pnpm test
 ## How it works
 
 1. **Scan** — the first tab captures the drawing, once, for every output:
-   - **Paper:** finds the sheet in the photo (the largest bright region,
-     grown into shadowed parts) and straightens it. Drag the four corners to
+   - **Paper:** finds the sheet in the photo by its colour (paper is grey or
+     white, a table is not; brightness alone is the fallback), takes the
+     largest four-sided shape inside its outline, and straightens it. Drag the four corners to
      correct it; arrow keys nudge a focused corner (Shift for bigger steps).
    - **Ink:** evens out the light by dividing by an estimate of the bare
      paper, picks an ink cut-off (Otsu), trims the edges, removes specks and
@@ -25,6 +26,10 @@ pnpm test
      Logo, icons and textures use these colours unless set to their own.
    - **Sheet:** finds every drawing on a page; the one picked in the tray is
      what every output works on.
+   - **Remove photo** clears the photo and everything made from it; the
+     settings stay. A first visit opens on three steps (photograph, scan,
+     make) with a "start here" flag on the Scan tab, then a nudge towards the
+     outputs until one is opened. Nothing about the visit is remembered.
 2. **Logo** — traces the ink with potrace and exports an SVG in plain pixel
    coordinates, a single evenodd path, in the scan's colours or its own, with
    or without a background. A transparent PNG of the cleaned ink too.

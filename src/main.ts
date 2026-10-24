@@ -2,7 +2,7 @@ import { cropMask, despeckle, flattenLight, inkBox, lineWeight, threshold, trimE
 import { zip } from './icon/files'
 import { padBox, splitDrawings } from './split'
 import { otsu, shrinkGray, toGray, type GrayImage, type Mask, type Quad, type RGBAImage } from './image'
-import { findPaper, fullFrame, quadSize, warp } from './paper'
+import { findPaper, findPaperInColour, fullFrame, quadSize, warp } from './paper'
 import { loadSampleSheets, setPage, showFont, useLoader } from './font/ui'
 import { onSheetPick, setMask, setSheet, showIcon } from './icon/ui'
 import { decorate, favicon, flash, handSliders, installSprite, reserveHoverWidths } from './ui/hand'
@@ -143,6 +143,7 @@ function loadSource(src: CanvasImageSource, w: number, h: number, name: string) 
   photoCanvas.height = c.height
   photoCanvas.getContext('2d')!.drawImage(c, 0, 0)
   app.classList.remove('empty')
+  updateFlag()
   reserveHoverWidths(app)
   detectPaper()
 }
@@ -201,7 +202,8 @@ addEventListener('paste', (e) => {
 
 function detectPaper() {
   if (!state.photo) return
-  state.quad = findPaper(toGray(state.photo)) ?? fullFrame(state.photo.width, state.photo.height)
+  // By colour first (paper is grey, tables are not), then by brightness, else the whole photo.
+  state.quad = findPaperInColour(state.photo) ?? findPaper(toGray(state.photo)) ?? fullFrame(state.photo.width, state.photo.height)
   drawHandles()
   straighten()
 }
@@ -716,11 +718,51 @@ document.querySelectorAll<HTMLButtonElement>('.tab').forEach((tab) =>
       $(t.dataset.view!).hidden = !on
     })
     reserveHoverWidths($(tab.dataset.view!))
+    if (tab.dataset.view !== 'app') madeSomething = true
+    updateFlag()
     if (tab.dataset.view === 'icon-app') showIcon()
     if (tab.dataset.view === 'texture-app') showTexture()
     if (tab.dataset.view === 'font-app') showFont()
   }),
 )
+
+// ---- First steps ----
+
+// A flag beside the tabs: "start here" until there is a photo, then a nudge
+// towards the outputs until one is opened. Nothing is remembered between visits.
+let madeSomething = false
+function updateFlag() {
+  const flag = $('flag')
+  const empty = app.classList.contains('empty')
+  flag.hidden = !empty && madeSomething
+  flag.textContent = empty ? '← start here' : 'now make something →'
+}
+
+$('intro-open').addEventListener('click', () => $('file').click())
+$('intro-sample').addEventListener('click', () => $('sample').click())
+
+/** Remove the photo and everything made from it; the settings stay. */
+function removePhoto() {
+  Object.assign(state, { name: 'drawing', photo: null, quad: null, flat: null, gray: null, mask: null, traced: null, sheet: null, pick: 0 })
+  flattened = previewGray = previewFlat = null
+  flattenedFor = previewFor = -1
+  clean = null
+  measuredFor = null
+  for (const c of [photoCanvas, inkCanvas, flatCanvas]) c.width = c.height = 1
+  handles.replaceChildren()
+  vectorView.innerHTML = ''
+  stats.textContent = ''
+  setMask(null, 'drawing')
+  setArt(null, 'drawing')
+  showSheet()
+  for (const t of [logoTab, $<HTMLButtonElement>('icon-tab'), $<HTMLButtonElement>('texture-tab')]) t.disabled = true
+  // Back to Scan if an output that needs the photo is showing.
+  const scanTab = document.querySelector<HTMLButtonElement>('.tab[data-view="app"]')!
+  if ($('font-app').hidden) scanTab.click()
+  app.classList.add('empty')
+  updateFlag()
+}
+$('remove-photo').addEventListener('click', removePhoto)
 
 // ---- Export ----
 

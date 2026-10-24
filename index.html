@@ -15,9 +15,10 @@
       </div>
       <nav class="tabs" aria-label="Tools">
         <button class="tab" type="button" data-view="app" aria-pressed="true" data-icon="horizon-fill">Scan</button>
-        <button id="logo-tab" class="tab" type="button" data-view="logo-app" aria-pressed="false" disabled data-icon="blob-fill">Logo</button>
-        <button id="icon-tab" class="tab" type="button" data-view="icon-app" aria-pressed="false" disabled data-icon="triangle-y-fill">Icon</button>
-        <button id="texture-tab" class="tab" type="button" data-view="texture-app" aria-pressed="false" disabled data-icon="hatch-heavy-fill">Texture</button>
+        <span class="flag" id="flag" aria-live="polite">← start here</span>
+        <button id="logo-tab" class="tab" type="button" title="Scan a drawing first" data-view="logo-app" aria-pressed="false" disabled data-icon="blob-fill">Logo</button>
+        <button id="icon-tab" class="tab" type="button" title="Scan a drawing first" data-view="icon-app" aria-pressed="false" disabled data-icon="triangle-y-fill">Icon</button>
+        <button id="texture-tab" class="tab" type="button" title="Scan a drawing first" data-view="texture-app" aria-pressed="false" disabled data-icon="hatch-heavy-fill">Texture</button>
         <button id="font-tab" class="tab" type="button" data-view="font-app" aria-pressed="false" data-icon="spiral-tight-fill">Font</button>
       </nav>
       <div class="bar-actions">
@@ -32,7 +33,16 @@
     <main id="app" class="empty">
       <section class="intro" id="intro">
         <svg class="hi intro-mark" aria-hidden="true"><use href="#hi-star-scribble-fill"/></svg>
-        <p>Drop a photo of a drawing anywhere on this page, paste one, or open a file.</p>
+        <h2 class="intro-title">You're in Scan: start with a drawing</h2>
+        <ol class="steps">
+          <li><b>Photograph</b> a drawing on paper: flat, in daylight, the whole sheet in view, on a darker surface. Drop the photo anywhere on this page, paste it, or open it.</li>
+          <li><b>Scan</b> it: check the sheet's corners, the ink and the colour. Several drawings on one page are found and numbered.</li>
+          <li><b>Make</b> something from it: a logo, an icon set or a texture, each in its own tab. Fonts start from their own letter sheets, in the Font tab.</li>
+        </ol>
+        <div class="row intro-actions">
+          <button id="intro-open" class="button primary" type="button" data-icon="arrow-bar-fill-r270">Open a photo</button>
+          <button id="intro-sample" class="button" type="button" data-icon="star-scribble-fill">Try a sample</button>
+        </div>
         <p class="quiet small">Nothing is stored or tracked</p>
       </section>
 
@@ -119,6 +129,7 @@
       <section class="workspace" aria-label="Scan">
         <div class="pane-head">
           <h2>Scan</h2>
+          <button id="remove-photo" class="button small" type="button" data-icon="big-x-fill">Remove photo</button>
           <div class="toggle" role="radiogroup" aria-label="Show">
             <label><input type="radio" name="view" value="ink" checked /> Ink</label>
             <label><input type="radio" name="view" value="flat" /> Straightened</label>
