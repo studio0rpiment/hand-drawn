@@ -28,8 +28,7 @@ pnpm test
      what every output works on.
    - **Remove photo** clears the photo and everything made from it; the
      settings stay. A first visit opens on the Scan title and its two
-     buttons, with a "start here" flag on the Scan tab, then a nudge towards
-     the outputs until one is opened. Nothing about the visit is remembered.
+     buttons; the open tab is marked in yellow.
 2. **Logo** — traces the ink with potrace and exports an SVG in plain pixel
    coordinates, a single evenodd path, in the scan's colours or its own, with
    or without a background. A transparent PNG of the cleaned ink too.

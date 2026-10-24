@@ -143,7 +143,6 @@ function loadSource(src: CanvasImageSource, w: number, h: number, name: string) 
   photoCanvas.height = c.height
   photoCanvas.getContext('2d')!.drawImage(c, 0, 0)
   app.classList.remove('empty')
-  updateFlag()
   reserveHoverWidths(app)
   detectPaper()
 }
@@ -718,8 +717,6 @@ document.querySelectorAll<HTMLButtonElement>('.tab').forEach((tab) =>
       $(t.dataset.view!).hidden = !on
     })
     reserveHoverWidths($(tab.dataset.view!))
-    if (tab.dataset.view !== 'app') madeSomething = true
-    updateFlag()
     if (tab.dataset.view === 'icon-app') showIcon()
     if (tab.dataset.view === 'texture-app') showTexture()
     if (tab.dataset.view === 'font-app') showFont()
@@ -727,16 +724,6 @@ document.querySelectorAll<HTMLButtonElement>('.tab').forEach((tab) =>
 )
 
 // ---- First steps ----
-
-// A flag beside the tabs: "start here" until there is a photo, then a nudge
-// towards the outputs until one is opened. Nothing is remembered between visits.
-let madeSomething = false
-function updateFlag() {
-  const flag = $('flag')
-  const empty = app.classList.contains('empty')
-  flag.hidden = !empty && madeSomething
-  flag.textContent = empty ? '← start here' : 'now make something →'
-}
 
 $('intro-open').addEventListener('click', () => $('file').click())
 $('intro-sample').addEventListener('click', () => $('sample').click())
@@ -760,7 +747,6 @@ function removePhoto() {
   const scanTab = document.querySelector<HTMLButtonElement>('.tab[data-view="app"]')!
   if ($('font-app').hidden) scanTab.click()
   app.classList.add('empty')
-  updateFlag()
 }
 $('remove-photo').addEventListener('click', removePhoto)
 

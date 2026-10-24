@@ -571,10 +571,11 @@ input[type='color'] {
   cursor: pointer;
 }
 
+/* The open tab: dark on the accent, so it is clear which one you are in. */
 .tab[aria-pressed='true'] {
-  color: var(--text);
-  border-color: var(--line);
-  background: var(--bg);
+  color: var(--accent-text);
+  border-color: var(--accent);
+  background: var(--accent);
 }
 
 .tab:disabled {
@@ -1278,7 +1279,7 @@ label.off {
   width: 100%;
 }
 
-/* ---- First steps: the intro, and a flag beside the tabs ---- */
+/* ---- The empty Scan view ---- */
 
 .intro-title {
   font-size: 1.5rem;
@@ -1290,16 +1291,3 @@ label.off {
   justify-content: center;
 }
 
-.flag {
-  align-self: center;
-  font-size: 0.8125rem;
-  padding: 0.15rem 0.55rem;
-  border-radius: 0.375rem;
-  background: var(--accent);
-  color: var(--accent-text);
-  white-space: nowrap;
-}
-
-.flag[hidden] {
-  display: none;
-}
