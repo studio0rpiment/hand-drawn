@@ -240,6 +240,10 @@ pages is in `guides/letter-sheet-trace.pdf`.
 - [x] Stage 2: icon family and favicon set, driven by saved styles
 - [x] Stage 3: texture and stamp art (stamp, risograph, halftone, ink; seamless patterns), driven by styles
 - [x] Stage 4: font from a drawn letter sheet, with accents built in, driven by styles
+- [ ] Later: a material output for textures. The ink's height, exaggerated,
+  as displacement, normal, roughness and occlusion maps, with a lit preview;
+  a drawing used to imprint another surface (a letter C pressed into a 3D
+  texture); and more experimental, algorithmic shaders and maps.
 
 ## Globe sheet
 
