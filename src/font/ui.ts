@@ -147,11 +147,16 @@ $('sheet-svg').addEventListener('click', () => {
 })
 for (const page of PAGES) {
   $(`sheet-print-${page + 1}`).addEventListener('click', () => printSheet(page))
-  $(`sheet-sample-${page + 1}`).addEventListener('click', async () => {
+}
+
+/** Both pages of the alphabet, as Kevin traced them, opened together. */
+export async function loadSampleSheets() {
+  for (const page of [0, 1]) {
     const c = await sampleSheetPhoto(page)
     load?.(c, c.width, c.height, `letter-sheet-${page + 1}`)
-  })
+  }
 }
+$('sheet-samples').addEventListener('click', () => void loadSampleSheets())
 
 /** The last photo opened wasn't a letter sheet (its corner squares weren't found). */
 let notSheet = false

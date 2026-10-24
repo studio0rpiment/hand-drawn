@@ -3,7 +3,7 @@ import { zip } from './icon/files'
 import { padBox, splitDrawings } from './split'
 import { otsu, shrinkGray, toGray, type GrayImage, type Mask, type Quad, type RGBAImage } from './image'
 import { findPaper, fullFrame, quadSize, warp } from './paper'
-import { setPage, showFont, useLoader } from './font/ui'
+import { loadSampleSheets, setPage, showFont, useLoader } from './font/ui'
 import { onSheetPick, setMask, setSheet, showIcon } from './icon/ui'
 import { decorate, favicon, flash, handSliders, installSprite, reserveHoverWidths } from './ui/hand'
 import { privacyNotice, privacySettings } from './ui/privacy'
@@ -160,8 +160,10 @@ $<HTMLInputElement>('file').addEventListener('change', (e) => {
   input.value = ''
 })
 
-// The sample is one of Kevin's own drawings, photographed in a sketchbook.
+// The sample is one of Kevin's own drawings, photographed in a sketchbook;
+// in the Font view, his two traced pages of the alphabet.
 $('sample').addEventListener('click', async () => {
+  if (!$('font-app').hidden) return loadSampleSheets()
   const res = await fetch('/sample-drawing.jpg')
   if (!res.ok) return
   await loadBlob(await res.blob(), 'sample')

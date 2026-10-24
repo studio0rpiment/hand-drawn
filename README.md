@@ -220,8 +220,9 @@ is ours and the code says so.
 Built-ins: As drawn, Tidy, Bouncy, Bold marker, Slanted, Typewriter. The style
 name becomes the font's style name, so one drawing can give a family (*My Hand
 Bouncy*, *My Hand Bold marker* …). Exports an `.otf` (cubic outlines, cap
-height 700 of a 1000 em) and an `@font-face` rule. **Sample page 1 / 2** fill
-the sheet with a system handwriting font, to try it without drawing. Tick **with letters to trace** before
+height 700 of a 1000 em) and an `@font-face` rule. **Try the sample sheets**
+(or *Try a sample* in the bar, while on the Font tab) opens both pages of the
+alphabet as Kevin traced them, to try it without drawing. Tick **with letters to trace** before
 printing to get light Helvetica letters in every box (wide capitals are
 narrowed to fit): trace them with a marker to test the whole font pipeline.
 The light print drops out when the photo is read. A ready-made copy of all three
