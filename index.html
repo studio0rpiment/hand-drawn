@@ -261,6 +261,18 @@
           <legend>Colour</legend>
           <label class="check"><input id="texture-scan-colours" type="checkbox" checked /> Colours from the scan</label>
         </fieldset>
+        <fieldset>
+          <legend>Size</legend>
+          <label class="field">Preset <select id="tex-preset"></select></label>
+          <div class="row size-row">
+            <label class="field">Width <input id="tex-w" type="number" min="64" max="4800" step="1" inputmode="numeric" /></label>
+            <button id="tex-swap" class="button small" type="button" aria-label="Swap width and height" title="Swap width and height">⇄</button>
+            <label class="field">Height <input id="tex-h" type="number" min="64" max="4800" step="1" inputmode="numeric" /></label>
+          </div>
+          <label class="check"><input id="tex-lock" type="checkbox" /> Keep the proportions</label>
+          <label class="check"><input id="tex-fit" type="checkbox" /> Single print: canvas fits the print instead</label>
+          <p class="hint" id="tex-size-note" aria-live="polite"></p>
+        </fieldset>
         <div id="texture-fields"></div>
         <fieldset>
           <legend>Export</legend>

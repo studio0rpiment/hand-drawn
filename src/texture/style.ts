@@ -41,9 +41,12 @@ export interface TextureStyle {
   colors: { ink: string; ink2: string; paper: string; /** Print on paper colour; off for transparent. */ onPaper: boolean; paperGrain: number }
   layout: {
     mode: Layout
-    /** Square tile size in pixels for patterns; single prints are sized by the art. */
-    tile: number
-    /** Size of each print, as a fraction of the tile (patterns) or of the art (single). */
+    /** The texture's size in pixels: the tile, for patterns (which repeat at any rectangle). */
+    width: number
+    height: number
+    /** A single print: the canvas fits the print (plus margin), ignoring width and height. */
+    fit: boolean
+    /** Size of each print: a fraction of the tile's shorter side (patterns), of the space inside the margin (single on a set canvas), or of the art (single, fitted). */
     scale: number
     /** Space between prints, as a fraction of the print size. */
     gap: number
@@ -66,7 +69,7 @@ export const STAMP: TextureStyle = {
   riso: { offsetX: 6, offsetY: -4, second: false },
   halftone: { cell: 10, angle: 45, shape: 'dot' },
   colors: { ink: '#b53519', ink2: '#272942', paper: '#f5f4ed', onPaper: false, paperGrain: 0.2 },
-  layout: { mode: 'single', tile: 1024, scale: 1, gap: 0.3, jitter: 0, count: 6, margin: 48 },
+  layout: { mode: 'single', width: 1024, height: 1024, fit: true, scale: 1, gap: 0.3, jitter: 0, count: 6, margin: 48 },
 }
 
 export const BUILT_IN: TextureStyle[] = [
@@ -103,6 +106,9 @@ export const BUILT_IN: TextureStyle[] = [
 ]
 
 const HEX = /^#[0-9a-f]{6}$/i
+
+/** Longest side allowed, in pixels: room for 12 in at 300 dpi. */
+export const MAX_SIDE = 4800
 
 /** Read a texture style from untrusted JSON, keeping valid fields and falling back to `base`. */
 export function readTextureStyle(raw: unknown, base: TextureStyle = STAMP): TextureStyle {
@@ -158,7 +164,10 @@ export function readTextureStyle(raw: unknown, base: TextureStyle = STAMP): Text
     },
     layout: {
       mode: pick(l.mode, LAYOUTS, base.layout.mode),
-      tile: int(l.tile, base.layout.tile, 128, 4096),
+      // Styles saved before rectangles had one square `tile`.
+      width: int(l.width ?? l.tile, base.layout.width, 64, MAX_SIDE),
+      height: int(l.height ?? l.tile, base.layout.height, 64, MAX_SIDE),
+      fit: bool(l.fit, base.layout.fit),
       scale: num(l.scale, base.layout.scale, 0.05, 2),
       gap: num(l.gap, base.layout.gap, 0, 3),
       jitter: num(l.jitter, base.layout.jitter, 0, 180),

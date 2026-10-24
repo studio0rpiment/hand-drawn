@@ -133,7 +133,7 @@ describe('layout', () => {
   })
 
   it('fits a whole number of grid cells in a tile, so edges meet', () => {
-    const s = style((s) => ({ ...s, layout: { ...s.layout, mode: 'half-drop', tile: 1000, scale: 0.3, gap: 0.35 } }))
+    const s = style((s) => ({ ...s, layout: { ...s.layout, mode: 'half-drop', width: 1000, height: 1000, scale: 0.3, gap: 0.35 } }))
     const p = plan(s, 300, 200)
     const xs = [...new Set(p.items.map((i) => i.x))].sort((a, b) => a - b)
     const step = xs[1] - xs[0]
@@ -145,7 +145,7 @@ describe('layout', () => {
   })
 
   it('spreads scattered prints out, even across the wrap', () => {
-    const s = style((s) => ({ ...s, layout: { ...s.layout, mode: 'scatter', tile: 1000, count: 9 } }))
+    const s = style((s) => ({ ...s, layout: { ...s.layout, mode: 'scatter', width: 1000, height: 1000, count: 9 } }))
     const items = plan(s, 100, 100).items
     let min = Infinity
     for (const a of items) {
@@ -158,6 +158,31 @@ describe('layout', () => {
     }
     // A perfect 3 × 3 grid would give 333; pure random often gives under 50.
     expect(min).toBeGreaterThan(180)
+  })
+
+  it('tiles a rectangle: whole cells across and down, an even count for a half-drop', () => {
+    const s = style((s) => ({ ...s, layout: { ...s.layout, mode: 'half-drop', width: 1500, height: 600, scale: 0.25, gap: 0.3 } }))
+    const p = plan(s, 100, 100)
+    expect([p.width, p.height, p.wrap]).toEqual([1500, 600, true])
+    const xs = [...new Set(p.items.map((i) => i.x))].sort((a, b) => a - b)
+    const ys = [...new Set(p.items.filter((i) => i.x === xs[0]).map((i) => i.y))].sort((a, b) => a - b)
+    expect(xs.length % 2).toBe(0)
+    expect(1500 / (xs[1] - xs[0])).toBeCloseTo(xs.length)
+    expect(600 / (ys[1] - ys[0])).toBeCloseTo(ys.length)
+  })
+
+  it('centres a single print on a set canvas, inside the margin', () => {
+    const s = style((s) => ({ ...s, layout: { ...s.layout, mode: 'single', fit: false, width: 1000, height: 500, margin: 50, scale: 1, jitter: 0 } }))
+    const p = plan(s, 200, 100)
+    expect([p.width, p.height, p.wrap]).toEqual([1000, 500, false])
+    expect(p.items[0]).toMatchObject({ x: 500, y: 250 })
+    // 200 × 100 grows to fill 900 × 400: limited by the height, × 4.
+    expect(p.items[0].scale).toBeCloseTo(4)
+  })
+
+  it('reads an old square tile as width and height', () => {
+    const s = readTextureStyle({ layout: { tile: 2048 } })
+    expect([s.layout.width, s.layout.height]).toEqual([2048, 2048])
   })
 
   it('scatters the same way for the same seed', () => {

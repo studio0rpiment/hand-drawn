@@ -121,13 +121,15 @@ way every time; **Shuffle** picks a new one.
 | Risograph | second drum on or off, misregistration across and down |
 | Halftone | dots or lines, cell size, screen angle |
 | Colours | ink, second ink, paper, print on paper or transparent, paper texture |
-| Layout | single, grid, half-drop or scatter; print size, random turn, margin, tile size, gap, number of prints |
+| Layout | single, grid, half-drop or scatter; print size, random turn, margin, gap, number of prints |
+| Size | width × height in pixels (up to 4800), presets for square tiles, screens and print at 300 dpi, keep proportions, swap; a single print can instead fit its canvas to the print |
 
 The drawing is printed at 1200 px on its long side, whatever the photo's size,
 so pixel settings (spread, dot size, offsets) look the same on every drawing.
-Inks overprint (multiply) on paper, as real ink does. Patterns fit a whole
-number of cells per tile and draw prints across the edges again on the other
-side, so tiles join without seams; scatter spreads prints evenly around the
+Inks overprint (multiply) on paper, as real ink does. Patterns tile at any
+width and height: a whole number of cells across and down (an even number of
+columns for a half-drop), with prints drawn across the edges again on the
+other side, so tiles join without seams; scatter spreads prints evenly around the
 wrap. Built-in colours come from the Orpiment palette.
 
 Exports: a PNG (transparent unless printed on paper) and a CSS
