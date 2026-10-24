@@ -141,13 +141,16 @@ Exports: a PNG (transparent unless printed on paper) and a CSS
    reach the upper dashed line, small letters the lower one. Accent marks on
    page 2 are drawn on their own.
 3. Photograph each page flat, all four corner squares in view, and open the
-   photos one after the other. Each page is recognised by its markers (page 2
-   has an extra square at the top), and a new photo of a page replaces it.
+   photos, together or one after the other. Each page is recognised by its
+   markers (page 2 has an extra square at the top), and a new photo of a page
+   replaces it.
 
-The corner squares are found in the photo and the boxes are read through
-them, so a page straightened slightly off still lands every box. Guide lines
-and labels are printed light enough to drop out. Ink spilling in from a
-neighbouring box (a sliver under 2 mm wide at a side edge) is ignored.
+The four corner squares are found anywhere in the photo, whatever is round
+the page, and the boxes are read through them. Guide lines and labels are
+printed light enough to drop out. Each box is read with 8 mm of its
+neighbours on either side, and a shape belongs to the box holding most of
+its ink: a letter drawn past its box keeps its overhang, and a neighbour's
+letter reaching in stays with the neighbour.
 
 Page 1 holds A–Z, a–z, 0–9 and `.,!?'"-&`. Page 2 holds
 `()[]:;/@#%+=*_<>«»€$£¿¡ßœŒæÆøØ‘’“”–…·` and seven accents (´ ` ˆ ¨ ˜ ¸ ˚).

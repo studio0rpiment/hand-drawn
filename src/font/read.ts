@@ -11,6 +11,13 @@ export const RES = 10
 /** The part of each box that is read, in mm from the box's top-left: inside the border, below the label. */
 export const READ_BOX = { x: 0.7, y: GUIDES.top, width: GRID.cellW - 1.4, height: GRID.cellH - GUIDES.top - 0.7 }
 
+/**
+ * Each box is read with this much (mm) of its neighbours on either side, so a
+ * letter drawn past its box's edge is not cut off; which ink belongs to the
+ * box is decided afterwards (see ownInk).
+ */
+export const READ_SPILL = 8
+
 /** Baseline position inside a cut-out box, in pixels from its top. */
 export const BASELINE_PX = (GUIDES.baseline - READ_BOX.y) * RES
 
@@ -21,8 +28,10 @@ export interface SheetRead {
   markers: number
   /** The page's ink cut-off, picked automatically. */
   level: number
-  /** One grey cut-out per box of this page, in SHEETS[page] order. */
+  /** One grey cut-out per box of this page, in SHEETS[page] order, `margin` px wider than the box on each side. */
   cells: GrayImage[]
+  /** How far (px) each cut-out reaches past its box on the left and right. */
+  margin: number
 }
 
 /** Find a marker near where it is expected: the most square-like dark blob of about the right size. */
@@ -84,11 +93,74 @@ function findMarker(gray: GrayImage, around: Point, scale: { x: number; y: numbe
   return best?.p ?? null
 }
 
-/** Read the straightened, light-evened photo of a letter sheet. */
-export function readSheet(gray: GrayImage): SheetRead {
+/**
+ * The four corner squares anywhere in a photo, without knowing where the page
+ * is: the biggest solid, square dark shapes, taken at the photo's four
+ * extremes (top left, top right, bottom right, bottom left). The page-2 flag
+ * is smaller and drops out; so do letters, which are neither solid nor square.
+ */
+export function findSheetMarkers(gray: GrayImage): Quad | null {
+  const { width: w, height: h, data } = gray
   const level = otsu(gray)
+  const seen = new Uint8Array(w * h)
+  const minSide = Math.min(w, h) * 0.012
+  const found: { x: number; y: number; area: number }[] = []
+  const stack: number[] = []
+  for (let start = 0; start < w * h; start++) {
+    if (seen[start] || data[start] > level) continue
+    seen[start] = 1
+    stack.push(start)
+    let area = 0
+    let cx = 0
+    let cy = 0
+    let x0 = w
+    let y0 = h
+    let x1 = 0
+    let y1 = 0
+    while (stack.length) {
+      const p = stack.pop()!
+      const x = p % w
+      const y = (p - x) / w
+      area++
+      cx += x
+      cy += y
+      if (x < x0) x0 = x
+      if (x > x1) x1 = x
+      if (y < y0) y0 = y
+      if (y > y1) y1 = y
+      for (const q of [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, y > 0 ? p - w : -1, y < h - 1 ? p + w : -1]) {
+        if (q >= 0 && !seen[q] && data[q] <= level) {
+          seen[q] = 1
+          stack.push(q)
+        }
+      }
+    }
+    const bw = x1 - x0 + 1
+    const bh = y1 - y0 + 1
+    if (bw < minSide || bh < minSide || bw / bh < 0.7 || bw / bh > 1.43 || area / (bw * bh) < 0.8) continue
+    found.push({ x: cx / area + 0.5, y: cy / area + 0.5, area })
+  }
+  if (found.length < 4) return null
+  const biggest = Math.max(...found.map((f) => f.area))
+  const squares = found.filter((f) => f.area >= biggest * 0.55)
+  if (squares.length < 4) return null
+  const pick = (score: (f: { x: number; y: number }) => number) => squares.reduce((a, b) => (score(b) > score(a) ? b : a))
+  const tl = pick((f) => -(f.x + f.y))
+  const tr = pick((f) => f.x - f.y)
+  const br = pick((f) => f.x + f.y)
+  const bl = pick((f) => f.y - f.x)
+  if (new Set([tl, tr, br, bl]).size < 4) return null
+  return [tl, tr, br, bl].map(({ x, y }) => ({ x, y })) as Quad
+}
+
+/**
+ * Read a photo of a letter sheet. `corners`, when known (findSheetMarkers),
+ * place the page exactly; otherwise `gray` is taken to be the straightened
+ * page and the squares are looked for near where they should be.
+ */
+export function readSheet(gray: GrayImage, corners?: Quad): SheetRead {
   const scale = { x: gray.width / PAGE.width, y: gray.height / PAGE.height }
-  const found = MARKERS.map((m) => findMarker(gray, m, scale, level))
+  const found = corners ?? MARKERS.map((m) => findMarker(gray, m, scale, otsu(gray)))
   const markers = found.filter(Boolean).length
 
   // Page mm → photo px: through the markers when all four are there, else by plain scaling.
@@ -116,6 +188,13 @@ export function readSheet(gray: GrayImage): SheetRead {
     return (i00 + (i10 - i00) * ax) * (1 - ay) + (i01 + (i11 - i01) * ax) * ay
   }
 
+  // The ink cut-off, from the grid area of the page only (a photo may show the table round it).
+  const samples: number[] = []
+  for (let y = GRID.y; y < GRID.y + GRID.rows * GRID.cellH; y += 0.5) {
+    for (let x = GRID.x; x < GRID.x + GRID.cols * GRID.cellW; x += 0.5) samples.push(Math.round(sample(x, y)))
+  }
+  const level = otsu({ width: samples.length, height: 1, data: Uint8Array.from(samples) })
+
   // Page 2 carries a solid square at the top centre.
   let dark = 0
   let n = 0
@@ -128,45 +207,46 @@ export function readSheet(gray: GrayImage): SheetRead {
   }
   const page = dark / n > 0.5 ? 1 : 0
 
-  const w = Math.round(READ_BOX.width * RES)
+  const margin = READ_SPILL * RES
+  const w = Math.round(READ_BOX.width * RES) + 2 * margin
   const h = Math.round(READ_BOX.height * RES)
   const cells = SHEETS[page].map((_, i) => {
     const o = cellOrigin(i)
+    const x0 = o.x + READ_BOX.x - READ_SPILL
     const data = new Uint8Array(w * h)
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
-        data[y * w + x] = Math.round(sample(o.x + READ_BOX.x + (x + 0.5) / RES, o.y + READ_BOX.y + (y + 0.5) / RES))
+        data[y * w + x] = Math.round(sample(x0 + (x + 0.5) / RES, o.y + READ_BOX.y + (y + 0.5) / RES))
       }
     }
     return { data, width: w, height: h }
   })
-  return { page, markers, level, cells }
+  return { page, markers, level, cells, margin }
 }
 
 /**
- * Drop ink spilling in from a neighbouring box: shapes touching the box's left
- * or right edge that are narrower than `maxWidth` mm. A letter that itself runs
- * over the edge is wider than that and stays.
+ * The ink that belongs to a box, from a cut-out reaching `margin` px past it
+ * on both sides: every connected shape with at least half its ink inside the
+ * box. A letter drawn over its box's edge keeps its overhang; a neighbour's
+ * letter reaching in stays with the neighbour.
  */
-export function dropSpill(mask: Mask, maxWidth = 2): Mask {
+export function ownInk(mask: Mask, margin: number): Mask {
   const { width: w, height: h, data } = mask
-  const out = data.slice()
+  const out = new Uint8Array(data.length)
   const seen = new Uint8Array(data.length)
-  const limit = maxWidth * RES
+  const right = w - margin
   for (let start = 0; start < data.length; start++) {
     if (!data[start] || seen[start]) continue
     const region: number[] = []
     const stack = [start]
     seen[start] = 1
-    let x0 = w
-    let x1 = -1
+    let inside = 0
     while (stack.length) {
       const p = stack.pop()!
       region.push(p)
       const x = p % w
       const y = (p - x) / w
-      x0 = Math.min(x0, x)
-      x1 = Math.max(x1, x)
+      if (x >= margin && x < right) inside++
       for (let dy = -1; dy <= 1; dy++) {
         for (let dx = -1; dx <= 1; dx++) {
           const nx = x + dx
@@ -180,7 +260,7 @@ export function dropSpill(mask: Mask, maxWidth = 2): Mask {
         }
       }
     }
-    if ((x0 === 0 || x1 === w - 1) && x1 - x0 + 1 < limit) for (const p of region) out[p] = 0
+    if (inside * 2 >= region.length) for (const p of region) out[p] = 1
   }
   return { ...mask, data: out }
 }

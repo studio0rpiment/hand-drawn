@@ -149,9 +149,15 @@ function loadSource(src: CanvasImageSource, w: number, h: number, name: string) 
 
 useLoader(loadSource)
 
+/** Several photos at once (both pages of a letter sheet): opened one after another; the last one stays on screen. */
+async function loadFiles(files: File[]) {
+  for (const f of files) await loadBlob(f, f.name)
+}
+
 $<HTMLInputElement>('file').addEventListener('change', (e) => {
-  const f = (e.target as HTMLInputElement).files?.[0]
-  if (f) loadBlob(f, f.name)
+  const input = e.target as HTMLInputElement
+  void loadFiles([...(input.files ?? [])])
+  input.value = ''
 })
 
 // The sample is one of Kevin's own drawings, photographed in a sketchbook.
@@ -181,8 +187,7 @@ addEventListener('drop', (e) => {
   e.preventDefault()
   dragDepth = 0
   drop.hidden = true
-  const f = [...(e.dataTransfer?.files ?? [])].find((f) => f.type.startsWith('image/') || /\.hei[cf]$/i.test(f.name))
-  if (f) loadBlob(f, f.name)
+  void loadFiles([...(e.dataTransfer?.files ?? [])].filter((f) => f.type.startsWith('image/') || /\.hei[cf]$/i.test(f.name)))
 })
 addEventListener('paste', (e) => {
   const item = [...(e.clipboardData?.items ?? [])].find((i) => i.type.startsWith('image/'))
@@ -392,7 +397,7 @@ function makeInk() {
   if (!rolling) {
     setMask(state.mask, state.name)
     // The Font view reads the whole straightened page, not the cropped drawing.
-    setPage(base)
+    setPage(base, state.photo!)
     // Textures keep the photo's own tones, so they get the light-evened grey too.
     setArt(box && state.mask ? { gray: cropMask(base, box), mask: state.mask } : null, state.name)
     logoTab.disabled = !state.mask

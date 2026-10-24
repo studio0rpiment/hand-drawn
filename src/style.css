@@ -68,9 +68,8 @@ textarea {
   font-weight: 400;
 }
 
-/* A choice stays on one line with its button. */
-.toggle label,
-.check {
+/* A choice stays on one line with its button; a long one may wrap under it. */
+.toggle label {
   white-space: nowrap;
 }
 
@@ -234,6 +233,8 @@ fieldset {
   border-radius: var(--radius);
   background: var(--surface);
   display: grid;
+  /* One column as wide as the fieldset, not as its longest line. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.6rem;
 }
 

@@ -1,7 +1,8 @@
 // The Font view: print the letter sheet, read photos of it, and build a font
 // under a font style, with a live type preview and OTF export.
 
-import type { GrayImage } from '../image'
+import { flattenLight } from '../clean'
+import { toGray, type GrayImage, type RGBAImage } from '../image'
 import { slug } from '../icon/style'
 import { buildFields, fixed, plain, type FieldGroup } from '../ui/fields'
 import { StyleBook, styleBox } from '../ui/styles'
@@ -9,7 +10,7 @@ import { flash } from '../ui/hand'
 import { assemble, ASCENDER, DESCENDER, type BuiltGlyph, type Check } from './assemble'
 import { traceKey, traceSheet } from './make'
 import { COMPOSITES, type Cmd } from './outline'
-import { readSheet, type SheetRead } from './read'
+import { findSheetMarkers, readSheet, type SheetRead } from './read'
 import { sampleSheetPhoto } from './sample'
 import { GRID, SHEETS, sheetSvg, traceSize, type TraceLetters } from './sheet'
 import { BUILT_IN, readFontStyle, type FontStyle } from './style'
@@ -78,8 +79,8 @@ let style = book.current
 /** One read per sheet page; a new photo of a page replaces that page. */
 const reads: (SheetRead | null)[] = [null, null]
 const traced: { key: string; outlines: Map<string, Cmd[]>; balanced: string[] }[] = []
-let lastPage: GrayImage | null = null
-let pendingPage: GrayImage | null = null
+/** Pages waiting to be read, by the photo they came from (a photo's latest version replaces its earlier one). */
+const pendingPages = new Map<RGBAImage, GrayImage>()
 let built: ReturnType<typeof assemble> | null = null
 let load: ((src: CanvasImageSource, w: number, h: number, name: string) => void) | null = null
 
@@ -177,9 +178,12 @@ function buildSoon() {
 
 async function build() {
   if ($('font-app').hidden) return
-  if (pendingPage && pendingPage !== lastPage) {
-    lastPage = pendingPage
-    const r = readSheet(pendingPage)
+  for (const [photo, page] of pendingPages) {
+    // The sheet's own corner squares place it best, found in the whole photo;
+    // failing that, the page as the Scan view straightened it.
+    const raw = flattenLight(toGray(photo), 0.9)
+    const corners = findSheetMarkers(raw)
+    const r = corners ? readSheet(raw, corners) : readSheet(page)
     // Only a photo of the letter sheet: at least three of its corner squares must be there.
     if (r.markers >= 3) {
       reads[r.page] = r
@@ -187,6 +191,7 @@ async function build() {
       notSheet = false
     } else notSheet = true
   }
+  pendingPages.clear()
   const mine = ++run
   const key = traceKey(style)
   for (const page of [0, 1]) {
@@ -302,9 +307,12 @@ $<HTMLTextAreaElement>('font-sample').value = SAMPLE_TEXT
 
 // ---- Wiring to the Logo view ----
 
-/** Called with each straightened, light-evened page from the Logo view. */
-export function setPage(gray: GrayImage | null) {
-  pendingPage = gray
+/** Called with each straightened, light-evened page from the Scan view, and the photo it came from. */
+export function setPage(gray: GrayImage, photo: RGBAImage) {
+  pendingPages.delete(photo)
+  pendingPages.set(photo, gray)
+  // Only the latest few photos wait; older ones were for other tabs.
+  while (pendingPages.size > 3) pendingPages.delete(pendingPages.keys().next().value!)
   buildSoon()
 }
 

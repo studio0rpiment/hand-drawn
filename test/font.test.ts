@@ -4,7 +4,7 @@ import { ASCENDER, assemble, kerning, outlines } from '../src/font/assemble'
 import { CAP_HEIGHT, X_HEIGHT, bbox, dotless, fromTraced, placeMark, shapeGlyph, space, type Cmd } from '../src/font/outline'
 import { classifySide, opticalCentre, overshoot, profile, tracyRefs, tracyValue, TRACY_CAPS } from '../src/font/metrics'
 import type { BuiltGlyph } from '../src/font/assemble'
-import { BASELINE_PX, READ_BOX, RES, dropSpill, readSheet } from '../src/font/read'
+import { BASELINE_PX, READ_BOX, RES, findSheetMarkers, ownInk, readSheet } from '../src/font/read'
 import { GUIDES, MARKER, MARKERS, PAGE2_FLAG, SHEETS, UNITS, cellOrigin, sheetSvg } from '../src/font/sheet'
 import { AS_DRAWN, BUILT_IN, readFontStyle } from '../src/font/style'
 import type { GrayImage } from '../src/image'
@@ -68,7 +68,7 @@ describe('readSheet', () => {
       expect(r.page).toBe(page2 ? 1 : 0)
       expect(r.cells.length).toBe(SHEETS[r.page].length)
       const c = r.cells[0]
-      const at = (xmm: number, ymm: number) => c.data[Math.round((ymm - READ_BOX.y) * RES) * c.width + Math.round((xmm - READ_BOX.x) * RES)]
+      const at = (xmm: number, ymm: number) => c.data[Math.round((ymm - READ_BOX.y) * RES) * c.width + r.margin + Math.round((xmm - READ_BOX.x) * RES)]
       // Inside the block, and well clear of it above, below and beside.
       expect(at(8.5, 17)).toBeLessThan(60)
       expect(at(8.5, GUIDES.cap + 0.6)).toBeLessThan(60)
@@ -76,26 +76,50 @@ describe('readSheet', () => {
       expect(at(8.5, 6)).toBeGreaterThan(200)
       expect(at(8.5, 28)).toBeGreaterThan(200)
       expect(at(2, 17)).toBeGreaterThan(200)
-      expect(r.cells[1].data.every((v) => v > 200)).toBe(true)
+      // The second box is empty, apart from the first box's ink reaching into its left margin.
+      const c1 = r.cells[1]
+      expect(c1.data.every((v, i) => v > 200 || i % c1.width < r.margin)).toBe(true)
     }
   })
 })
 
-describe('dropSpill', () => {
-  it('drops thin slivers at the side edges, keeps letters and wide overruns', () => {
-    const w = 150
+describe('findSheetMarkers', () => {
+  it('finds the four corner squares anywhere in a photo, not the page-2 flag', () => {
+    for (const page2 of [false, true]) {
+      const g = photo(page2)
+      // The same sheet on a darker table, off-centre in a bigger photo.
+      const w = g.width + 300
+      const h = g.height + 200
+      const data = new Uint8Array(w * h).fill(90)
+      for (let y = 0; y < g.height; y++) data.set(g.data.subarray(y * g.width, (y + 1) * g.width), (y + 140) * w + 220)
+      const q = findSheetMarkers({ width: w, height: h, data })!
+      expect(q).not.toBeNull()
+      const expected = MARKERS.map((m) => ({ x: 4.15 * m.x + 0.03 * m.y + 8 + 220, y: 4.12 * m.y + 0.02 * m.x + 6 + 140 }))
+      q.forEach((p, i) => {
+        expect(Math.abs(p.x - expected[i].x)).toBeLessThan(4)
+        expect(Math.abs(p.y - expected[i].y)).toBeLessThan(4)
+      })
+      expect(readSheet({ width: w, height: h, data }, q).page).toBe(page2 ? 1 : 0)
+    }
+  })
+})
+
+describe('ownInk', () => {
+  it('keeps the box’s letters with their overhang, drops a neighbour’s', () => {
+    const margin = 40
+    const w = 2 * margin + 150
     const h = 100
     const data = new Uint8Array(w * h)
     const fill = (x0: number, y0: number, x1: number, y1: number) => {
       for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) data[y * w + x] = 1
     }
-    fill(140, 10, 150, 40) // 1 mm sliver at the right edge
-    fill(50, 20, 90, 80) // a letter in the middle
-    fill(0, 60, 45, 70) // a wide stroke running off the left edge
-    const out = dropSpill({ data, width: w, height: h })
-    expect(out.data[20 * w + 145]).toBe(0)
-    expect(out.data[50 * w + 70]).toBe(1)
-    expect(out.data[65 * w + 5]).toBe(1)
+    fill(margin + 50, 20, margin + 90, 80) // a letter in the box
+    fill(margin + 100, 10, margin + 180, 16) // a bar running 30 px past the right edge
+    fill(margin - 30, 40, margin + 10, 50) // the left neighbour reaching 10 px in
+    const out = ownInk({ data, width: w, height: h }, margin)
+    expect(out.data[50 * w + margin + 70]).toBe(1)
+    expect(out.data[12 * w + margin + 170]).toBe(1)
+    expect(out.data[45 * w + margin + 5]).toBe(0)
   })
 })
 
