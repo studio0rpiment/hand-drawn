@@ -1,5 +1,6 @@
-// A made-up phone photo of a filled-in letter sheet, written with a system
-// handwriting font, so the Font tab can be tried without drawing.
+// Sample photos of filled-in letter sheets, so the Font tab can be tried
+// without drawing: Kevin's own traced pages where there is one, otherwise a
+// made-up photo written with a system handwriting font.
 
 import { random } from '../texture/noise'
 import { GUIDES, PAGE, SHEETS, cellOrigin, sheetSvg } from './sheet'
@@ -22,7 +23,27 @@ async function blankSheet(page: number): Promise<HTMLCanvasElement> {
   }
 }
 
+/** Kevin's photographed pages, by page index (none yet for page 3). */
+const PHOTOS: (string | undefined)[] = ['/sample-sheet-1.jpg', '/sample-sheet-2.jpg']
+
 export async function sampleSheetPhoto(page: number): Promise<HTMLCanvasElement> {
+  const url = PHOTOS[page]
+  if (url) {
+    const res = await fetch(url)
+    if (res.ok) {
+      const img = await createImageBitmap(await res.blob())
+      const c = document.createElement('canvas')
+      c.width = img.width
+      c.height = img.height
+      c.getContext('2d')!.drawImage(img, 0, 0)
+      img.close()
+      return c
+    }
+  }
+  return madeUpPhoto(page)
+}
+
+async function madeUpPhoto(page: number): Promise<HTMLCanvasElement> {
   const sheet = await blankSheet(page)
   const g = sheet.getContext('2d')!
   const rand = random(40 + page)
