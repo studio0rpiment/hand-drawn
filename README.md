@@ -27,9 +27,9 @@ pnpm test
    - **Sheet:** finds every drawing on a page; the one picked in the tray is
      what every output works on.
    - **Remove photo** clears the photo and everything made from it; the
-     settings stay. A first visit opens on three steps (photograph, scan,
-     make) with a "start here" flag on the Scan tab, then a nudge towards the
-     outputs until one is opened. Nothing about the visit is remembered.
+     settings stay. A first visit opens on the Scan title and its two
+     buttons, with a "start here" flag on the Scan tab, then a nudge towards
+     the outputs until one is opened. Nothing about the visit is remembered.
 2. **Logo** — traces the ink with potrace and exports an SVG in plain pixel
    coordinates, a single evenodd path, in the scan's colours or its own, with
    or without a background. A transparent PNG of the cleaned ink too.
