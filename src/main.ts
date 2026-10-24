@@ -5,7 +5,6 @@ import { otsu, shrinkGray, toGray, type GrayImage, type Mask, type Quad, type RG
 import { findPaper, fullFrame, quadSize, warp } from './paper'
 import { setPage, showFont, useLoader } from './font/ui'
 import { onSheetPick, setMask, setSheet, showIcon } from './icon/ui'
-import { samplePhoto } from './sample'
 import { decorate, favicon, flash, handSliders, installSprite, reserveHoverWidths } from './ui/hand'
 import { privacyNotice, privacySettings } from './ui/privacy'
 import { globePair } from './ui/sphere'
@@ -155,9 +154,13 @@ $<HTMLInputElement>('file').addEventListener('change', (e) => {
   if (f) loadBlob(f, f.name)
 })
 
-$('sample').addEventListener('click', () => {
-  const c = samplePhoto()
-  loadSource(c, c.width, c.height, 'sample')
+// The sample is one of Kevin's own drawings, photographed in a sketchbook.
+$('sample').addEventListener('click', async () => {
+  const res = await fetch('/sample-drawing.jpg')
+  if (!res.ok) return
+  await loadBlob(await res.blob(), 'sample')
+  // The page fills the photo, with no table round it to find: use all of it.
+  $('whole').click()
 })
 
 const drop = $('drop')
