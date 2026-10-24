@@ -413,8 +413,17 @@ input[type='color'] {
 
 .pane {
   min-width: 0;
+}
+
+/* The preview stays in view while the settings beside it scroll; if it is
+   taller than the window, it scrolls on its own. */
+.workspace,
+.icon-preview {
   position: sticky;
   top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .pane-head {
@@ -533,8 +542,15 @@ input[type='color'] {
   main {
     grid-template-columns: 1fr;
   }
-  .pane {
-    position: static;
+  /* On a phone the preview is pinned to the top and the settings scroll under it. */
+  .workspace,
+  .icon-preview {
+    top: 0;
+    z-index: 3;
+    max-height: 48vh;
+    padding-block: 0.5rem;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
   }
   .controls {
     order: 3;
