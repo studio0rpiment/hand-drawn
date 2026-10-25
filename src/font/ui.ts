@@ -82,7 +82,6 @@ const traced: { key: string; outlines: Map<string, Cmd[]>; balanced: string[] }[
 /** Pages waiting to be read, by the photo they came from (a photo's latest version replaces its earlier one). */
 const pendingPages = new Map<RGBAImage, GrayImage>()
 let built: ReturnType<typeof assemble> | null = null
-let load: ((src: CanvasImageSource, w: number, h: number, name: string) => void) | null = null
 
 const box = styleBox(book, () => applied())
 $('font-style-box').replaceWith(box.element)
@@ -153,8 +152,13 @@ for (const page of PAGES) {
 export async function loadSampleSheets() {
   for (const page of [0, 1]) {
     const c = await sampleSheetPhoto(page)
-    load?.(c, c.width, c.height, `letter-sheet-${page + 1}`)
+    const photo = c.getContext('2d', { willReadFrequently: true })!.getImageData(0, 0, c.width, c.height)
+    // Straight into the Font view, not through Scan, so the scanned drawing stays as it is.
+    pendingPages.set(photo, toGray(photo))
   }
+  // Built now, even if the Font view isn't open, so the font is ready when it is.
+  buildHidden = true
+  buildSoon()
 }
 $('sheet-samples').addEventListener('click', () => void loadSampleSheets())
 
@@ -182,8 +186,12 @@ function buildSoon() {
   timer = window.setTimeout(build, 150)
 }
 
+/** Build even while the Font view is hidden: the sample, made ready ahead. */
+let buildHidden = false
+
 async function build() {
-  if ($('font-app').hidden) return
+  if ($('font-app').hidden && !buildHidden) return
+  buildHidden = false
   for (const [photo, page] of pendingPages) {
     // The sheet's own corner squares place it best, found in the whole photo;
     // failing that, the page as the Scan view straightened it.
@@ -320,11 +328,6 @@ export function setPage(gray: GrayImage, photo: RGBAImage) {
   // Only the latest few photos wait; older ones were for other tabs.
   while (pendingPages.size > 3) pendingPages.delete(pendingPages.keys().next().value!)
   buildSoon()
-}
-
-/** Lets the sample buttons open a photo the way Open photo does. */
-export function useLoader(fn: typeof load) {
-  load = fn
 }
 
 export function showFont() {

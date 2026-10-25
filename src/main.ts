@@ -3,7 +3,7 @@ import { zip } from './icon/files'
 import { padBox, splitDrawings } from './split'
 import { otsu, shrinkGray, toGray, type GrayImage, type Mask, type Quad, type RGBAImage } from './image'
 import { findPaper, findPaperInColour, fullFrame, quadSize, warp } from './paper'
-import { loadSampleSheets, setPage, showFont, useLoader } from './font/ui'
+import { loadSampleSheets, setPage, showFont } from './font/ui'
 import { onSheetPick, setMask, setSheet, showIcon } from './icon/ui'
 import { decorate, favicon, flash, handSliders, installSprite, reserveHoverWidths } from './ui/hand'
 import { privacyNotice, privacySettings } from './ui/privacy'
@@ -150,7 +150,6 @@ function loadSource(src: CanvasImageSource, w: number, h: number, name: string) 
   detectPaper()
 }
 
-useLoader(loadSource)
 
 /** Several photos at once (both pages of a letter sheet): opened one after another; the last one stays on screen. */
 async function loadFiles(files: File[]) {
@@ -172,6 +171,8 @@ $('sample').addEventListener('click', async () => {
   await loadBlob(await res.blob(), 'sample')
   // The page fills the photo, with no table round it to find: use all of it.
   $('whole').click()
+  // The alphabet sample goes to the Font view at the same time, ready there.
+  void loadSampleSheets()
 })
 
 const drop = $('drop')
