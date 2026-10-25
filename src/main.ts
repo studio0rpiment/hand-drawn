@@ -7,6 +7,7 @@ import { loadSampleSheets, setPage, showFont, useLoader } from './font/ui'
 import { onSheetPick, setMask, setSheet, showIcon } from './icon/ui'
 import { decorate, favicon, flash, handSliders, installSprite, reserveHoverWidths } from './ui/hand'
 import { privacyNotice, privacySettings } from './ui/privacy'
+import { installFlags } from './ui/flags'
 import { globePair } from './ui/sphere'
 import { setArt, showTexture } from './texture/ui'
 import { complexity } from './svgpath'
@@ -143,6 +144,8 @@ function loadSource(src: CanvasImageSource, w: number, h: number, name: string) 
   photoCanvas.height = c.height
   photoCanvas.getContext('2d')!.drawImage(c, 0, 0)
   app.classList.remove('empty')
+  // The privacy card waits for the first photo, then stays until a choice is made.
+  privacyNotice()
   reserveHoverWidths(app)
   detectPaper()
 }
@@ -403,9 +406,7 @@ function makeInk() {
     setPage(base, state.photo!)
     // Textures keep the photo's own tones, so they get the light-evened grey too.
     setArt(box && state.mask ? { gray: cropMask(base, box), mask: state.mask } : null, state.name)
-    logoTab.disabled = !state.mask
-    $<HTMLButtonElement>('icon-tab').disabled = !state.mask
-    $<HTMLButtonElement>('texture-tab').disabled = !state.mask
+    for (const t of outputTabs()) t.setAttribute('aria-disabled', String(!state.mask))
     showSheet()
   }
   showOutputs()
@@ -709,8 +710,16 @@ document.querySelectorAll<HTMLInputElement>('input[name="view"]').forEach((r) =>
 
 // ---- Views ----
 
+/**
+ * Logo, Icon and Texture need a scanned drawing. Until there is one they are
+ * marked aria-disabled rather than disabled, so they can still take focus and
+ * show their explanation flag.
+ */
+const outputTabs = () => [logoTab, $<HTMLButtonElement>('icon-tab'), $<HTMLButtonElement>('texture-tab')]
+
 document.querySelectorAll<HTMLButtonElement>('.tab').forEach((tab) =>
   tab.addEventListener('click', () => {
+    if (tab.getAttribute('aria-disabled') === 'true') return
     document.querySelectorAll<HTMLButtonElement>('.tab').forEach((t) => {
       const on = t === tab
       t.setAttribute('aria-pressed', String(on))
@@ -742,7 +751,7 @@ function removePhoto() {
   setMask(null, 'drawing')
   setArt(null, 'drawing')
   showSheet()
-  for (const t of [logoTab, $<HTMLButtonElement>('icon-tab'), $<HTMLButtonElement>('texture-tab')]) t.disabled = true
+  for (const t of outputTabs()) t.setAttribute('aria-disabled', 'true')
   // Back to Scan if an output that needs the photo is showing.
   const scanTab = document.querySelector<HTMLButtonElement>('.tab[data-view="app"]')!
   if ($('font-app').hidden) scanTab.click()
@@ -802,4 +811,4 @@ decorate()
 reserveHoverWidths()
 
 $('privacy-settings').addEventListener('click', privacySettings)
-privacyNotice()
+installFlags()

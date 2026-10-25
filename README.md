@@ -28,7 +28,11 @@ pnpm test
      what every output works on.
    - **Remove photo** clears the photo and everything made from it; the
      settings stay. A first visit opens on the Scan title and its two
-     buttons; the open tab is marked in yellow.
+     buttons; the open tab is marked in yellow. Each tab has an explanation
+     flag (after Variable Machine's: a slanted outline with a tail pointing
+     at the tab), on hover or keyboard focus; the words are in
+     `src/flags.md`. The privacy card waits for the first photo, slides up,
+     and stays until a choice is made.
 2. **Logo** — traces the ink with potrace and exports an SVG in plain pixel
    coordinates, a single evenodd path, in the scan's colours or its own, with
    or without a background. A transparent PNG of the cleaned ink too.

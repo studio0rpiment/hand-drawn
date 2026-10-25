@@ -14,11 +14,11 @@
         <p class="tagline">turn your sketches into SVG icons, logos, textures, and typefaces</p>
       </div>
       <nav class="tabs" aria-label="Tools">
-        <button class="tab" type="button" data-view="app" aria-pressed="true" data-icon="horizon-fill">Scan</button>
-        <button id="logo-tab" class="tab" type="button" title="Scan a drawing first" data-view="logo-app" aria-pressed="false" disabled data-icon="blob-fill">Logo</button>
-        <button id="icon-tab" class="tab" type="button" title="Scan a drawing first" data-view="icon-app" aria-pressed="false" disabled data-icon="triangle-y-fill">Icon</button>
-        <button id="texture-tab" class="tab" type="button" title="Scan a drawing first" data-view="texture-app" aria-pressed="false" disabled data-icon="hatch-heavy-fill">Texture</button>
-        <button id="font-tab" class="tab" type="button" data-view="font-app" aria-pressed="false" data-icon="spiral-tight-fill">Font</button>
+        <button data-flag="tab.scan" class="tab" type="button" data-view="app" aria-pressed="true" data-icon="horizon-fill">Scan</button>
+        <button data-flag="tab.logo" id="logo-tab" class="tab" type="button" data-view="logo-app" aria-pressed="false" aria-disabled="true" data-icon="blob-fill">Logo</button>
+        <button data-flag="tab.icon" id="icon-tab" class="tab" type="button" data-view="icon-app" aria-pressed="false" aria-disabled="true" data-icon="triangle-y-fill">Icon</button>
+        <button data-flag="tab.texture" id="texture-tab" class="tab" type="button" data-view="texture-app" aria-pressed="false" aria-disabled="true" data-icon="hatch-heavy-fill">Texture</button>
+        <button data-flag="tab.font" id="font-tab" class="tab" type="button" data-view="font-app" aria-pressed="false" data-icon="spiral-tight-fill">Font</button>
       </nav>
       <div class="bar-actions">
         <label class="button primary" data-icon="arrow-bar-fill-r270">
