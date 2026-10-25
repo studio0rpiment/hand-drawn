@@ -42,6 +42,14 @@ panel.addEventListener('click', (e) => {
   panel.hidden = true
 })
 
+// Where the header's line is, so the panel can rest just below it.
+const bar = document.querySelector('.bar')
+if (bar) {
+  const mark = () => document.documentElement.style.setProperty('--bar-bottom', `${bar.getBoundingClientRect().bottom}px`)
+  new ResizeObserver(mark).observe(bar)
+  mark()
+}
+
 /** On load: ask, unless this browser already allowed keeping styles. */
 export function privacyNotice() {
   if (!storageAllowed() && !dismissed) render(false)

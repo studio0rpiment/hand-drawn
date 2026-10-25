@@ -857,11 +857,13 @@ h3 {
   cursor: pointer;
 }
 
+/* On arrival it appears at the bottom centre, holds a moment, then slides up
+   to rest just below the header's line (--bar-bottom, set in privacy.ts). */
 .privacy-notice {
   position: fixed;
   left: 1rem;
   right: 1rem;
-  bottom: 1rem;
+  top: calc(var(--bar-bottom, 4.5rem) + 1rem);
   z-index: 20;
   max-width: 34rem;
   margin-inline: auto;
@@ -871,14 +873,27 @@ h3 {
   background: var(--surface);
   font-size: 0.875rem;
   box-shadow: 0 0.5rem 2rem rgb(0 0 0 / 0.5);
-  /* It waits for the first photo, then slides up from the bottom edge. */
-  animation: notice-up 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: notice-rise 1.6s both;
 }
 
-@keyframes notice-up {
-  from {
-    translate: 0 calc(100% + 1.5rem);
+@keyframes notice-rise {
+  /* At the bottom centre: the window's height, less where it rests, less its own height. */
+  0% {
+    translate: 0 calc(100vh - var(--bar-bottom, 4.5rem) - 100% - 2rem);
     opacity: 0;
+    animation-timing-function: ease-out;
+  }
+  15% {
+    translate: 0 calc(100vh - var(--bar-bottom, 4.5rem) - 100% - 2rem);
+    opacity: 1;
+  }
+  45% {
+    translate: 0 calc(100vh - var(--bar-bottom, 4.5rem) - 100% - 2rem);
+    animation-timing-function: cubic-bezier(0.65, 0, 0.25, 1);
+  }
+  100% {
+    translate: 0 0;
+    opacity: 1;
   }
 }
 

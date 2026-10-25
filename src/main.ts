@@ -144,8 +144,6 @@ function loadSource(src: CanvasImageSource, w: number, h: number, name: string) 
   photoCanvas.height = c.height
   photoCanvas.getContext('2d')!.drawImage(c, 0, 0)
   app.classList.remove('empty')
-  // The privacy card waits for the first photo, then stays until a choice is made.
-  privacyNotice()
   reserveHoverWidths(app)
   detectPaper()
 }
@@ -813,3 +811,5 @@ reserveHoverWidths()
 
 $('privacy-settings').addEventListener('click', privacySettings)
 installFlags()
+// The privacy card on arrival: it stays until a choice is made.
+privacyNotice()
