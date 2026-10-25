@@ -32,7 +32,8 @@ pnpm test
      flag (after Variable Machine's: a slanted outline with a tail pointing
      at the tab), on hover or keyboard focus; the words are in
      `src/flags.md`. On arrival the privacy card appears at the bottom
-     centre, then slides up to rest just below the header's line, and stays
+     centre, then slides up to rest halfway up the window (or just below the
+     Scan buttons, if they reach lower), and stays
      until a choice is made.
 2. **Logo** — traces the ink with potrace and exports an SVG in plain pixel
    coordinates, a single evenodd path, in the scan's colours or its own, with

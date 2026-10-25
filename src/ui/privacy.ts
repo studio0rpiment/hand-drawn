@@ -30,6 +30,7 @@ function render(settings: boolean) {
         <button class="button small" type="button" data-act="decline">${settings ? 'Close' : 'Keep nothing'}</button>
         <a href="./privacy.html">Privacy policy</a>
       </div>`
+  restingPlace()
   panel.hidden = false
 }
 
@@ -42,13 +43,13 @@ panel.addEventListener('click', (e) => {
   panel.hidden = true
 })
 
-// Where the header's line is, so the panel can rest just below it.
-const bar = document.querySelector('.bar')
-if (bar) {
-  const mark = () => document.documentElement.style.setProperty('--bar-bottom', `${bar.getBoundingClientRect().bottom}px`)
-  new ResizeObserver(mark).observe(bar)
-  mark()
+/** Where the panel rests: halfway up the window, or just below the Scan buttons if they reach lower. */
+function restingPlace() {
+  const buttons = document.querySelector('.intro-actions')
+  const below = buttons && buttons.getClientRects().length ? buttons.getBoundingClientRect().bottom + 16 : 0
+  document.documentElement.style.setProperty('--notice-top', `${Math.max(innerHeight / 2, below)}px`)
 }
+addEventListener('resize', restingPlace)
 
 /** On load: ask, unless this browser already allowed keeping styles. */
 export function privacyNotice() {

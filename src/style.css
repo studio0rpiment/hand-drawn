@@ -858,12 +858,13 @@ h3 {
 }
 
 /* On arrival it appears at the bottom centre, holds a moment, then slides up
-   to rest just below the header's line (--bar-bottom, set in privacy.ts). */
+   to rest halfway up the window, or just below the Scan buttons if they reach
+   lower (--notice-top, set in privacy.ts), so the title and buttons stay in view. */
 .privacy-notice {
   position: fixed;
   left: 1rem;
   right: 1rem;
-  top: calc(var(--bar-bottom, 4.5rem) + 1rem);
+  top: var(--notice-top, 50vh);
   z-index: 20;
   max-width: 34rem;
   margin-inline: auto;
@@ -877,18 +878,18 @@ h3 {
 }
 
 @keyframes notice-rise {
-  /* At the bottom centre: the window's height, less where it rests, less its own height. */
+  /* At the bottom centre: the window below its resting place, less its own height. */
   0% {
-    translate: 0 calc(100vh - var(--bar-bottom, 4.5rem) - 100% - 2rem);
+    translate: 0 calc(100vh - var(--notice-top, 50vh) - 100% - 1rem);
     opacity: 0;
     animation-timing-function: ease-out;
   }
   15% {
-    translate: 0 calc(100vh - var(--bar-bottom, 4.5rem) - 100% - 2rem);
+    translate: 0 calc(100vh - var(--notice-top, 50vh) - 100% - 1rem);
     opacity: 1;
   }
   45% {
-    translate: 0 calc(100vh - var(--bar-bottom, 4.5rem) - 100% - 2rem);
+    translate: 0 calc(100vh - var(--notice-top, 50vh) - 100% - 1rem);
     animation-timing-function: cubic-bezier(0.65, 0, 0.25, 1);
   }
   100% {
