@@ -37,6 +37,7 @@ import {
 } from './outline'
 import { GUIDES, MARK_CHARS, UNITS, type MarkName } from './sheet'
 import type { FontStyle } from './style'
+import { t } from '../text'
 
 export interface BuiltGlyph {
   char: string
@@ -161,16 +162,16 @@ export function assemble(
         fixed.push(c)
       }
     }
-    if (fixed.length) checks.push({ kind: 'overshoot', chars: fixed.join(' '), note: 'Drawn without overshoot; nudged past the lines so they look as tall as the flat letters.' })
+    if (fixed.length) checks.push({ kind: 'overshoot', chars: fixed.join(' '), note: t('font.check-overshoot') })
   }
 
   // Heights: what matters is that a hand is consistent with itself (Cheng). Report a
   // whole group drawn taller or shorter than its guide once, then letters that
   // stray from their own group. Our tolerance: 8% of the guide height.
   const groups: [string, RegExp, number][] = [
-    ['Capitals', /[A-Z]/, CAP_HEIGHT],
-    ['Small letters', /[acemnorsuvwxz]/, X_HEIGHT],
-    ['Figures', /[0-9]/, CAP_HEIGHT],
+    [t('font.group-caps'), /[A-Z]/, CAP_HEIGHT],
+    [t('font.group-lower'), /[acemnorsuvwxz]/, X_HEIGHT],
+    [t('font.group-figures'), /[0-9]/, CAP_HEIGHT],
   ]
   for (const [label, members, line] of groups) {
     const tops = [...base]
@@ -182,15 +183,15 @@ export function assemble(
     const median = sorted[Math.floor(sorted.length / 2)]
     const off = (median - line) / line
     if (Math.abs(off) > 0.08) {
-      checks.push({ kind: 'height', chars: label, note: `Drawn about ${Math.round(Math.abs(off) * 100)}% ${off > 0 ? 'taller' : 'shorter'} than their guide line, consistently; that’s their size in the font.` })
+      checks.push({ kind: 'height', chars: label, note: t('font.check-size', { pct: Math.round(Math.abs(off) * 100), taller: t(off > 0 ? 'font.check-taller' : 'font.check-shorter') }) })
     }
     const strays = tops.filter(([, t]) => Math.abs(t - median) > line * 0.08).map(([c]) => c)
     if (strays.length) {
-      checks.push({ kind: 'height', chars: strays.join(' '), note: `Taller or shorter than the rest of the ${label.toLowerCase()}; redraw them if the difference isn’t meant.` })
+      checks.push({ kind: 'height', chars: strays.join(' '), note: t('font.check-strays', { group: label.toLowerCase() }) })
     }
   }
   if (Math.abs(s.shape.slant) > 10) {
-    checks.push({ kind: 'slant', chars: '', note: `A ${Math.abs(s.shape.slant)}° slant; Hochuli warns that electronic slanting past about 10° distorts letters.` })
+    checks.push({ kind: 'slant', chars: '', note: t('font.check-slant', { deg: Math.abs(s.shape.slant) }) })
   }
 
   // Sides measured on the letters as drawn, before slant and bounce.

@@ -3,6 +3,7 @@
 
 import { onScanColours, scanColours } from '../ui/scan-colour'
 import { slug } from '../icon/style'
+import { t, tn } from '../text'
 import { buildFields, fixed, pct, plain, type FieldGroup } from '../ui/fields'
 import { StyleBook, styleBox } from '../ui/styles'
 import { flash } from '../ui/hand'
@@ -17,73 +18,73 @@ type S = TextureStyle
 
 const GROUPS: FieldGroup[] = [
   {
-    legend: 'Look',
+    legend: t('texture.g.look'),
     presets: [{ label: 'Shuffle', path: 'seed', value: () => Math.floor(Math.random() * 1000000), icon: 'scatter-fill' }],
     fields: [
-      { kind: 'select', path: 'look', label: 'Print as', options: LOOKS },
-      { kind: 'range', path: 'seed', label: 'Variation', min: 0, max: 999, step: 1, fmt: plain },
-      { kind: 'range', path: 'tone.black', label: 'Full ink at grey', min: 0, max: 200, step: 1, fmt: plain },
-      { kind: 'range', path: 'tone.white', label: 'No ink at grey', min: 60, max: 255, step: 1, fmt: plain },
-      { kind: 'range', path: 'tone.gamma', label: 'Tone curve', min: 0.3, max: 3, step: 0.05, fmt: fixed(2) },
-      { kind: 'range', path: 'grain', label: 'Print grain', min: 0, max: 1, step: 0.05, fmt: pct },
+      { kind: 'select', path: 'look', label: t('texture.f.look'), options: LOOKS },
+      { kind: 'range', path: 'seed', label: t('texture.f.seed'), min: 0, max: 999, step: 1, fmt: plain },
+      { kind: 'range', path: 'tone.black', label: t('texture.f.tone-black'), min: 0, max: 200, step: 1, fmt: plain },
+      { kind: 'range', path: 'tone.white', label: t('texture.f.tone-white'), min: 60, max: 255, step: 1, fmt: plain },
+      { kind: 'range', path: 'tone.gamma', label: t('texture.f.tone-gamma'), min: 0.3, max: 3, step: 0.05, fmt: fixed(2) },
+      { kind: 'range', path: 'grain', label: t('texture.f.grain'), min: 0, max: 1, step: 0.05, fmt: pct },
     ],
   },
   {
-    legend: 'Stamp',
+    legend: t('texture.g.stamp'),
     when: (s: S) => s.look === 'stamp',
     fields: [
-      { kind: 'range', path: 'stamp.bleed', label: 'Ink spread', min: 0, max: 12, step: 0.5, fmt: px },
-      { kind: 'range', path: 'stamp.rough', label: 'Ragged edge', min: 0, max: 1, step: 0.05, fmt: pct },
-      { kind: 'range', path: 'stamp.roughSize', label: 'Edge wobble size', min: 1, max: 40, step: 1, fmt: px },
-      { kind: 'range', path: 'stamp.wear', label: 'Worn patches', min: 0, max: 1, step: 0.05, fmt: pct },
-      { kind: 'range', path: 'stamp.wearSize', label: 'Patch size', min: 4, max: 200, step: 2, fmt: px },
-      { kind: 'range', path: 'stamp.pressure', label: 'Uneven pressure', min: 0, max: 1, step: 0.05, fmt: pct },
+      { kind: 'range', path: 'stamp.bleed', label: t('texture.f.stamp-bleed'), min: 0, max: 12, step: 0.5, fmt: px },
+      { kind: 'range', path: 'stamp.rough', label: t('texture.f.stamp-rough'), min: 0, max: 1, step: 0.05, fmt: pct },
+      { kind: 'range', path: 'stamp.roughSize', label: t('texture.f.stamp-roughSize'), min: 1, max: 40, step: 1, fmt: px },
+      { kind: 'range', path: 'stamp.wear', label: t('texture.f.stamp-wear'), min: 0, max: 1, step: 0.05, fmt: pct },
+      { kind: 'range', path: 'stamp.wearSize', label: t('texture.f.stamp-wearSize'), min: 4, max: 200, step: 2, fmt: px },
+      { kind: 'range', path: 'stamp.pressure', label: t('texture.f.stamp-pressure'), min: 0, max: 1, step: 0.05, fmt: pct },
     ],
   },
   {
-    legend: 'Risograph',
+    legend: t('texture.g.risograph'),
     when: (s: S) => s.look === 'riso',
     fields: [
-      { kind: 'check', path: 'riso.second', label: 'Print a second drum' },
-      { kind: 'range', path: 'riso.offsetX', label: 'Misregister across', min: -30, max: 30, step: 1, fmt: px },
-      { kind: 'range', path: 'riso.offsetY', label: 'Misregister down', min: -30, max: 30, step: 1, fmt: px },
+      { kind: 'check', path: 'riso.second', label: t('texture.f.riso-second') },
+      { kind: 'range', path: 'riso.offsetX', label: t('texture.f.riso-offsetX'), min: -30, max: 30, step: 1, fmt: px },
+      { kind: 'range', path: 'riso.offsetY', label: t('texture.f.riso-offsetY'), min: -30, max: 30, step: 1, fmt: px },
     ],
   },
   {
-    legend: 'Halftone',
+    legend: t('texture.g.halftone'),
     when: (s: S) => s.look === 'halftone',
     fields: [
-      { kind: 'select', path: 'halftone.shape', label: 'Screen', options: DOTS },
-      { kind: 'range', path: 'halftone.cell', label: 'Cell size', min: 3, max: 40, step: 1, fmt: px },
-      { kind: 'range', path: 'halftone.angle', label: 'Screen angle', min: 0, max: 180, step: 1, fmt: deg },
+      { kind: 'select', path: 'halftone.shape', label: t('texture.f.halftone-shape'), options: DOTS },
+      { kind: 'range', path: 'halftone.cell', label: t('texture.f.halftone-cell'), min: 3, max: 40, step: 1, fmt: px },
+      { kind: 'range', path: 'halftone.angle', label: t('texture.f.halftone-angle'), min: 0, max: 180, step: 1, fmt: deg },
     ],
   },
   {
-    legend: 'Colours',
+    legend: t('texture.g.colours'),
     fields: [
-      { kind: 'color', path: 'colors.ink2', label: 'Second ink' },
-      { kind: 'range', path: 'colors.paperGrain', label: 'Paper texture', min: 0, max: 1, step: 0.05, fmt: pct },
+      { kind: 'color', path: 'colors.ink2', label: t('texture.f.colors-ink2') },
+      { kind: 'range', path: 'colors.paperGrain', label: t('texture.f.colors-paperGrain'), min: 0, max: 1, step: 0.05, fmt: pct },
     ],
   },
   {
-    legend: 'Own colours',
+    legend: t('texture.g.own-colours'),
     // Hidden while the texture takes the scan's ink and paper.
     when: () => !$<HTMLInputElement>('texture-scan-colours').checked,
     fields: [
-      { kind: 'color', path: 'colors.ink', label: 'Ink' },
-      { kind: 'color', path: 'colors.paper', label: 'Paper' },
-      { kind: 'check', path: 'colors.onPaper', label: 'Print on paper (off: transparent)' },
+      { kind: 'color', path: 'colors.ink', label: t('texture.f.colors-ink') },
+      { kind: 'color', path: 'colors.paper', label: t('texture.f.colors-paper') },
+      { kind: 'check', path: 'colors.onPaper', label: t('texture.f.colors-onPaper') },
     ],
   },
   {
-    legend: 'Layout',
+    legend: t('texture.g.layout'),
     fields: [
-      { kind: 'select', path: 'layout.mode', label: 'Arrange', options: LAYOUTS },
-      { kind: 'range', path: 'layout.scale', label: 'Print size', min: 0.05, max: 1.5, step: 0.01, fmt: pct },
-      { kind: 'range', path: 'layout.jitter', label: 'Random turn', min: 0, max: 180, step: 1, fmt: deg },
-      { kind: 'range', path: 'layout.margin', label: 'Margin (single)', min: 0, max: 600, step: 4, fmt: px },
-      { kind: 'range', path: 'layout.gap', label: 'Gap (grids)', min: 0, max: 2, step: 0.05, fmt: pct },
-      { kind: 'range', path: 'layout.count', label: 'Prints (scatter)', min: 1, max: 40, step: 1, fmt: plain },
+      { kind: 'select', path: 'layout.mode', label: t('texture.f.layout-mode'), options: LAYOUTS },
+      { kind: 'range', path: 'layout.scale', label: t('texture.f.layout-scale'), min: 0.05, max: 1.5, step: 0.01, fmt: pct },
+      { kind: 'range', path: 'layout.jitter', label: t('texture.f.layout-jitter'), min: 0, max: 180, step: 1, fmt: deg },
+      { kind: 'range', path: 'layout.margin', label: t('texture.f.layout-margin'), min: 0, max: 600, step: 4, fmt: px },
+      { kind: 'range', path: 'layout.gap', label: t('texture.f.layout-gap'), min: 0, max: 2, step: 0.05, fmt: pct },
+      { kind: 'range', path: 'layout.count', label: t('texture.f.layout-count'), min: 1, max: 40, step: 1, fmt: plain },
     ],
   },
 ]
@@ -128,28 +129,28 @@ function applied() {
 
 const DPI = 300
 /** Common sizes: on screen in pixels, and print sizes in inches at 300 dpi. */
-const PRESETS: { group: string; label: string; w: number; h: number }[] = [
-  { group: 'Square tiles', label: '512 × 512', w: 512, h: 512 },
-  { group: 'Square tiles', label: '1024 × 1024', w: 1024, h: 1024 },
-  { group: 'Square tiles', label: '2048 × 2048', w: 2048, h: 2048 },
-  { group: 'Square tiles', label: '4096 × 4096', w: 4096, h: 4096 },
-  { group: 'Screens', label: 'HD 1920 × 1080', w: 1920, h: 1080 },
-  { group: 'Screens', label: '4K 3840 × 2160', w: 3840, h: 2160 },
-  { group: 'Screens', label: 'Post 4:5, 1080 × 1350', w: 1080, h: 1350 },
-  { group: 'Screens', label: 'Story 9:16, 1080 × 1920', w: 1080, h: 1920 },
-  { group: 'Screens', label: 'Banner 3:1, 1500 × 500', w: 1500, h: 500 },
-  { group: 'Screens', label: 'Phone wallpaper, 1290 × 2796', w: 1290, h: 2796 },
+const PRESETS: { group: string; id: string; w: number; h: number }[] = [
+  { group: 'tiles', id: 'square-512', w: 512, h: 512 },
+  { group: 'tiles', id: 'square-1024', w: 1024, h: 1024 },
+  { group: 'tiles', id: 'square-2048', w: 2048, h: 2048 },
+  { group: 'tiles', id: 'square-4096', w: 4096, h: 4096 },
+  { group: 'screens', id: 'hd', w: 1920, h: 1080 },
+  { group: 'screens', id: '4k', w: 3840, h: 2160 },
+  { group: 'screens', id: 'post', w: 1080, h: 1350 },
+  { group: 'screens', id: 'story', w: 1080, h: 1920 },
+  { group: 'screens', id: 'banner', w: 1500, h: 500 },
+  { group: 'screens', id: 'phone', w: 1290, h: 2796 },
   ...(
     [
-      ['A5, 148 × 210 mm', 148 / 25.4, 210 / 25.4],
-      ['A4, 210 × 297 mm', 210 / 25.4, 297 / 25.4],
-      ['US Letter, 8.5 × 11 in', 8.5, 11],
-      ['5 × 7 in', 5, 7],
-      ['8 × 10 in', 8, 10],
-      ['11 × 14 in', 11, 14],
-      ['12 × 12 in', 12, 12],
+      ['a5', 148 / 25.4, 210 / 25.4],
+      ['a4', 210 / 25.4, 297 / 25.4],
+      ['letter', 8.5, 11],
+      ['5x7', 5, 7],
+      ['8x10', 8, 10],
+      ['11x14', 11, 14],
+      ['12x12', 12, 12],
     ] as const
-  ).map(([label, w, h]) => ({ group: 'Print at 300 dpi', label, w: Math.round(w * DPI), h: Math.round(h * DPI) })),
+  ).map(([id, w, h]) => ({ group: 'print', id, w: Math.round(w * DPI), h: Math.round(h * DPI) })),
 ]
 
 const presetPick = $<HTMLSelectElement>('tex-preset')
@@ -158,11 +159,11 @@ const sizeH = $<HTMLInputElement>('tex-h')
 const sizeLock = $<HTMLInputElement>('tex-lock')
 const sizeFit = $<HTMLInputElement>('tex-fit')
 
-presetPick.append(new Option('Custom', ''))
+presetPick.append(new Option(t('texture.custom'), ''))
 for (const g of [...new Set(PRESETS.map((p) => p.group))]) {
   const og = document.createElement('optgroup')
-  og.label = g
-  PRESETS.forEach((p, i) => p.group === g && og.append(new Option(p.label, String(i))))
+  og.label = t(`texture.size-group.${g}`)
+  PRESETS.forEach((p, i) => p.group === g && og.append(new Option(t(`texture.size.${p.id}`), String(i))))
   presetPick.append(og)
 }
 
@@ -180,8 +181,15 @@ function fillSize() {
   const inch = (v: number) => (v / DPI).toFixed(2).replace(/\.?0+$/, '')
   const mm = (v: number) => Math.round((v / DPI) * 25.4)
   $('tex-size-note').textContent = fitted
-    ? 'The canvas fits the print and its margin.'
-    : `${L.mode === 'single' ? 'One print, centred' : 'A seamless tile'} · ${inch(L.width)} × ${inch(L.height)} in, ${mm(L.width)} × ${mm(L.height)} mm at ${DPI} dpi`
+    ? t('texture.fits')
+    : t('texture.size-note', {
+        what: t(L.mode === 'single' ? 'texture.one-print' : 'texture.tile'),
+        inW: inch(L.width),
+        inH: inch(L.height),
+        mmW: mm(L.width),
+        mmH: mm(L.height),
+        dpi: DPI,
+      })
 }
 
 function setSize(width: number, height: number) {
@@ -232,7 +240,13 @@ function render() {
   shown.getContext('2d')!.drawImage(result, 0, 0)
   drawRepeat(p.wrap)
   const ms = Math.round(performance.now() - t0)
-  $('texture-stats').textContent = `${result.width} × ${result.height} px · ${p.items.length} print${p.items.length === 1 ? '' : 's'}${p.wrap ? ' · tiles seamlessly' : ''} · ${ms} ms`
+  $('texture-stats').textContent = t('texture.stats', {
+    width: result.width,
+    height: result.height,
+    prints: tn('texture.prints', p.items.length),
+    seamless: p.wrap ? ` ${t('texture.seamless')}` : '',
+    ms,
+  })
 }
 
 /** For patterns, the tile 2 × 2, so seams would show. */

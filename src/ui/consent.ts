@@ -10,13 +10,13 @@ const EVENT = 'hand-drawn-storage'
 
 /** Everything Hand Drawn can put in browser storage, for the policy and for clearing. */
 export const STORED: { key: string; purpose: string }[] = [
-  { key: KEY, purpose: 'Remembers that you allowed Hand Drawn to keep your saved settings, and when.' },
-  { key: 'sketch-to-mark.styles', purpose: 'Icon styles you saved.' },
-  { key: 'sketch-to-mark.styles.current', purpose: 'The icon style you were last editing.' },
-  { key: 'sketch-to-mark.texture-styles', purpose: 'Texture styles you saved.' },
-  { key: 'sketch-to-mark.texture-styles.current', purpose: 'The texture style you were last editing.' },
-  { key: 'sketch-to-mark.font-styles', purpose: 'Font styles you saved.' },
-  { key: 'sketch-to-mark.font-styles.current', purpose: 'The font style you were last editing.' },
+  { key: KEY, purpose: 'privacy.store-consent' },
+  { key: 'sketch-to-mark.styles', purpose: 'privacy.store-icon' },
+  { key: 'sketch-to-mark.styles.current', purpose: 'privacy.store-icon-current' },
+  { key: 'sketch-to-mark.texture-styles', purpose: 'privacy.store-texture' },
+  { key: 'sketch-to-mark.texture-styles.current', purpose: 'privacy.store-texture-current' },
+  { key: 'sketch-to-mark.font-styles', purpose: 'privacy.store-font' },
+  { key: 'sketch-to-mark.font-styles.current', purpose: 'privacy.store-font-current' },
 ]
 
 /** Has this browser allowed Hand Drawn to keep styles? */

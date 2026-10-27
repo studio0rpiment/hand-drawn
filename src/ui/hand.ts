@@ -1,6 +1,7 @@
 // The app's own hand-drawn look, from Kevin's hand-icons: icons on buttons,
 // and sliders drawn with his single marker line and blob.
 
+import { t } from '../text'
 import sprite from 'hand-icons/sprite.svg?raw'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
@@ -148,7 +149,7 @@ export function favicon() {
 }
 
 /** Say "Copied" on a button for a moment, keeping its icon. */
-export function flash(btn: HTMLElement, text = 'Copied') {
+export function flash(btn: HTMLElement, text = t('common.copied')) {
   const label = [...btn.childNodes].reverse().find((n) => n.nodeType === Node.TEXT_NODE && n.textContent!.trim())
   if (!label) return
   const was = label.textContent

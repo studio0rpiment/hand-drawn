@@ -3,6 +3,7 @@
 // Nothing reaches browser storage unless the person allowed it (see consent.ts);
 // until then styles live in this page only.
 
+import { t, tHtml } from '../text'
 import { slug } from '../icon/style'
 import { onStorageChange, storageAllowed } from './consent'
 
@@ -151,16 +152,16 @@ function download(blob: Blob, filename: string) {
 export function styleBox<T extends Named>(book: StyleBook<T>, changed: () => void): { element: HTMLElement; refresh: () => void } {
   const fs = document.createElement('fieldset')
   fs.innerHTML = `
-    <legend>Style</legend>
+    <legend>${tHtml('common.style')}</legend>
     <div class="row">
-      <select aria-label="Style" class="style-pick"></select>
-      <button class="button small" type="button" data-act="save" data-icon="cross-fill">Save as…</button>
-      <button class="button small" type="button" data-act="delete" data-icon="big-x-fill">Delete</button>
+      <select aria-label="${tHtml('common.style')}" class="style-pick"></select>
+      <button class="button small" type="button" data-act="save" data-icon="cross-fill">${tHtml('common.style-save')}</button>
+      <button class="button small" type="button" data-act="delete" data-icon="big-x-fill">${tHtml('common.style-delete')}</button>
     </div>
     <div class="row">
-      <button class="button small" type="button" data-act="export" data-icon="arrow-bar-fill-r90">Export style</button>
-      <label class="button small" data-icon="arrow-bar-fill-r270">Import style <input type="file" accept="application/json,.json" hidden /></label>
-      <button class="button small" type="button" data-act="reset" data-icon="c-spiral-fill">Reset</button>
+      <button class="button small" type="button" data-act="export" data-icon="arrow-bar-fill-r90">${tHtml('common.style-export')}</button>
+      <label class="button small" data-icon="arrow-bar-fill-r270">${tHtml('common.style-import')} <input type="file" accept="application/json,.json" hidden /></label>
+      <button class="button small" type="button" data-act="reset" data-icon="c-spiral-fill">${tHtml('common.style-reset')}</button>
     </div>
     <p class="hint" aria-live="polite"></p>`
   const pick = fs.querySelector('select')!
@@ -170,11 +171,11 @@ export function styleBox<T extends Named>(book: StyleBook<T>, changed: () => voi
 
   const refresh = () => {
     pick.replaceChildren(
-      ...book.all().map((s) => new Option(book.isBuiltIn(s.name) ? `${s.name} (built in)` : s.name, s.name)),
+      ...book.all().map((s) => new Option(book.isBuiltIn(s.name) ? t('common.style-built-in', { name: s.name }) : s.name, s.name)),
     )
     pick.value = book.picked.name
     del.disabled = book.isBuiltIn(book.picked.name)
-    hint.textContent = book.changed() ? `Changed from “${book.picked.name}”. Save as… to keep it.` : ''
+    hint.textContent = book.changed() ? t('common.style-changed', { name: book.picked.name }) : ''
   }
   const after = () => {
     refresh()
@@ -190,17 +191,17 @@ export function styleBox<T extends Named>(book: StyleBook<T>, changed: () => voi
     }
   })
   fs.querySelector('[data-act="save"]')!.addEventListener('click', () => {
-    const suggestion = book.isBuiltIn(book.picked.name) ? `${book.picked.name} variant` : book.picked.name
-    const name = prompt(`Name for this ${book.kind.noun} style`, suggestion)?.trim().slice(0, 60)
+    const suggestion = book.isBuiltIn(book.picked.name) ? t('common.style-variant', { name: book.picked.name }) : book.picked.name
+    const name = prompt(t('common.style-name', { kind: book.kind.noun }), suggestion)?.trim().slice(0, 60)
     if (!name) return
-    if (book.isBuiltIn(name)) return alert('That name belongs to a built-in style. Pick another.')
-    if (book.saved.some((s) => s.name === name) && !confirm(`Replace the saved style “${name}”?`)) return
+    if (book.isBuiltIn(name)) return alert(t('common.style-taken'))
+    if (book.saved.some((s) => s.name === name) && !confirm(t('common.style-replace', { name }))) return
     book.saveAs(name)
     after()
   })
   del.addEventListener('click', () => {
     const name = book.picked.name
-    if (book.isBuiltIn(name) || !confirm(`Delete the saved style “${name}”?`)) return
+    if (book.isBuiltIn(name) || !confirm(t('common.style-delete-ask', { name }))) return
     book.remove(name)
     after()
   })
@@ -220,7 +221,7 @@ export function styleBox<T extends Named>(book: StyleBook<T>, changed: () => voi
     try {
       raw = JSON.parse(await f.text())
     } catch {
-      return alert('That file isn’t a style (it isn’t JSON).')
+      return alert(t('common.style-not-json'))
     }
     book.add(raw)
     after()

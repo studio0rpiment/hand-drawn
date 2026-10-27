@@ -2,12 +2,14 @@
 // from the footer. The one choice it offers: let this browser keep saved settings (styles).
 
 import { setStorageAllowed, storageAllowed, storedNow } from './consent'
+import { t, tHtml, tn } from '../text'
+import { toHtml } from '../text/parse'
 
 let dismissed = false
 
 const panel = document.createElement('aside')
 panel.className = 'privacy-notice'
-panel.setAttribute('aria-label', 'Privacy')
+panel.setAttribute('aria-label', t('common.privacy'))
 panel.hidden = true
 document.body.append(panel)
 
@@ -16,19 +18,19 @@ function render(settings: boolean) {
   const kept = storedNow().length
   panel.innerHTML = allowed
     ? `
-      <p><strong>Your saved settings are kept in this browser.</strong> ${kept} item${kept === 1 ? '' : 's'} in its local storage, nothing anywhere else. No cookies, no tracking.</p>
+      <p>${toHtml(tn('common.privacy-kept', kept))}</p>
       <div class="row">
-        <button class="button small" type="button" data-act="forget">Stop and delete them</button>
-        <button class="button small" type="button" data-act="close">Close</button>
-        <a href="./privacy.html">Privacy policy</a>
+        <button class="button small" type="button" data-act="forget">${tHtml('common.privacy-forget')}</button>
+        <button class="button small" type="button" data-act="close">${tHtml('common.privacy-close')}</button>
+        <a href="./privacy.html">${tHtml('common.privacy-policy')}</a>
       </div>`
     : `
-      <p><strong>Hand Drawn sets no cookies and tracks nothing.</strong> Your photos are yours and are never stored.</p>
-      <p>It can remember the conversion settings you choose if you save them. If you don’t save them, it will just ask each time you use it.</p>
+      <p>${tHtml('common.privacy-notice')}</p>
+      <p>${tHtml('common.privacy-ask')}</p>
       <div class="row">
-        <button class="button primary small" type="button" data-act="allow">Remember my settings</button>
-        <button class="button small" type="button" data-act="decline">${settings ? 'Close' : 'Keep nothing'}</button>
-        <a href="./privacy.html">Privacy policy</a>
+        <button class="button primary small" type="button" data-act="allow">${tHtml('common.privacy-allow')}</button>
+        <button class="button small" type="button" data-act="decline">${tHtml(settings ? 'common.privacy-close' : 'common.privacy-decline')}</button>
+        <a href="./privacy.html">${tHtml('common.privacy-policy')}</a>
       </div>`
   restingPlace()
   panel.hidden = false

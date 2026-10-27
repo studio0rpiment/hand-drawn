@@ -2,12 +2,13 @@
 // this browser holds right now.
 
 import { STORED, setStorageAllowed, storedNow } from './ui/consent'
+import { t } from './text'
 
 const list = document.getElementById('storage-list')!
 list.replaceChildren(
   ...STORED.map(({ key, purpose }) => {
     const tr = document.createElement('tr')
-    for (const text of [key, purpose, 'Until you delete it or withdraw permission']) {
+    for (const text of [key, t(purpose), t('privacy.how-long')]) {
       const td = document.createElement('td')
       td.textContent = text
       tr.append(td)
@@ -20,9 +21,7 @@ list.replaceChildren(
 const now = document.getElementById('stored-now')!
 function show() {
   const kept = storedNow()
-  now.textContent = kept.length
-    ? `In this browser right now: ${kept.join(', ')}.`
-    : 'In this browser right now: nothing.'
+  now.textContent = kept.length ? t('privacy.stored-now', { list: kept.join(', ') }) : t('privacy.stored-nothing')
 }
 
 document.getElementById('forget')!.addEventListener('click', () => {

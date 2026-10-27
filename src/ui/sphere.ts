@@ -10,6 +10,7 @@
 // while the ball itself keeps moving smoothly. The two range inputs stay in
 // the page unseen as the source of truth for the rest of the app.
 
+import { t } from '../text'
 import mapUrl from './globe-map.png'
 import { RIM } from './globe-rim'
 
@@ -191,7 +192,7 @@ export function globePair(title: string, x: GlobeAxis, y: GlobeAxis, into: HTMLE
   svg.setAttribute('class', 'globe')
   svg.setAttribute('tabindex', '0')
   svg.setAttribute('role', 'group')
-  svg.setAttribute('aria-label', `${title}: ${xName} and ${yName}. Left and right change ${xName}, up and down change ${yName}.`)
+  svg.setAttribute('aria-label', t('common.globe-label', { title, x: xName, y: yName }))
   svg.innerHTML = `
     <g class="globe-handle"><use href="#hi-spiral-tight-fill" x="-0.17" y="-0.17" width="0.34" height="0.34"/></g>
     <path d="${rimPath()}" class="globe-rim"/>`

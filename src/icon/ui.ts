@@ -4,6 +4,7 @@
 import { flipLightness } from '../colour'
 import type { Mask } from '../image'
 import { onScanColours, scanColours } from '../ui/scan-colour'
+import { t, tn, tOr } from '../text'
 import { buildFields, fixed, pct, plain, type FieldGroup } from '../ui/fields'
 import { StyleBook, styleBox } from '../ui/styles'
 import { flash } from '../ui/hand'
@@ -16,57 +17,57 @@ import { sprite, spriteSet, standaloneSvg, type IconPaths } from './svg'
 
 const GROUPS: FieldGroup[] = [
   {
-    legend: 'Shape',
-    hint: 'Changes here retrace the mark.',
+    legend: t('icon.g.shape'),
+    hint: t('icon.g.shape.hint'),
     fields: [
-      { kind: 'range', path: 'padding', label: 'Clear space', min: 0, max: 0.4, step: 0.01, fmt: pct },
-      { kind: 'range', path: 'padding45', label: 'Clear space with 45° turns', min: 0, max: 0.4, step: 0.01, fmt: pct },
-      { kind: 'check', path: 'fillClosed', label: 'Fill closed shapes' },
-      { kind: 'range', path: 'bridge', label: 'Bridge gaps (closing size)', min: 0, max: 200, step: 1, fmt: plain },
-      { kind: 'range', path: 'pinholes', label: 'Fill pinholes under', min: 0, max: 2000, step: 10, fmt: plain },
-      { kind: 'range', path: 'trace.smoothness', label: 'Smoothness', min: 0, max: 1.33, step: 0.01, fmt: fixed(2) },
-      { kind: 'range', path: 'trace.simplify', label: 'Simplify curves', min: 0, max: 1.5, step: 0.05, fmt: fixed(2) },
-      { kind: 'range', path: 'trace.ignore', label: 'Ignore specks under', min: 0, max: 200, step: 1, fmt: plain },
-      { kind: 'select', path: 'canvas', label: 'Canvas', options: [512, 1024, 2048] },
+      { kind: 'range', path: 'padding', label: t('icon.f.padding'), min: 0, max: 0.4, step: 0.01, fmt: pct },
+      { kind: 'range', path: 'padding45', label: t('icon.f.padding45'), min: 0, max: 0.4, step: 0.01, fmt: pct },
+      { kind: 'check', path: 'fillClosed', label: t('icon.f.fillClosed') },
+      { kind: 'range', path: 'bridge', label: t('icon.f.bridge'), min: 0, max: 200, step: 1, fmt: plain },
+      { kind: 'range', path: 'pinholes', label: t('icon.f.pinholes'), min: 0, max: 2000, step: 10, fmt: plain },
+      { kind: 'range', path: 'trace.smoothness', label: t('icon.f.trace-smoothness'), min: 0, max: 1.33, step: 0.01, fmt: fixed(2) },
+      { kind: 'range', path: 'trace.simplify', label: t('icon.f.trace-simplify'), min: 0, max: 1.5, step: 0.05, fmt: fixed(2) },
+      { kind: 'range', path: 'trace.ignore', label: t('icon.f.trace-ignore'), min: 0, max: 200, step: 1, fmt: plain },
+      { kind: 'select', path: 'canvas', label: t('icon.f.canvas'), options: [512, 1024, 2048] },
     ],
   },
   {
-    legend: 'Variants',
+    legend: t('icon.g.variants'),
     fields: [
-      { kind: 'multi', path: 'variants', label: 'Make', options: VARIANTS },
-      { kind: 'range', path: 'stroke', label: 'Line width', min: 1, max: 60, step: 0.5, fmt: plain },
-      { kind: 'range', path: 'tintOpacity', label: 'Tint strength', min: 0, max: 1, step: 0.05, fmt: pct },
+      { kind: 'multi', path: 'variants', label: t('icon.f.variants'), options: VARIANTS },
+      { kind: 'range', path: 'stroke', label: t('icon.f.stroke'), min: 1, max: 60, step: 0.5, fmt: plain },
+      { kind: 'range', path: 'tintOpacity', label: t('icon.f.tintOpacity'), min: 0, max: 1, step: 0.05, fmt: pct },
     ],
   },
   {
-    legend: 'Orientation',
+    legend: t('icon.g.orientation'),
     presets: Object.entries(DIRECTION_GROUPS).map(([label, value]) => ({ label, path: 'directions', value })),
-    fields: [{ kind: 'multi', path: 'directions', label: 'Directions', options: DIRECTIONS }],
+    fields: [{ kind: 'multi', path: 'directions', label: t('icon.f.directions'), options: DIRECTIONS }],
   },
   {
-    legend: 'Container',
+    legend: t('icon.g.container'),
     fields: [
-      { kind: 'select', path: 'container.shape', label: 'Shape', options: CONTAINERS },
-      { kind: 'range', path: 'container.radius', label: 'Corner radius', min: 0, max: 0.5, step: 0.01, fmt: pct },
+      { kind: 'select', path: 'container.shape', label: t('icon.f.container-shape'), options: CONTAINERS },
+      { kind: 'range', path: 'container.radius', label: t('icon.f.container-radius'), min: 0, max: 0.5, step: 0.01, fmt: pct },
     ],
   },
   {
-    legend: 'Colours',
+    legend: t('icon.g.colours'),
     // Hidden while the icons take the scan's colours.
     when: () => !$<HTMLInputElement>('icon-scan-colours').checked,
     fields: [
-      { kind: 'color', path: 'light.ink', label: 'Light: ink' },
-      { kind: 'color', path: 'light.bg', label: 'background' },
-      { kind: 'color', path: 'dark.ink', label: 'Dark: ink' },
-      { kind: 'color', path: 'dark.bg', label: 'background' },
+      { kind: 'color', path: 'light.ink', label: t('icon.f.light-ink') },
+      { kind: 'color', path: 'light.bg', label: t('icon.f.light-bg') },
+      { kind: 'color', path: 'dark.ink', label: t('icon.f.dark-ink') },
+      { kind: 'color', path: 'dark.bg', label: t('icon.f.dark-bg') },
     ],
   },
   {
-    legend: 'Favicon and sprite',
+    legend: t('icon.g.favicon-and-sprite'),
     fields: [
-      { kind: 'select', path: 'favicon.variant', label: 'Favicon variant', options: VARIANTS },
-      { kind: 'select', path: 'favicon.small', label: 'At 48 px and under', options: VARIANTS },
-      { kind: 'text', path: 'prefix', label: 'Sprite id prefix', pattern: '[a-z][a-z0-9-]{0,15}' },
+      { kind: 'select', path: 'favicon.variant', label: t('icon.f.favicon-variant'), options: VARIANTS },
+      { kind: 'select', path: 'favicon.small', label: t('icon.f.favicon-small'), options: VARIANTS },
+      { kind: 'text', path: 'prefix', label: t('icon.f.prefix'), pattern: '[a-z][a-z0-9-]{0,15}' },
     ],
   },
 ]
@@ -148,7 +149,7 @@ async function retrace() {
   if (!mask || $('icon-app').hidden) return
   const run = ++buildRun
   const key = shapeKey(style)
-  $('icon-stats').textContent = 'Tracing…'
+  $('icon-stats').textContent = t('icon.tracing')
   const built = await buildIcon(mask, style)
   if (run !== buildRun) return
   paths = built.paths
@@ -168,12 +169,12 @@ async function render() {
   const kb = (n: string) => (new Blob([n]).size / 1024).toFixed(1)
   const sp = sprite(iconName(), p, style)
   $('icon-stats').textContent =
-    `${style.variants.length * style.directions.length} symbols · sprite ${kb(sp.svg)} KB` +
-    (p.solid !== p.ink ? ' · closed shapes filled' : '')
+    t('icon.stats', { symbols: style.variants.length * style.directions.length, kb: kb(sp.svg) }) +
+    (p.solid !== p.ink ? ` ${t('icon.stats-filled')}` : '')
 
   // Pixel-true favicon sizes need real rasterizing. Rasterize everything first and
   // build images only if no newer render started, so no image loads a revoked URL.
-  const schemes = [['Light', style.light], ['Dark', style.dark]] as const
+  const schemes = [['light', style.light], ['dark', style.dark]] as const
   const shots: { label: string; size: number; url: string }[] = []
   for (const [label, scheme] of schemes) {
     for (const size of [16, 32, 48]) {
@@ -194,8 +195,8 @@ async function render() {
   const rows = schemes.map(([label]) => {
     const row = document.createElement('div')
     row.className = 'size-row'
-    row.style.background = label === 'Light' ? '#f3f1ec' : '#202022'
-    row.style.color = label === 'Light' ? '#3b3632' : '#d8d2ca'
+    row.style.background = label === 'light' ? '#f3f1ec' : '#202022'
+    row.style.color = label === 'light' ? '#3b3632' : '#d8d2ca'
     const tab = document.createElement('div')
     tab.className = 'tab-mock'
     row.append(tab)
@@ -204,10 +205,10 @@ async function render() {
       const shown = small ? size * 3 : size === 180 ? 90 : 96
       const img = new Image(shown, shown)
       img.src = url
-      img.alt = `${size} px icon, ${label.toLowerCase()}`
+      img.alt = t('icon.size-alt', { size, scheme: t(`icon.${label}`).toLowerCase() })
       img.className = small ? 'pixelated' : size === 180 ? 'apple' : ''
       const cap = document.createElement('figcaption')
-      cap.textContent = small ? `${size} px ×3` : size === 180 ? 'Apple 180' : 'App 512'
+      cap.textContent = small ? t('icon.size-small', { size }) : size === 180 ? t('icon.size-apple') : t('icon.size-app')
       const fig = document.createElement('figure')
       fig.append(img, cap)
       row.append(fig)
@@ -236,9 +237,9 @@ function renderFamily(p: IconPaths) {
     grid.className = 'family-grid'
     grid.style.gridTemplateColumns = `5rem repeat(${style.directions.length}, minmax(0, 1fr))`
     grid.append(cell('', 'corner'))
-    for (const d of style.directions) grid.append(cell(d, 'head'))
+    for (const d of style.directions) grid.append(cell(tOr(`icon.o.${d}`, d), 'head'))
     for (const v of style.variants) {
-      grid.append(cell(v, 'head'))
+      grid.append(cell(tOr(`icon.o.${v}`, v), 'head'))
       for (const d of style.directions) {
         const t = document.createElement('div')
         t.className = 'tile'
@@ -248,7 +249,7 @@ function renderFamily(p: IconPaths) {
       }
     }
     const h = document.createElement('h3')
-    h.textContent = which === 'light' ? 'Light' : 'Dark'
+    h.textContent = t(`icon.${which}`)
     panel.append(h, grid)
     return panel
   })
@@ -277,13 +278,13 @@ $('dl-pack').addEventListener('click', async (e) => {
   const btn = e.currentTarget as HTMLButtonElement
   btn.disabled = true
   const label = btn.lastChild!
-  label.textContent = ' Packing…'
+  label.textContent = ` ${t('icon.packing')}`
   try {
     const title = nameInput.value || maskName
     download(await packZip(title, paths, book.named()), `${slug(title)}-icons.zip`)
   } finally {
     btn.disabled = false
-    label.textContent = 'Download icon pack'
+    label.textContent = ` ${t('icon.dl-pack')}`
   }
 })
 
@@ -363,13 +364,17 @@ async function buildSet() {
   drawSet()
   for (let i = 0; i < pieces.length; i++) {
     if (setPaths[i]) continue
-    $('icon-set-stats').textContent = `Building ${i + 1} of ${pieces.length}…`
+    $('icon-set-stats').textContent = t('icon.building', { n: i + 1, total: pieces.length })
     const built = await buildIcon(pieces[i].mask, style)
     if (run !== setRun || !pieces) return
     setPaths[i] = built.paths
     drawSet()
   }
-  $('icon-set-stats').textContent = `${pieces.length} icons · ${style.variants.length} variant${style.variants.length === 1 ? '' : 's'} × ${style.directions.length} direction${style.directions.length === 1 ? '' : 's'} each`
+  $('icon-set-stats').textContent = t('icon.set-stats', {
+    icons: tn('icon.icons', pieces.length),
+    variants: tn('icon.variants', style.variants.length),
+    directions: tn('icon.directions', style.directions.length),
+  })
 }
 
 function drawSet() {
@@ -407,7 +412,7 @@ $('dl-set').addEventListener('click', async (e) => {
       setBuiltFor = key
     }
     for (let i = 0; i < pieces.length; i++) {
-      $('icon-set-stats').textContent = `Building ${i + 1} of ${pieces.length}…`
+      $('icon-set-stats').textContent = t('icon.building', { n: i + 1, total: pieces.length })
       setPaths[i] ??= (await buildIcon(pieces[i].mask, style)).paths
     }
     const icons = pieces.map((p, i) => ({ name: slug(p.name), paths: setPaths[i]! }))
@@ -428,7 +433,7 @@ $('dl-set').addEventListener('click', async (e) => {
     const bytes = zip(files)
     download(new Blob([bytes.buffer as ArrayBuffer], { type: 'application/zip' }), `${root}.zip`)
     drawSet()
-    $('icon-set-stats').textContent = `${icons.length} icons packed: one sprite, ${files.length - 3} SVGs`
+    $('icon-set-stats').textContent = t('icon.set-packed', { n: icons.length, svgs: files.length - 3 })
   } finally {
     btn.disabled = false
   }

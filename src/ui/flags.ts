@@ -1,41 +1,25 @@
 // The explanation flags, after Variable Machine's: a slanted outline bubble
 // whose tail points at the element it explains. One opens when the pointer
 // rests on an element with data-flag="name", or it has keyboard focus; the
-// words come from src/flags.md.
+// words come from src/text/common.md.
 //
 // A flag lives in a layer above the page, so panels that scroll can't clip
 // it. It fades in after a short CSS delay, so sweeping the pointer across a
 // row of tabs doesn't flash every flag. Moving onto the flag keeps it open;
 // Esc, a press, a scroll or a resize put it away.
 
-import source from '../flags.md?raw'
+import { t, tOr } from '../text'
 
 export interface Explanation {
   title: string
   text: string
 }
 
-/** flags.md → name: { title, text }. */
-export function parseFlags(md: string): Record<string, Explanation> {
-  const out: Record<string, Explanation> = {}
-  const blocks = md.split(/^### /m).slice(1)
-  for (const block of blocks) {
-    const [titleLine, ...rest] = block.split('\n')
-    const nameAt = rest.findIndex((l) => /^`[^`]+`\s*$/.test(l.trim()))
-    if (nameAt < 0) continue
-    const name = rest[nameAt].trim().slice(1, -1)
-    const text = rest
-      .slice(nameAt + 1)
-      .join('\n')
-      .split(/^## /m)[0]
-      .trim()
-      .replace(/\s*\n\s*/g, ' ')
-    out[name] = { title: titleLine.trim(), text }
-  }
-  return out
+/** The flag for a name (data-flag="tab.scan"): flag.<name>.title and flag.<name> in the text files. */
+export function explanation(name: string): Explanation | null {
+  const text = tOr(`flag.${name}`, '')
+  return text ? { title: t(`flag.${name}.title`), text } : null
 }
-
-const FLAGS = parseFlags(source)
 
 type Side = 'below' | 'above'
 
@@ -57,7 +41,7 @@ function close() {
 }
 
 function show(el: HTMLElement) {
-  const e = FLAGS[el.dataset.flag!]
+  const e = explanation(el.dataset.flag!)
   if (!e) return
   if (open?.el === el) return
   close()
@@ -104,7 +88,7 @@ function show(el: HTMLElement) {
 /** Give every element with data-flag its flag, and a description for screen readers. */
 export function installFlags(root: ParentNode = document) {
   root.querySelectorAll<HTMLElement>('[data-flag]').forEach((el) => {
-    const e = FLAGS[el.dataset.flag!]
+    const e = explanation(el.dataset.flag!)
     if (!e || el.dataset.flagged) return
     el.dataset.flagged = '1'
     // What a screen reader reads; the visible flag repeats it for the eye.

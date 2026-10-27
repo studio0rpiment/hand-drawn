@@ -61,6 +61,25 @@ The code is split so the image processing (`src/image.ts`, `src/paper.ts`,
 `sample.ts`) has no DOM and is unit tested. `src/ui/` holds what the tools share: style books and the
 field-driven style controls.
 
+## The words on the screens
+
+Every word the app shows (buttons, labels, hints, status lines, flags, the
+privacy card, the notes printed on the letter sheets, the privacy policy) is
+in a text file in `src/text/`:
+
+| File | What it holds |
+|---|---|
+| `common.md` | what every screen shares: header, tabs and their flags, footer, privacy card, style box, a few messages |
+| `scan.md`, `logo.md`, `icon.md`, `texture.md`, `font.md` | one per tab |
+| `privacy.md` | the privacy policy page |
+
+Each line starts with a key in backticks, then the words; change the words,
+not the key. `{name}` is filled in by the app, and `**bold**`, `*emphasis*`
+and `[links](https://…)` work. The page's own words are filled in when it is
+built (`{{key}}` in `index.html` and `privacy.html`), and a key with no words
+stops the build. The scripts ask for theirs with `t('key')`. While `pnpm dev`
+runs, saving a text file reloads the page.
+
 ## Sheets of drawings
 
 Tick **Several drawings on this sheet** (Scan panel) for a page of icons or of

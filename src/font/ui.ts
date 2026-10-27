@@ -4,6 +4,7 @@
 import { flattenLight } from '../clean'
 import { toGray, type GrayImage, type RGBAImage } from '../image'
 import { slug } from '../icon/style'
+import { t } from '../text'
 import { buildFields, fixed, plain, type FieldGroup } from '../ui/fields'
 import { StyleBook, styleBox } from '../ui/styles'
 import { flash } from '../ui/hand'
@@ -20,55 +21,55 @@ const degrees = (v: number) => `${v}°`
 
 const GROUPS: FieldGroup[] = [
   {
-    legend: 'Ink',
-    hint: 'Changes here retrace the letters.',
+    legend: t('font.g.ink'),
+    hint: t('font.g.ink.hint'),
     fields: [
-      { kind: 'range', path: 'ink.cutoff', label: 'Ink cut-off (0 = automatic)', min: 0, max: 250, step: 1, fmt: (v) => (v ? `${v}` : 'auto') },
-      { kind: 'range', path: 'ink.speck', label: 'Remove specks under', min: 0, max: 400, step: 5, fmt: plain },
-      { kind: 'range', path: 'ink.weight', label: 'Weight', min: -4, max: 6, step: 1, fmt: (v) => (v > 0 ? `+${v}` : `${v}`) },
-      { kind: 'check', path: 'ink.balance', label: 'Even out letters heavier or lighter than the rest' },
-      { kind: 'range', path: 'trace.smoothness', label: 'Smoothness', min: 0, max: 1.33, step: 0.01, fmt: fixed(2) },
-      { kind: 'range', path: 'trace.simplify', label: 'Simplify curves', min: 0, max: 1.5, step: 0.05, fmt: fixed(2) },
+      { kind: 'range', path: 'ink.cutoff', label: t('font.f.ink-cutoff'), min: 0, max: 250, step: 1, fmt: (v) => (v ? `${v}` : 'auto') },
+      { kind: 'range', path: 'ink.speck', label: t('font.f.ink-speck'), min: 0, max: 400, step: 5, fmt: plain },
+      { kind: 'range', path: 'ink.weight', label: t('font.f.ink-weight'), min: -4, max: 6, step: 1, fmt: (v) => (v > 0 ? `+${v}` : `${v}`) },
+      { kind: 'check', path: 'ink.balance', label: t('font.f.ink-balance') },
+      { kind: 'range', path: 'trace.smoothness', label: t('font.f.trace-smoothness'), min: 0, max: 1.33, step: 0.01, fmt: fixed(2) },
+      { kind: 'range', path: 'trace.simplify', label: t('font.f.trace-simplify'), min: 0, max: 1.5, step: 0.05, fmt: fixed(2) },
     ],
   },
   {
-    legend: 'Spacing',
-    hint: 'After Hochuli and Cheng: straight sides get the most room, round less, diagonal and open least; word space about a quarter of the em; lines about 1.2.',
+    legend: t('font.g.spacing'),
+    hint: t('font.g.spacing.hint'),
     fields: [
-      { kind: 'check', path: 'spacing.optical', label: 'Space by letter shape' },
-      { kind: 'check', path: 'kerning', label: 'Kern pairs automatically' },
-      { kind: 'range', path: 'spacing.side', label: 'Space beside letters', min: -50, max: 200, step: 5, fmt: units },
-      { kind: 'range', path: 'spacing.tracking', label: 'Tracking', min: -150, max: 300, step: 5, fmt: units },
-      { kind: 'range', path: 'spacing.space', label: 'Word space', min: 100, max: 800, step: 10, fmt: units },
-      { kind: 'check', path: 'spacing.mono', label: 'Monospaced' },
-      { kind: 'select', path: 'figures', label: 'Figures', options: ['proportional', 'tabular'] },
-      { kind: 'check', path: 'spacing.punctuation', label: 'Room before : ; ? !' },
-      { kind: 'range', path: 'lineGap', label: 'Extra line spacing', min: 0, max: 600, step: 10, fmt: units },
+      { kind: 'check', path: 'spacing.optical', label: t('font.f.spacing-optical') },
+      { kind: 'check', path: 'kerning', label: t('font.f.kerning') },
+      { kind: 'range', path: 'spacing.side', label: t('font.f.spacing-side'), min: -50, max: 200, step: 5, fmt: units },
+      { kind: 'range', path: 'spacing.tracking', label: t('font.f.spacing-tracking'), min: -150, max: 300, step: 5, fmt: units },
+      { kind: 'range', path: 'spacing.space', label: t('font.f.spacing-space'), min: 100, max: 800, step: 10, fmt: units },
+      { kind: 'check', path: 'spacing.mono', label: t('font.f.spacing-mono') },
+      { kind: 'select', path: 'figures', label: t('font.f.figures'), options: ['proportional', 'tabular'] },
+      { kind: 'check', path: 'spacing.punctuation', label: t('font.f.spacing-punctuation') },
+      { kind: 'range', path: 'lineGap', label: t('font.f.lineGap'), min: 0, max: 600, step: 10, fmt: units },
     ],
   },
   {
-    legend: 'Character',
-    hint: 'Hochuli: slanting past about 10° distorts letters.',
+    legend: t('font.g.character'),
+    hint: t('font.g.character.hint'),
     presets: [{ label: 'Shuffle', path: 'shape.seed', value: () => Math.floor(Math.random() * 1000000), icon: 'scatter-fill' }],
     fields: [
-      { kind: 'range', path: 'shape.slant', label: 'Slant', min: -20, max: 30, step: 1, fmt: degrees },
-      { kind: 'range', path: 'shape.bounce', label: 'Bounce', min: 0, max: 150, step: 5, fmt: units },
-      { kind: 'range', path: 'shape.wobble', label: 'Wobble', min: 0, max: 15, step: 0.5, fmt: degrees },
-      { kind: 'range', path: 'shape.seed', label: 'Variation', min: 0, max: 999, step: 1, fmt: plain },
-      { kind: 'check', path: 'overshoot', label: 'Round letters overshoot the lines' },
+      { kind: 'range', path: 'shape.slant', label: t('font.f.shape-slant'), min: -20, max: 30, step: 1, fmt: degrees },
+      { kind: 'range', path: 'shape.bounce', label: t('font.f.shape-bounce'), min: 0, max: 150, step: 5, fmt: units },
+      { kind: 'range', path: 'shape.wobble', label: t('font.f.shape-wobble'), min: 0, max: 15, step: 0.5, fmt: degrees },
+      { kind: 'range', path: 'shape.seed', label: t('font.f.shape-seed'), min: 0, max: 999, step: 1, fmt: plain },
+      { kind: 'check', path: 'overshoot', label: t('font.f.overshoot') },
     ],
   },
   {
-    legend: 'Accents',
+    legend: t('font.g.accents'),
     fields: [
-      { kind: 'range', path: 'marks.gap', label: 'Gap above letters', min: -60, max: 200, step: 5, fmt: units },
-      { kind: 'range', path: 'marks.scale', label: 'Accent size', min: 0.4, max: 1.6, step: 0.05, fmt: fixed(2) },
+      { kind: 'range', path: 'marks.gap', label: t('font.f.marks-gap'), min: -60, max: 200, step: 5, fmt: units },
+      { kind: 'range', path: 'marks.scale', label: t('font.f.marks-scale'), min: 0.4, max: 1.6, step: 0.05, fmt: fixed(2) },
     ],
   },
 ]
 
-const SAMPLE_TEXT =
-  'Sphinx of black quartz, judge my vow!\nÜbermäßig schön — à bientôt, señor? «Ça va.»\nAbcdefghijklmnopqrstuvwxyz 0123456789'
+// The preview's starting text; " / " in the text file starts a new line.
+const SAMPLE_TEXT = t('font.sample-text').split(' / ').join('\n')
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T
 
@@ -167,12 +168,12 @@ let notSheet = false
 
 function showSheetState() {
   const lines = reads.map((r, page) => {
-    if (!r) return `Page ${page + 1}: not read yet${page === 2 ? ' (optional)' : ''}. Photograph it and open the photo.`
+    if (!r) return t(page === 2 ? 'font.page-unread-optional' : 'font.page-unread', { page: page + 1 })
     const drawn = traced[page]?.outlines.size
-    const markers = r.markers === 4 ? 'all corner markers found' : `${r.markers} of 4 corner markers found; boxes may be off`
-    return `Page ${page + 1}: ${drawn === undefined ? '…' : `${drawn} of ${SHEETS[page].length} boxes drawn`} · ${markers}`
+    const markers = r.markers === 4 ? t('font.markers-all') : t('font.markers-some', { n: r.markers })
+    return t('font.page-read', { page: page + 1, drawn: drawn === undefined ? '…' : t('font.page-drawn', { n: drawn, total: SHEETS[page].length }), markers })
   })
-  if (notSheet) lines.unshift('The last photo isn’t a letter sheet: its corner squares weren’t found.')
+  if (notSheet) lines.unshift(t('font.not-sheet'))
   $('sheet-state').innerHTML = lines.map((l) => `<span>${l}</span>`).join('')
 }
 
@@ -211,7 +212,7 @@ async function build() {
   for (const page of PAGES) {
     const r = reads[page]
     if (!r || traced[page]?.key === key) continue
-    $('font-stats').textContent = `Tracing page ${page + 1}…`
+    $('font-stats').textContent = t('font.tracing-page', { page: page + 1 })
     const result = await traceSheet(r, style)
     if (mine !== run) return
     traced[page] = { key, ...result }
@@ -220,18 +221,18 @@ async function build() {
   const drawn = new Map<string, Cmd[]>()
   for (const t of traced) if (t) for (const [c, o] of t.outlines) drawn.set(c, o)
   if (drawn.size === 0) {
-    $('font-stats').textContent = 'No letters yet.'
+    $('font-stats').textContent = t('font.no-letters')
     return
   }
-  const family = ($<HTMLInputElement>('font-family').value || 'My Hand').trim()
+  const family = ($<HTMLInputElement>('font-family').value || t('font.family-default')).trim()
   built = assemble(drawn, style, { family, designer: $<HTMLInputElement>('font-designer').value.trim() || undefined })
   await preview(built.buffer)
   if (mine !== run) return
   renderGlyphs(built.glyphs, drawn)
   renderChecks(built.checks, traced.flatMap((t) => t?.balanced ?? []))
   const made = built.glyphs.filter((g) => g.composite).length
-  const kerned = built.kerns ? ` · ${built.kerns} kerning pairs` : ''
-  $('font-stats').textContent = `${built.glyphs.length} characters (${made} made from accents)${kerned} · ${(built.buffer.byteLength / 1024).toFixed(0)} KB`
+  const kerned = built.kerns ? ` ${t('font.kerned', { n: built.kerns })}` : ''
+  $('font-stats').textContent = t('font.stats', { n: built.glyphs.length, made, kerned, kb: (built.buffer.byteLength / 1024).toFixed(0) })
 }
 
 let face: FontFace | null = null
@@ -252,7 +253,7 @@ async function preview(buffer: ArrayBuffer) {
 function renderChecks(checks: Check[], balanced: string[]) {
   const items = [...checks]
   if (balanced.length) {
-    items.push({ kind: 'weight', chars: balanced.join(' '), note: 'Heavier or lighter than the rest of their group; evened out (Cheng: one family, one weight).' })
+    items.push({ kind: 'weight', chars: balanced.join(' '), note: t('font.check-weight') })
   }
   const list = $('font-checks')
   list.replaceChildren(
@@ -287,18 +288,18 @@ function renderGlyphs(glyphs: BuiltGlyph[], drawn: Map<string, Cmd[]>) {
     const fig = document.createElement('figure')
     fig.className = g.composite ? 'glyph composite' : 'glyph'
     fig.innerHTML = `${glyphSvg(g)}<figcaption>${g.char === '<' ? '&lt;' : g.char === '&' ? '&amp;' : g.char}</figcaption>`
-    fig.title = g.composite ? `${g.char}: made from a letter and an accent` : g.char
+    fig.title = g.composite ? t('font.made-from-accent', { char: g.char }) : g.char
     return fig
   })
   $('glyphs').replaceChildren(...cells)
   const wanted = [...SHEETS.flat().map((s) => s.char), ...COMPOSITES.map((c) => c.char)]
   const missing = wanted.filter((c) => !glyphs.some((g) => g.char === c) && !drawn.has(c))
-  $('glyphs-missing').textContent = missing.length ? `Not in the font yet: ${missing.join(' ')}` : 'Every character on the sheets is in the font.'
+  $('glyphs-missing').textContent = missing.length ? t('font.missing', { chars: missing.join(' ') }) : t('font.complete')
 }
 
 // ---- Exports ----
 
-const fileName = () => slug(`${$<HTMLInputElement>('font-family').value || 'my hand'} ${style.name}`)
+const fileName = () => slug(`${$<HTMLInputElement>('font-family').value || t('font.family-default')} ${style.name}`)
 
 $('font-otf').addEventListener('click', () => {
   if (built) download(new Blob([built.buffer], { type: 'font/otf' }), `${fileName()}.otf`)
@@ -306,7 +307,7 @@ $('font-otf').addEventListener('click', () => {
 
 $('font-css').addEventListener('click', async (e) => {
   const btn = e.currentTarget as HTMLButtonElement
-  const family = $<HTMLInputElement>('font-family').value || 'My Hand'
+  const family = $<HTMLInputElement>('font-family').value || t('font.family-default')
   await navigator.clipboard.writeText(
     `@font-face {\n  font-family: "${family.replace(/["\\]/g, '\\$&')}";\n  src: url("${fileName()}.otf") format("opentype");\n  font-display: swap;\n}\n`,
   )

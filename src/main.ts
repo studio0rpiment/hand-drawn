@@ -8,6 +8,7 @@ import { onSheetPick, setMask, setSheet, showIcon } from './icon/ui'
 import { decorate, favicon, flash, handSliders, installSprite, reserveHoverWidths } from './ui/hand'
 import { privacyNotice, privacySettings } from './ui/privacy'
 import { installFlags } from './ui/flags'
+import { t } from './text'
 import { globePair } from './ui/sphere'
 import { setArt, showTexture } from './texture/ui'
 import { complexity } from './svgpath'
@@ -104,7 +105,7 @@ async function isHeic(blob: Blob, name: string): Promise<boolean> {
 /** While a HEIC photo converts (the first one takes a few seconds), the open button says so. */
 const openText = [...$('file').closest('label')!.childNodes].find((n) => n.nodeType === Node.TEXT_NODE && n.textContent!.trim())!
 const openWas = openText.textContent
-const converting = (on: boolean) => (openText.textContent = on ? ' Converting HEIC… ' : openWas)
+const converting = (on: boolean) => (openText.textContent = on ? ` ${t('common.converting')} ` : openWas)
 
 async function loadBlob(blob: Blob, name: string) {
   let bitmap: ImageBitmap
@@ -120,7 +121,7 @@ async function loadBlob(blob: Blob, name: string) {
       const png = await heicTo({ blob, type: 'image/png' })
       bitmap = await createImageBitmap(png, { imageOrientation: 'from-image' })
     } catch {
-      alert('This browser can’t read that image. Try exporting it as JPEG or PNG.')
+      alert(t('common.unreadable'))
       return
     } finally {
       converting(false)
@@ -218,7 +219,7 @@ $('whole').addEventListener('click', () => {
 })
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
-const cornerNames = ['top left', 'top right', 'bottom right', 'bottom left']
+const cornerNames = ['tl', 'tr', 'br', 'bl'].map((c) => t(`scan.corner-${c}`))
 
 function drawHandles() {
   const q = state.quad
@@ -234,7 +235,7 @@ function drawHandles() {
       const c = document.createElementNS(SVG_NS, 'circle')
       c.setAttribute('tabindex', '0')
       c.setAttribute('role', 'slider')
-      c.setAttribute('aria-label', `Sheet corner, ${label}. Arrow keys move it.`)
+      c.setAttribute('aria-label', t('scan.corner', { corner: label }))
       c.addEventListener('pointerdown', (e) => startDrag(e, i))
       c.addEventListener('keydown', (e) => nudge(e, i))
       handles.append(c)
@@ -503,7 +504,11 @@ function showSheet() {
   const strip = $('pieces')
   const sh = state.sheet
   $('sheet-count').textContent = sh
-    ? `${sh.boxes.length} drawing${sh.boxes.length === 1 ? '' : 's'} found${sh.boxes.length ? ` · working on ${state.pick + 1}` : ''}`
+    ? sh.boxes.length === 0
+      ? t('scan.found-none')
+      : sh.boxes.length === 1
+        ? t('scan.found-one')
+        : t('scan.found', { n: sh.boxes.length, pick: state.pick + 1 })
     : ''
   $<HTMLButtonElement>('dl-all').disabled = !sh || !sh.boxes.length
   strip.hidden = !sh
@@ -520,7 +525,7 @@ function showSheet() {
       btn.className = 'piece'
       btn.setAttribute('role', 'option')
       btn.setAttribute('aria-selected', String(i === state.pick))
-      btn.setAttribute('aria-label', `Drawing ${i + 1}`)
+      btn.setAttribute('aria-label', t('scan.drawing', { n: i + 1 }))
       const c = document.createElement('canvas')
       const s = Math.min(1, 72 / Math.max(box.width, box.height))
       c.width = Math.max(1, Math.round(box.width * s))
@@ -563,7 +568,7 @@ $('dl-all').addEventListener('click', async (e) => {
   const style = logoColours()
   const files = []
   for (const [i, p] of pieces.entries()) {
-    stats.textContent = `Tracing ${i + 1} of ${pieces.length}…`
+    stats.textContent = t('logo.tracing', { n: i + 1, total: pieces.length })
     // The same margin as a single drawing gets.
     const pad = Number(sliders.pad.value)
     const m = p.mask
@@ -573,7 +578,7 @@ $('dl-all').addEventListener('click', async (e) => {
   }
   const bytes = zip(files)
   download(new Blob([bytes.buffer as ArrayBuffer], { type: 'application/zip' }), `${state.name}-drawings.zip`)
-  stats.textContent = `${pieces.length} SVGs packed`
+  stats.textContent = t('logo.packed', { n: pieces.length })
   btn.disabled = false
 })
 
@@ -625,7 +630,7 @@ async function runTrace() {
   if (!m) {
     state.traced = null
     vectorView.innerHTML = ''
-    stats.textContent = 'No ink found. Try a higher ink cut-off.'
+    stats.textContent = t('logo.no-ink')
     return
   }
   tracing = true
@@ -651,7 +656,7 @@ function drawVector() {
   vectorView.innerHTML = svg
   const kb = new Blob([svg]).size / 1024
   const { outlines, segments } = complexity(state.traced)
-  stats.textContent = `${state.traced.width} × ${state.traced.height} px · ${outlines} outlines · ${segments} segments · ${kb.toFixed(1)} KB`
+  stats.textContent = t('logo.stats', { width: state.traced.width, height: state.traced.height, outlines, segments, kb: kb.toFixed(1) })
 }
 
 // ---- Controls ----
@@ -660,7 +665,7 @@ const formats: Record<keyof typeof sliders, (v: number) => string> = {
   flatten: (v) => `${Math.round(v * 100)}%`,
   level: (v) => String(v),
   weight: (v) => (v > 0 ? `+${v} px` : `${v} px`),
-  speck: (v) => (v ? `${v} px` : 'off'),
+  speck: (v) => (v ? `${v} px` : t('common.off')),
   trim: (v) => `${(v * 100).toFixed(1)}%`,
   pad: (v) => `${v} px`,
   smooth: (v) => v.toFixed(2),
@@ -668,7 +673,7 @@ const formats: Record<keyof typeof sliders, (v: number) => string> = {
   gap: (v) => `${v} px`,
   rotate: (v) => `${v > 0 ? '+' : ''}${v.toFixed(1)}°`,
   spread: (v) => `${v > 0 ? '+' : ''}${v.toFixed(2)} px`,
-  ignore: (v) => (v ? `${v} px` : 'off'),
+  ignore: (v) => (v ? `${v} px` : t('common.off')),
 }
 
 function showOutputs() {
@@ -789,12 +794,12 @@ showOutputs()
 
 // Related pairs become one globe; then every remaining slider is drawn and the icons added.
 const arc = $('globe-arc')
-globePair('Light', { input: sliders.flatten }, { input: sliders.level, whole: true }, arc)
-globePair('Ink', { input: sliders.weight, whole: true }, { input: sliders.speck, whole: true }, arc)
-globePair('Ink colour', { input: colourIn['ink-h'], whole: true }, { input: colourIn['ink-s'], whole: true }, arc)
-globePair('Paper colour', { input: colourIn['paper-h'], whole: true }, { input: colourIn['paper-s'], whole: true }, arc)
-globePair('Curves', { input: sliders.smooth }, { input: sliders.simplify }, $('logo-globes'))
-globePair('Tune', { input: sliders.rotate }, { input: sliders.spread }, $('logo-globes'))
+globePair(t('scan.globe-light'), { input: sliders.flatten }, { input: sliders.level, whole: true }, arc)
+globePair(t('scan.globe-ink'), { input: sliders.weight, whole: true }, { input: sliders.speck, whole: true }, arc)
+globePair(t('scan.globe-ink-colour'), { input: colourIn['ink-h'], whole: true }, { input: colourIn['ink-s'], whole: true }, arc)
+globePair(t('scan.globe-paper-colour'), { input: colourIn['paper-h'], whole: true }, { input: colourIn['paper-s'], whole: true }, arc)
+globePair(t('logo.globe-curves'), { input: sliders.smooth }, { input: sliders.simplify }, $('logo-globes'))
+globePair(t('logo.globe-tune'), { input: sliders.rotate }, { input: sliders.spread }, $('logo-globes'))
 colourChanged()
 
 // The photo inset: small in the corner, enlarged to place the sheet corners.
@@ -802,7 +807,7 @@ $('inset-size').addEventListener('click', (e) => {
   const btn = e.currentTarget as HTMLButtonElement
   const big = $('photo-inset').classList.toggle('big')
   btn.setAttribute('aria-pressed', String(big))
-  btn.textContent = big ? 'Shrink photo' : 'Enlarge photo'
+  btn.textContent = big ? t('scan.shrink') : t('scan.enlarge')
   drawHandles()
 })
 handSliders()

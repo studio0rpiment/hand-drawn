@@ -1,6 +1,8 @@
 // The printable letter sheet: an A4 page in millimetres with corner markers,
 // a grid of boxes with guide lines, and which character goes in which box.
 
+import { t } from '../text'
+
 export const PAGE = { width: 210, height: 297 }
 
 /** Solid squares at the corners; their centres anchor the reading of a photo. */
@@ -109,16 +111,14 @@ export function sheetSvg(page: number, trace?: TraceLetters): string {
           `>${esc(slot.char)}</text>`,
       )
     }
-    const label = slot.mark ? `${slot.char} ${slot.mark}` : slot.char
+    const label = slot.mark ? `${slot.char} ${t(`font.mark.${slot.mark}`)}` : slot.char
     parts.push(`<text x="${x + 0.8}" y="${y + 3.2}" font-size="2.6" font-family="Helvetica, Arial, sans-serif" fill="#a7b4c0">${esc(label)}</text>`)
   })
-  const note = trace
-    ? `Hand Drawn · letter sheet ${page + 1} of ${SHEETS.length} · trace each light letter with your marker; the light print drops out when the photo is read`
-    : [
-        'sit each letter on the solid line; capitals reach the upper dashed line, small letters the lower one',
-        'draw accent marks on their own; they are placed on letters for you',
-        'signs, fractions and arrows; small figures (¹ ² ³) sit up high, as they will in the font',
-      ].map((t, i) => `Hand Drawn · letter sheet ${i + 1} of ${SHEETS.length} · ${t}`)[page]
+  const note = t('font.sheet-note', {
+    page: page + 1,
+    pages: SHEETS.length,
+    note: t(trace ? 'font.sheet-note-trace' : `font.sheet-note-${page + 1}`),
+  })
   parts.push(`<text x="${PAGE.width / 2}" y="${PAGE.height - 6}" font-size="2.4" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" fill="#a7b4c0">${esc(note)}</text>`)
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${PAGE.width}mm" height="${PAGE.height}mm" viewBox="0 0 ${PAGE.width} ${PAGE.height}">${parts.join('')}</svg>`
 }

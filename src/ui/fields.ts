@@ -1,6 +1,8 @@
 // Style controls generated from a list of fields. Each tool describes its style
 // settings once; the form, its syncing and validation-on-edit come from here.
 
+import { tOr } from '../text'
+
 export type Field =
   | { kind: 'range'; path: string; label: string; min: number; max: number; step: number; fmt: (v: number) => string }
   | { kind: 'check'; path: string; label: string }
@@ -51,6 +53,9 @@ export function buildFields<T>(
 ): (s: T) => void {
   const fills: ((s: T) => void)[] = []
   const change = (path: string, value: unknown) => update(set(current(), path, value))
+  // Option and preset names from the tab's text file (texture.o.stamp …), else the value itself.
+  const textKey = idPrefix === 'tex' ? 'texture' : idPrefix
+  const optionText = (o: string | number) => tOr(`${textKey}.o.${o}`, String(o))
 
   for (const g of groups) {
     const fs = document.createElement('fieldset')
@@ -70,14 +75,14 @@ export function buildFields<T>(
         const b = document.createElement('button')
         b.type = 'button'
         b.className = 'button small'
-        b.textContent = p.label
+        b.textContent = tOr(`${textKey}.preset.${p.label.toLowerCase().replace(/\s+/g, '-')}`, p.label)
         if (p.icon) b.dataset.icon = p.icon
         b.addEventListener('click', () => change(p.path, typeof p.value === 'function' ? p.value() : p.value))
         row.append(b)
       }
       fs.append(row)
     }
-    for (const f of g.fields) fs.append(fieldElement(f, `${idPrefix}-${f.path.replace(/\./g, '-')}`, change, fills))
+    for (const f of g.fields) fs.append(fieldElement(f, `${idPrefix}-${f.path.replace(/\./g, '-')}`, change, fills, optionText))
     if (g.when) {
       const when = g.when as (s: T) => boolean
       fills.push((s) => (fs.hidden = !when(s)))
@@ -92,6 +97,7 @@ function fieldElement<T>(
   id: string,
   change: (path: string, value: unknown) => void,
   fills: ((s: T) => void)[],
+  optionText: (o: string | number) => string,
 ): HTMLElement {
   if (f.kind === 'multi') {
     const box = document.createElement('div')
@@ -110,7 +116,7 @@ function fieldElement<T>(
         if (chosen.length === 0) c.checked = true
         else change(f.path, chosen)
       })
-      l.append(c, ` ${opt}`)
+      l.append(c, ` ${optionText(opt)}`)
       box.append(l)
       return c
     })
@@ -148,7 +154,7 @@ function fieldElement<T>(
     fills.push((s) => (input.checked = Boolean(get(s, f.path))))
     label.append(input, ` ${f.label}`)
   } else if (f.kind === 'select') {
-    for (const o of f.options) input.append(new Option(String(o), String(o)))
+    for (const o of f.options) input.append(new Option(optionText(o), String(o)))
     input.addEventListener('change', () => {
       change(f.path, typeof f.options[0] === 'number' ? Number(input.value) : input.value)
     })

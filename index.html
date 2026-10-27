@@ -3,131 +3,131 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Hand Drawn</title>
-    <meta name="description" content="Turn your sketches into SVG icons, logos, textures, and typefaces." />
+    <title>{{common.title}}</title>
+    <meta name="description" content="{{common.description}}" />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
     <header class="bar">
       <div class="title">
-        <h1>Hand Drawn</h1>
-        <p class="tagline">turn your sketches into SVG icons, logos, textures, and typefaces</p>
+        <h1>{{common.name}}</h1>
+        <p class="tagline">{{common.tagline}}</p>
       </div>
-      <nav class="tabs" aria-label="Tools">
-        <button data-flag="tab.scan" class="tab" type="button" data-view="app" aria-pressed="true" data-icon="horizon-fill">Scan</button>
-        <button data-flag="tab.logo" id="logo-tab" class="tab" type="button" data-view="logo-app" aria-pressed="false" aria-disabled="true" data-icon="blob-fill">Logo</button>
-        <button data-flag="tab.icon" id="icon-tab" class="tab" type="button" data-view="icon-app" aria-pressed="false" aria-disabled="true" data-icon="triangle-y-fill">Icon</button>
-        <button data-flag="tab.texture" id="texture-tab" class="tab" type="button" data-view="texture-app" aria-pressed="false" aria-disabled="true" data-icon="hatch-heavy-fill">Texture</button>
-        <button data-flag="tab.font" id="font-tab" class="tab" type="button" data-view="font-app" aria-pressed="false" data-icon="spiral-tight-fill">Font</button>
+      <nav class="tabs" aria-label="{{common.tabs}}">
+        <button data-flag="tab.scan" class="tab" type="button" data-view="app" aria-pressed="true" data-icon="horizon-fill">{{common.tab.scan}}</button>
+        <button data-flag="tab.logo" id="logo-tab" class="tab" type="button" data-view="logo-app" aria-pressed="false" aria-disabled="true" data-icon="blob-fill">{{common.tab.logo}}</button>
+        <button data-flag="tab.icon" id="icon-tab" class="tab" type="button" data-view="icon-app" aria-pressed="false" aria-disabled="true" data-icon="triangle-y-fill">{{common.tab.icon}}</button>
+        <button data-flag="tab.texture" id="texture-tab" class="tab" type="button" data-view="texture-app" aria-pressed="false" aria-disabled="true" data-icon="hatch-heavy-fill">{{common.tab.texture}}</button>
+        <button data-flag="tab.font" id="font-tab" class="tab" type="button" data-view="font-app" aria-pressed="false" data-icon="spiral-tight-fill">{{common.tab.font}}</button>
       </nav>
       <div class="bar-actions">
         <label class="button primary" data-icon="arrow-bar-fill-r270">
-          Open photo
+          {{common.open}}
           <input id="file" type="file" accept="image/*,.heic,.heif" multiple hidden />
         </label>
-        <button id="sample" class="button" type="button" data-icon="star-scribble-fill">Try a sample</button>
+        <button id="sample" class="button" type="button" data-icon="star-scribble-fill">{{common.sample}}</button>
       </div>
     </header>
 
     <main id="app" class="empty">
       <section class="intro" id="intro">
-        <h2 class="intro-title">Scan</h2>
+        <h2 class="intro-title">{{scan.title}}</h2>
         <div class="row intro-actions">
-          <button id="intro-open" class="button primary" type="button" data-icon="arrow-bar-fill-r270">Open a photo</button>
-          <button id="intro-sample" class="button" type="button" data-icon="star-scribble-fill">Try a sample</button>
+          <button id="intro-open" class="button primary" type="button" data-icon="arrow-bar-fill-r270">{{scan.open}}</button>
+          <button id="intro-sample" class="button" type="button" data-icon="star-scribble-fill">{{scan.sample}}</button>
         </div>
       </section>
 
-      <aside class="controls" aria-label="Scan settings">
+      <aside class="controls" aria-label="{{scan.settings}}">
         <fieldset>
-          <legend>1 · Paper</legend>
-          <p class="hint">Drag the corners onto the sheet's corners.</p>
+          <legend>{{scan.paper}}</legend>
+          <p class="hint">{{scan.paper.hint}}</p>
           <div class="row">
-            <button id="detect" class="button small" type="button">Find the sheet</button>
-            <button id="whole" class="button small" type="button">Use whole photo</button>
+            <button id="detect" class="button small" type="button">{{scan.detect}}</button>
+            <button id="whole" class="button small" type="button">{{scan.whole}}</button>
           </div>
         </fieldset>
 
         <fieldset>
-          <legend>2 · Ink</legend>
+          <legend>{{scan.ink}}</legend>
           <label class="slider">
-            <span>Even out light <output id="flatten-out"></output></span>
+            <span>{{scan.flatten}} <output id="flatten-out"></output></span>
             <input id="flatten" type="range" min="0" max="1" step="0.05" value="0.9" />
           </label>
           <label class="slider">
-            <span>Ink cut-off <output id="level-out"></output></span>
+            <span>{{scan.level}} <output id="level-out"></output></span>
             <input id="level" type="range" min="1" max="254" step="1" value="128" />
           </label>
-          <label class="check"><input id="level-auto" type="checkbox" checked /> Pick the cut-off for me</label>
+          <label class="check"><input id="level-auto" type="checkbox" checked /> {{scan.level-auto}}</label>
           <label class="slider">
-            <span>Line weight <output id="weight-out"></output></span>
+            <span>{{scan.weight}} <output id="weight-out"></output></span>
             <input id="weight" type="range" min="-3" max="3" step="1" value="0" />
           </label>
           <label class="slider">
-            <span>Remove specks under <output id="speck-out"></output></span>
+            <span>{{scan.speck}} <output id="speck-out"></output></span>
             <input id="speck" type="range" min="0" max="400" step="5" value="40" />
           </label>
           <label class="slider">
-            <span>Trim edges <output id="trim-out"></output></span>
+            <span>{{scan.trim}} <output id="trim-out"></output></span>
             <input id="trim" type="range" min="0" max="0.08" step="0.005" value="0.015" />
           </label>
         </fieldset>
 
         <fieldset>
-          <legend>3 · Colour</legend>
-          <p class="hint">Read from the photo; every output uses these unless it is set to its own.</p>
+          <legend>{{scan.colour}}</legend>
+          <p class="hint">{{scan.colour.hint}}</p>
           <label class="slider">
-            <span>Ink hue <output id="ink-h-out"></output></span>
+            <span>{{scan.ink-h}} <output id="ink-h-out"></output></span>
             <input id="ink-h" type="range" min="0" max="360" step="1" value="260" />
           </label>
           <label class="slider">
-            <span>Ink saturation <output id="ink-s-out"></output></span>
+            <span>{{scan.ink-s}} <output id="ink-s-out"></output></span>
             <input id="ink-s" type="range" min="0" max="100" step="1" value="16" />
           </label>
           <label class="slider">
-            <span>Ink lightness <output id="ink-l-out"></output></span>
+            <span>{{scan.ink-l}} <output id="ink-l-out"></output></span>
             <input id="ink-l" type="range" min="0" max="100" step="1" value="12" />
           </label>
-          <label class="check"><input id="paper-on" type="checkbox" /> Keep the paper (off: transparent)</label>
+          <label class="check"><input id="paper-on" type="checkbox" /> {{scan.paper-on}}</label>
           <label class="slider">
-            <span>Paper hue <output id="paper-h-out"></output></span>
+            <span>{{scan.paper-h}} <output id="paper-h-out"></output></span>
             <input id="paper-h" type="range" min="0" max="360" step="1" value="40" />
           </label>
           <label class="slider">
-            <span>Paper saturation <output id="paper-s-out"></output></span>
+            <span>{{scan.paper-s}} <output id="paper-s-out"></output></span>
             <input id="paper-s" type="range" min="0" max="100" step="1" value="20" />
           </label>
           <label class="slider">
-            <span>Paper lightness <output id="paper-l-out"></output></span>
+            <span>{{scan.paper-l}} <output id="paper-l-out"></output></span>
             <input id="paper-l" type="range" min="0" max="100" step="1" value="96" />
           </label>
           <div class="row">
-            <button id="measure" class="button small" type="button" data-icon="c-spiral-fill">Read colours from the photo</button>
+            <button id="measure" class="button small" type="button" data-icon="c-spiral-fill">{{scan.measure}}</button>
           </div>
         </fieldset>
 
         <fieldset>
-          <legend>Sheet</legend>
-          <label class="check accent"><input id="sheet-on" type="checkbox" /> Several drawings on this sheet</label>
-          <p class="hint">For a page of icons, or of logo iterations: each drawing is found and numbered, row by row. Pick one in the tray; every output works on it.</p>
+          <legend>{{scan.sheet}}</legend>
+          <label class="check accent"><input id="sheet-on" type="checkbox" /> {{scan.sheet-on}}</label>
+          <p class="hint">{{scan.sheet.hint}}</p>
           <label class="slider">
-            <span>Parts closer than this are one drawing <output id="gap-out"></output></span>
+            <span>{{scan.gap}} <output id="gap-out"></output></span>
             <input id="gap" type="range" min="4" max="160" step="1" value="30" />
           </label>
           <p class="hint" id="sheet-count" aria-live="polite"></p>
         </fieldset>
       </aside>
 
-      <section class="workspace" aria-label="Scan">
+      <section class="workspace" aria-label="{{scan.heading}}">
         <div class="pane-head">
-          <h2>Scan</h2>
-          <button id="remove-photo" class="button small" type="button" data-icon="big-x-fill">Remove photo</button>
-          <div class="toggle" role="radiogroup" aria-label="Show">
-            <label><input type="radio" name="view" value="ink" checked /> Ink</label>
-            <label><input type="radio" name="view" value="flat" /> Straightened</label>
+          <h2>{{scan.heading}}</h2>
+          <button id="remove-photo" class="button small" type="button" data-icon="big-x-fill">{{scan.remove}}</button>
+          <div class="toggle" role="radiogroup" aria-label="{{scan.show}}">
+            <label><input type="radio" name="view" value="ink" checked /> {{scan.show-ink}}</label>
+            <label><input type="radio" name="view" value="flat" /> {{scan.show-flat}}</label>
           </div>
         </div>
-        <div class="pieces" id="pieces" role="listbox" aria-label="Drawings on this sheet" hidden></div>
+        <div class="pieces" id="pieces" role="listbox" aria-label="{{scan.tray}}" hidden></div>
         <div class="result-wrap">
           <div class="stage checker" id="result-stage">
             <canvas id="ink-view"></canvas>
@@ -137,101 +137,101 @@
           <div class="photo-inset" id="photo-inset">
             <div class="stage" id="photo-stage">
               <canvas id="photo"></canvas>
-              <svg id="handles" aria-label="Sheet corners"></svg>
+              <svg id="handles" aria-label="{{scan.corners}}"></svg>
             </div>
-            <button id="inset-size" class="inset-size" type="button" aria-pressed="false">Enlarge photo</button>
+            <button id="inset-size" class="inset-size" type="button" aria-pressed="false">{{scan.enlarge}}</button>
           </div>
         </div>
-        <div class="globe-arc" id="globe-arc" aria-label="Settings in pairs"></div>
+        <div class="globe-arc" id="globe-arc" aria-label="{{scan.globes}}"></div>
       </section>
     </main>
 
     <main id="logo-app" class="logo-app" hidden>
-      <aside class="controls" aria-label="Logo settings">
+      <aside class="controls" aria-label="{{logo.settings}}">
         <fieldset>
-          <legend>Vector</legend>
+          <legend>{{logo.vector}}</legend>
           <label class="slider">
-            <span>Smoothness <output id="smooth-out"></output></span>
+            <span>{{logo.smooth}} <output id="smooth-out"></output></span>
             <input id="smooth" type="range" min="0" max="1.33" step="0.01" value="1" />
           </label>
           <label class="slider">
-            <span>Simplify curves <output id="simplify-out"></output></span>
+            <span>{{logo.simplify}} <output id="simplify-out"></output></span>
             <input id="simplify" type="range" min="0" max="1.5" step="0.05" value="0.2" />
           </label>
           <label class="slider">
-            <span>Space around <output id="pad-out"></output></span>
+            <span>{{logo.pad}} <output id="pad-out"></output></span>
             <input id="pad" type="range" min="0" max="200" step="4" value="32" />
           </label>
         </fieldset>
 
         <fieldset>
-          <legend>Fine tuning</legend>
-          <p class="hint">On the vector only; the scan stays as it is.</p>
+          <legend>{{logo.tuning}}</legend>
+          <p class="hint">{{logo.tuning.hint}}</p>
           <label class="slider">
-            <span>Rotate <output id="rotate-out"></output></span>
+            <span>{{logo.rotate}} <output id="rotate-out"></output></span>
             <input id="rotate" type="range" min="-15" max="15" step="0.1" value="0" />
           </label>
           <label class="slider">
-            <span>Line spread <output id="spread-out"></output></span>
+            <span>{{logo.spread}} <output id="spread-out"></output></span>
             <input id="spread" type="range" min="-1" max="1" step="0.05" value="0" />
           </label>
           <label class="slider">
-            <span>Ignore spots under <output id="ignore-out"></output></span>
+            <span>{{logo.ignore}} <output id="ignore-out"></output></span>
             <input id="ignore" type="range" min="0" max="200" step="1" value="2" />
           </label>
-          <label class="check"><input id="square" type="checkbox" /> Square artboard</label>
+          <label class="check"><input id="square" type="checkbox" /> {{logo.square}}</label>
         </fieldset>
 
         <fieldset>
-          <legend>Colour</legend>
-          <label class="check"><input id="logo-scan-colours" type="checkbox" checked /> Colours from the scan</label>
+          <legend>{{logo.colour}}</legend>
+          <label class="check"><input id="logo-scan-colours" type="checkbox" checked /> {{logo.scan-colours}}</label>
           <div class="row" id="logo-own-colours" hidden>
-            <label class="swatch">Ink <input id="ink" type="color" value="#1d1a24" /></label>
-            <label class="swatch">Background <input id="bg" type="color" value="#ffffff" /></label>
-            <label class="check"><input id="bg-on" type="checkbox" /> Fill</label>
+            <label class="swatch">{{logo.ink}} <input id="ink" type="color" value="#1d1a24" /></label>
+            <label class="swatch">{{logo.bg}} <input id="bg" type="color" value="#ffffff" /></label>
+            <label class="check"><input id="bg-on" type="checkbox" /> {{logo.bg-on}}</label>
           </div>
         </fieldset>
 
         <fieldset>
-          <legend>Export</legend>
+          <legend>{{logo.export}}</legend>
           <div class="row">
-            <button id="dl-svg" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">Download SVG</button>
-            <button id="copy-svg" class="button small" type="button" data-icon="equals-fill">Copy SVG</button>
-            <button id="dl-png" class="button small" type="button" data-icon="arrow-bar-fill-r90">Download PNG</button>
+            <button id="dl-svg" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">{{logo.dl-svg}}</button>
+            <button id="copy-svg" class="button small" type="button" data-icon="equals-fill">{{logo.copy-svg}}</button>
+            <button id="dl-png" class="button small" type="button" data-icon="arrow-bar-fill-r90">{{logo.dl-png}}</button>
           </div>
           <div class="row">
-            <button id="dl-all" class="button small" type="button" data-icon="arrow-bar-fill-r90">Download all SVGs</button>
+            <button id="dl-all" class="button small" type="button" data-icon="arrow-bar-fill-r90">{{logo.dl-all}}</button>
           </div>
           <p class="stats" id="stats" aria-live="polite"></p>
         </fieldset>
       </aside>
 
-      <section class="workspace" aria-label="Logo">
+      <section class="workspace" aria-label="{{logo.heading}}">
         <div class="pane-head">
-          <h2>Logo</h2>
+          <h2>{{logo.heading}}</h2>
         </div>
         <div class="stage checker logo-stage" id="logo-stage">
           <div id="vector-view"></div>
         </div>
-        <div class="globe-arc" id="logo-globes" aria-label="Settings in pairs"></div>
+        <div class="globe-arc" id="logo-globes" aria-label="{{logo.globes}}"></div>
       </section>
     </main>
 
     <main id="icon-app" class="icon-app" hidden>
-      <aside class="controls" aria-label="Icon style">
+      <aside class="controls" aria-label="{{icon.settings}}">
         <div id="icon-style-box"></div>
         <fieldset>
-          <legend>Icon</legend>
-          <label class="field">Name <input id="icon-name" type="text" spellcheck="false" /></label>
-          <label class="check"><input id="icon-scan-colours" type="checkbox" checked /> Colours from the scan</label>
+          <legend>{{icon.icon}}</legend>
+          <label class="field">{{icon.name}} <input id="icon-name" type="text" spellcheck="false" /></label>
+          <label class="check"><input id="icon-scan-colours" type="checkbox" checked /> {{icon.scan-colours}}</label>
         </fieldset>
         <div id="style-fields"></div>
         <fieldset>
-          <legend>Export</legend>
+          <legend>{{icon.export}}</legend>
           <div class="row">
-            <button id="dl-pack" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">Download icon pack</button>
-            <button id="dl-sprite" class="button small" type="button" data-icon="arrow-bar-fill-r90">Download sprite</button>
-            <button id="copy-head" class="button small" type="button" data-icon="equals-fill">Copy &lt;head&gt; tags</button>
+            <button id="dl-pack" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">{{icon.dl-pack}}</button>
+            <button id="dl-sprite" class="button small" type="button" data-icon="arrow-bar-fill-r90">{{icon.dl-sprite}}</button>
+            <button id="copy-head" class="button small" type="button" data-icon="equals-fill">{{icon.copy-head}}</button>
           </div>
           <p class="stats" id="icon-stats" aria-live="polite"></p>
         </fieldset>
@@ -240,48 +240,48 @@
       <section class="icon-preview">
         <div class="pane" id="icon-set-pane" hidden>
           <div class="pane-head">
-            <h2>Icon set</h2>
-            <button id="dl-set" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">Download icon set</button>
+            <h2>{{icon.set}}</h2>
+            <button id="dl-set" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">{{icon.dl-set}}</button>
           </div>
           <p class="stats" id="icon-set-stats" aria-live="polite"></p>
-          <div class="icon-set" id="icon-set" role="listbox" aria-label="Icons in this set"></div>
+          <div class="icon-set" id="icon-set" role="listbox" aria-label="{{icon.set-list}}"></div>
         </div>
         <div class="pane">
-          <h2>Small sizes</h2>
+          <h2>{{icon.sizes}}</h2>
           <div class="sizes" id="sizes"></div>
         </div>
         <div class="pane">
-          <h2>Family</h2>
+          <h2>{{icon.family}}</h2>
           <div class="family" id="family"></div>
         </div>
       </section>
     </main>
 
     <main id="texture-app" class="texture-app" hidden>
-      <aside class="controls" aria-label="Texture style">
+      <aside class="controls" aria-label="{{texture.settings}}">
         <div id="texture-style-box"></div>
         <fieldset>
-          <legend>Colour</legend>
-          <label class="check"><input id="texture-scan-colours" type="checkbox" checked /> Colours from the scan</label>
+          <legend>{{texture.colour}}</legend>
+          <label class="check"><input id="texture-scan-colours" type="checkbox" checked /> {{texture.scan-colours}}</label>
         </fieldset>
         <fieldset>
-          <legend>Size</legend>
-          <label class="field">Preset <select id="tex-preset"></select></label>
+          <legend>{{texture.size}}</legend>
+          <label class="field">{{texture.preset}} <select id="tex-preset"></select></label>
           <div class="row size-row">
-            <label class="field">Width <input id="tex-w" type="number" min="64" max="4800" step="1" inputmode="numeric" /></label>
-            <button id="tex-swap" class="button small" type="button" aria-label="Swap width and height" title="Swap width and height">⇄</button>
-            <label class="field">Height <input id="tex-h" type="number" min="64" max="4800" step="1" inputmode="numeric" /></label>
+            <label class="field">{{texture.width}} <input id="tex-w" type="number" min="64" max="4800" step="1" inputmode="numeric" /></label>
+            <button id="tex-swap" class="button small" type="button" aria-label="{{texture.swap}}" title="{{texture.swap}}">⇄</button>
+            <label class="field">{{texture.height}} <input id="tex-h" type="number" min="64" max="4800" step="1" inputmode="numeric" /></label>
           </div>
-          <label class="check"><input id="tex-lock" type="checkbox" /> Keep the proportions</label>
-          <label class="check"><input id="tex-fit" type="checkbox" /> Single print: canvas fits the print instead</label>
+          <label class="check"><input id="tex-lock" type="checkbox" /> {{texture.lock}}</label>
+          <label class="check"><input id="tex-fit" type="checkbox" /> {{texture.fit}}</label>
           <p class="hint" id="tex-size-note" aria-live="polite"></p>
         </fieldset>
         <div id="texture-fields"></div>
         <fieldset>
-          <legend>Export</legend>
+          <legend>{{texture.export}}</legend>
           <div class="row">
-            <button id="texture-png" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">Download PNG</button>
-            <button id="texture-css" class="button small" type="button" data-icon="equals-fill">Copy CSS</button>
+            <button id="texture-png" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">{{texture.dl-png}}</button>
+            <button id="texture-css" class="button small" type="button" data-icon="equals-fill">{{texture.copy-css}}</button>
           </div>
           <p class="stats" id="texture-stats" aria-live="polite"></p>
         </fieldset>
@@ -289,45 +289,45 @@
 
       <section class="icon-preview">
         <div class="pane">
-          <h2>Print</h2>
+          <h2>{{texture.print}}</h2>
           <div class="stage checker"><canvas id="texture-view"></canvas></div>
         </div>
         <div class="pane" id="texture-repeat-pane" hidden>
-          <h2>Repeat, 2 × 2</h2>
+          <h2>{{texture.repeat}}</h2>
           <div class="stage"><canvas id="texture-repeat"></canvas></div>
         </div>
       </section>
     </main>
 
     <main id="font-app" class="font-app" hidden>
-      <aside class="controls" aria-label="Font style">
+      <aside class="controls" aria-label="{{font.settings}}">
         <fieldset>
-          <legend>Letter sheet</legend>
-          <p class="hint">Print the pages (page 3 is optional: signs, fractions, arrows), draw each character in its box, photograph each page flat with all four corner squares in view, and open the photos.</p>
+          <legend>{{font.sheet}}</legend>
+          <p class="hint">{{font.sheet.hint}}</p>
           <div class="row">
-            <button id="sheet-print-1" class="button small" type="button" data-icon="strokes-fill">Print page 1</button>
-            <button id="sheet-print-2" class="button small" type="button" data-icon="strokes-fill">Print page 2</button>
-            <button id="sheet-print-3" class="button small" type="button" data-icon="strokes-fill">Print page 3</button>
-            <button id="sheet-svg" class="button small" type="button" data-icon="arrow-bar-fill-r90">Download sheets</button>
+            <button id="sheet-print-1" class="button small" type="button" data-icon="strokes-fill">{{font.print-1}}</button>
+            <button id="sheet-print-2" class="button small" type="button" data-icon="strokes-fill">{{font.print-2}}</button>
+            <button id="sheet-print-3" class="button small" type="button" data-icon="strokes-fill">{{font.print-3}}</button>
+            <button id="sheet-svg" class="button small" type="button" data-icon="arrow-bar-fill-r90">{{font.dl-sheets}}</button>
           </div>
-          <label class="check"><input id="sheet-trace" type="checkbox" /> with letters to trace</label>
+          <label class="check"><input id="sheet-trace" type="checkbox" /> {{font.trace}}</label>
           <div class="row">
-            <button id="sheet-samples" class="button small" type="button" data-icon="star-scribble-fill">Try the sample sheets</button>
+            <button id="sheet-samples" class="button small" type="button" data-icon="star-scribble-fill">{{font.samples}}</button>
           </div>
           <p class="hint sheet-state" id="sheet-state" aria-live="polite"></p>
         </fieldset>
         <fieldset>
-          <legend>Font</legend>
-          <label class="field">Family name <input id="font-family" type="text" value="My Hand" spellcheck="false" /></label>
-          <label class="field">Designer <input id="font-designer" type="text" spellcheck="false" /></label>
+          <legend>{{font.font}}</legend>
+          <label class="field">{{font.family}} <input id="font-family" type="text" value="{{font.family-default}}" spellcheck="false" /></label>
+          <label class="field">{{font.designer}} <input id="font-designer" type="text" spellcheck="false" /></label>
         </fieldset>
         <div id="font-style-box"></div>
         <div id="font-fields"></div>
         <fieldset>
-          <legend>Export</legend>
+          <legend>{{font.export}}</legend>
           <div class="row">
-            <button id="font-otf" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">Download font (.otf)</button>
-            <button id="font-css" class="button small" type="button" data-icon="equals-fill">Copy @font-face</button>
+            <button id="font-otf" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">{{font.dl-otf}}</button>
+            <button id="font-css" class="button small" type="button" data-icon="equals-fill">{{font.copy-css}}</button>
           </div>
           <p class="stats" id="font-stats" aria-live="polite"></p>
         </fieldset>
@@ -336,17 +336,17 @@
       <section class="icon-preview">
         <div class="pane">
           <div class="pane-head">
-            <h2>Type here</h2>
-            <label class="slider size-slider"><span>Size</span><input id="font-size" type="range" min="16" max="160" value="56" /></label>
+            <h2>{{font.type-here}}</h2>
+            <label class="slider size-slider"><span>{{font.size}}</span><input id="font-size" type="range" min="16" max="160" value="56" /></label>
           </div>
-          <textarea id="font-sample" class="font-sample" rows="4" spellcheck="false" aria-label="Preview text"></textarea>
+          <textarea id="font-sample" class="font-sample" rows="4" spellcheck="false" aria-label="{{font.preview}}"></textarea>
         </div>
         <div class="pane" id="font-checks-pane" hidden>
-          <h2>Checks</h2>
+          <h2>{{font.checks}}</h2>
           <ul class="font-checks" id="font-checks"></ul>
         </div>
         <div class="pane">
-          <h2>Characters</h2>
+          <h2>{{font.characters}}</h2>
           <p class="hint" id="glyphs-missing"></p>
           <div class="glyphs" id="glyphs"></div>
         </div>
@@ -354,11 +354,11 @@
     </main>
 
     <footer class="site-footer">
-      <a href="./privacy.html">Privacy policy</a>
-      <button id="privacy-settings" class="link" type="button">Privacy settings</button>
+      <a href="./privacy.html">{{common.privacy-policy}}</a>
+      <button id="privacy-settings" class="link" type="button">{{common.privacy-settings}}</button>
     </footer>
 
-    <div id="drop" class="drop" hidden><span><svg class="hi drop-mark" aria-hidden="true"><use href="#hi-arrow-bar-fill-r90"/></svg>Drop the photo</span></div>
+    <div id="drop" class="drop" hidden><span><svg class="hi drop-mark" aria-hidden="true"><use href="#hi-arrow-bar-fill-r90"/></svg>{{common.drop}}</span></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
