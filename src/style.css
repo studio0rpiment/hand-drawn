@@ -419,6 +419,14 @@ input[type='color'] {
   overflow-y: auto;
 }
 
+/* Nothing in the preview is squeezed to fit the window (a tray that scrolls
+   sideways would otherwise shrink to nothing under the viewer); the preview
+   scrolls instead. */
+.workspace > *,
+.icon-preview > * {
+  min-height: min-content;
+}
+
 .pane-head {
   display: flex;
   justify-content: space-between;
