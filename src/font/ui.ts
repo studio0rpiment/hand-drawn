@@ -85,6 +85,23 @@ const reads: (SheetRead | null)[] = SHEETS.map(() => null)
 const traced: { key: string; outlines: Map<string, Cmd[]>; balanced: string[] }[] = []
 /** Pages waiting to be read, by the photo they came from (a photo's latest version replaces its earlier one). */
 const pendingPages = new Map<RGBAImage, GrayImage>()
+/** The sample sheets' photos, and which pages are read from them. */
+const samplePhotos = new WeakSet<RGBAImage>()
+const fromSample: boolean[] = SHEETS.map(() => false)
+
+/**
+ * The sample letters are only there to try the tool: once letters of one's
+ * own come in (a sheet, or one placed freehand), they all go, so the font
+ * holds only what was drawn for it.
+ */
+function dropSample() {
+  fromSample.forEach((was, page) => {
+    if (!was) return
+    reads[page] = null
+    delete traced[page]
+    fromSample[page] = false
+  })
+}
 let built: ReturnType<typeof assemble> | null = null
 
 const box = styleBox(book, () => applied())
@@ -158,6 +175,7 @@ export async function loadSampleSheets() {
     const c = await sampleSheetPhoto(page)
     const photo = c.getContext('2d', { willReadFrequently: true })!.getImageData(0, 0, c.width, c.height)
     // Straight into the Font view, not through Scan, so the scanned drawing stays as it is.
+    samplePhotos.add(photo)
     pendingPages.set(photo, toGray(photo))
   }
   // Built now, even if the Font view isn't open, so the font is ready when it is.
@@ -172,6 +190,7 @@ let notSheet = false
 function showSheetState() {
   const lines = reads.map((r, page) => {
     if (!r) return t(page === 2 ? 'font.page-unread-optional' : 'font.page-unread', { page: page + 1 })
+    if (fromSample[page]) return t('font.page-sample', { page: page + 1 })
     const drawn = traced[page]?.outlines.size
     const markers = r.markers === 4 ? t('font.markers-all') : t('font.markers-some', { n: r.markers })
     return t('font.page-read', { page: page + 1, drawn: drawn === undefined ? '…' : t('font.page-drawn', { n: drawn, total: SHEETS[page].length }), markers })
@@ -278,6 +297,7 @@ function putOn(from: Held, char: string) {
 }
 
 function changed() {
+  if (placed.size) dropSample()
   held = null
   showFreehand()
   buildSoon()
@@ -428,7 +448,10 @@ async function build() {
     const r = corners ? readSheet(raw, corners) : readSheet(page)
     // Only a photo of the letter sheet: at least three of its corner squares must be there.
     if (r.markers >= 3) {
+      const sample = samplePhotos.has(photo)
+      if (!sample) dropSample()
       reads[r.page] = r
+      fromSample[r.page] = sample
       delete traced[r.page]
       notSheet = false
     } else notSheet = true

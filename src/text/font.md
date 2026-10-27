@@ -87,6 +87,7 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `font.page-unread` Page {page}: not read yet. Photograph it and open the photo.
 `font.page-unread-optional` Page {page}: not read yet (optional). Photograph it and open the photo.
 `font.page-read` Page {page}: {drawn} · {markers}
+`font.page-sample` Page {page}: sample letters; they go when other letters come in.
 `font.page-drawn` {n} of {total} boxes drawn
 `font.markers-all` all corner markers found
 `font.markers-some` {n} of 4 corner markers found; boxes may be off
