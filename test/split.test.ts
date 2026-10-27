@@ -54,6 +54,18 @@ describe('splitDrawings', () => {
     expect(boxes[0]).toEqual({ x: 20, y: 20, width: 100, height: 100 })
   })
 
+  it('keeps small drawings beside a big one apart, even inside its box', () => {
+    // An L 120 px each way; three small drawings sit in its open corner, 30 px from its lines.
+    const m = page(300, 200, [
+      [20, 20, 6, 120],
+      [20, 134, 120, 6],
+      [80, 30, 12, 12],
+      [110, 30, 12, 12],
+      [80, 60, 12, 12],
+    ])
+    expect(splitDrawings(m, 10, 20).length).toBe(4)
+  })
+
   it('pads a box without leaving the page', () => {
     expect(padBox({ x: 5, y: 10, width: 20, height: 20 }, 8, 30, 100)).toEqual({ x: 0, y: 2, width: 30, height: 36 })
   })

@@ -59,7 +59,9 @@ function bounds(input: HTMLInputElement) {
 
 function readFrac(input: HTMLInputElement, value: string): number {
   const { min, max } = bounds(input)
-  return max > min ? (Number(value) - min) / (max - min) : 0
+  const f = max > min ? (Number(value) - min) / (max - min) : 0
+  // A value that isn't a number (empty, or a word like "auto") rests the ball in the middle.
+  return Number.isFinite(f) ? f : 0.5
 }
 
 /** The rim's radius at angle `t` (SVG angle: clockwise from 3 o'clock). */
@@ -275,7 +277,7 @@ export function globePair(title: string, x: GlobeAxis, y: GlobeAxis, into: HTMLE
     else trailing = window.setTimeout(write, 120)
   }
 
-  const clamp = (a: number) => Math.max(-MAX, Math.min(MAX, a))
+  const clamp = (a: number) => (Number.isFinite(a) ? Math.max(-MAX, Math.min(MAX, a)) : 0)
 
   // Momentum, and gentle easing for keyboard steps and values set from outside.
   let frame = 0
@@ -345,6 +347,8 @@ export function globePair(title: string, x: GlobeAxis, y: GlobeAxis, into: HTMLE
   svg.addEventListener('pointermove', (e) => {
     if (!drag) return
     const radius = svg.getBoundingClientRect().width / 2.24
+    // A ball with no size on screen (its view hidden mid-drag) can't be rolled.
+    if (!(radius > 0)) return
     const dLon = (e.clientX - drag.x) / radius
     const dLat = -(e.clientY - drag.y) / radius
     const dt = Math.max(1, e.timeStamp - drag.t)

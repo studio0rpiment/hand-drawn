@@ -40,6 +40,17 @@
 
       <aside class="controls" aria-label="{{scan.settings}}">
         <fieldset>
+          <legend>{{scan.sheet}}</legend>
+          <label class="check accent"><input id="sheet-on" type="checkbox" /> {{scan.sheet-on}}</label>
+          <p class="hint">{{scan.sheet.hint}}</p>
+          <label class="slider">
+            <span>{{scan.gap}} <output id="gap-out"></output></span>
+            <input id="gap" type="range" min="0" max="160" step="1" value="30" />
+          </label>
+          <p class="hint" id="sheet-count" aria-live="polite"></p>
+        </fieldset>
+
+        <fieldset>
           <legend>{{scan.paper}}</legend>
           <p class="hint">{{scan.paper.hint}}</p>
           <div class="row">
@@ -104,17 +115,6 @@
           <div class="row">
             <button id="measure" class="button small" type="button" data-icon="c-spiral-fill">{{scan.measure}}</button>
           </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>{{scan.sheet}}</legend>
-          <label class="check accent"><input id="sheet-on" type="checkbox" /> {{scan.sheet-on}}</label>
-          <p class="hint">{{scan.sheet.hint}}</p>
-          <label class="slider">
-            <span>{{scan.gap}} <output id="gap-out"></output></span>
-            <input id="gap" type="range" min="4" max="160" step="1" value="30" />
-          </label>
-          <p class="hint" id="sheet-count" aria-live="polite"></p>
         </fieldset>
       </aside>
 
@@ -290,7 +290,7 @@
       <section class="icon-preview">
         <div class="pane">
           <h2>{{texture.print}}</h2>
-          <div class="stage checker"><canvas id="texture-view"></canvas></div>
+          <div class="stage texture-stage"><canvas id="texture-view" class="checker"></canvas></div>
         </div>
         <div class="pane" id="texture-repeat-pane" hidden>
           <h2>{{texture.repeat}}</h2>

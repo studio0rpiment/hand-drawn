@@ -548,6 +548,10 @@ input[type='color'] {
   .controls {
     order: 3;
   }
+  .logo-stage,
+  .texture-stage {
+    height: 30vh;
+  }
 }
 
 /* ---- Tabs ---- */
@@ -1008,12 +1012,31 @@ h3 {
 
 /* Leave room for the globes below without scrolling. */
 .result-wrap #result-stage canvas,
-.logo-stage svg {
-  max-height: 52vh;
+/* The Logo and Texture viewers keep one size, whatever is in them: the
+   drawing is fitted inside, so changing its size never moves the page or
+   pushes its bottom out of view. */
+.logo-stage,
+.texture-stage {
+  height: clamp(16rem, 100vh - 22rem, 52rem);
+  /* One row the stage's height, so what's inside can be fitted to it. */
+  grid-template-rows: minmax(0, 1fr);
 }
 
-.logo-stage {
-  min-height: 16rem;
+.logo-stage #vector-view {
+  height: 100%;
+}
+
+#vector-view svg {
+  height: 100%;
+  max-height: none;
+}
+
+.texture-stage {
+  height: clamp(16rem, 100vh - 8rem, 52rem);
+}
+
+.texture-stage canvas {
+  max-height: 100%;
 }
 
 /* Paper colour controls rest while the paper is left out. */

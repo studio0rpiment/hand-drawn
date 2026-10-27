@@ -46,21 +46,40 @@ export function splitDrawings(mask: Mask, gap: number, minArea: number): Box[] {
     }
     found.push({ x: x0, y: y0, width: x1 - x0 + 1, height: y1 - y0 + 1, area })
   }
-  return readingOrder(mergeInside(found.filter((b) => b.width > 0)).filter((b) => b.area >= minArea)).map(
+  const groups = found.map((b, id) => ({ ...b, id })).filter((b) => b.width > 0)
+  // Ink of group `id` at pixel p.
+  const inkOf = (p: number, id: number) => data[p] !== 0 && label[p] === id
+  return readingOrder(mergeInside(groups, w, inkOf).filter((b) => b.area >= minArea)).map(
     ({ x, y, width, height }) => ({ x, y, width, height }),
   )
 }
 
-/** A mark inside another drawing (a dot in a ring, an eye in a face) belongs to it, however far from its lines. */
-function mergeInside<T extends Box & { area: number }>(boxes: T[]): T[] {
+/**
+ * A mark inside another drawing (a dot in a ring, an eye in a face) belongs
+ * to it, however far from its lines: inside means that drawing's ink is met
+ * looking left, right, up and down from the mark's middle. A small drawing
+ * that only sits within a bigger one's box (beside a long curve, under an
+ * arch's open side) stays a drawing of its own.
+ */
+function mergeInside<T extends Box & { area: number; id: number }>(boxes: T[], w: number, inkOf: (p: number, id: number) => boolean): T[] {
   const out = [...boxes].sort((a, b) => b.width * b.height - a.width * a.height)
+  // Each box's own groups: a merged box is enclosed by any of them.
+  const members = new Map(out.map((b) => [b, [b.id]]))
+  const ray = (x: number, y: number, dx: number, dy: number, big: T, ids: number[]) => {
+    for (let px = x + dx, py = y + dy; px >= big.x && px < big.x + big.width && py >= big.y && py < big.y + big.height; px += dx, py += dy) {
+      if (ids.some((id) => inkOf(py * w + px, id))) return true
+    }
+    return false
+  }
   for (let i = 0; i < out.length; i++) {
     for (let j = out.length - 1; j > i; j--) {
       const big = out[i]
       const small = out[j]
-      const cx = small.x + small.width / 2
-      const cy = small.y + small.height / 2
-      if (cx < big.x || cx > big.x + big.width || cy < big.y || cy > big.y + big.height) continue
+      const cx = Math.round(small.x + small.width / 2)
+      const cy = Math.round(small.y + small.height / 2)
+      if (cx < big.x || cx >= big.x + big.width || cy < big.y || cy >= big.y + big.height) continue
+      const ids = members.get(big)!
+      if (!ray(cx, cy, -1, 0, big, ids) || !ray(cx, cy, 1, 0, big, ids) || !ray(cx, cy, 0, -1, big, ids) || !ray(cx, cy, 0, 1, big, ids)) continue
       const x1 = Math.max(big.x + big.width, small.x + small.width)
       const y1 = Math.max(big.y + big.height, small.y + small.height)
       big.x = Math.min(big.x, small.x)
@@ -68,6 +87,7 @@ function mergeInside<T extends Box & { area: number }>(boxes: T[]): T[] {
       big.width = x1 - big.x
       big.height = y1 - big.y
       big.area += small.area
+      ids.push(...members.get(small)!)
       out.splice(j, 1)
     }
   }
