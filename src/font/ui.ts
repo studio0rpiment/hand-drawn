@@ -9,8 +9,11 @@ import { buildFields, fixed, plain, type FieldGroup } from '../ui/fields'
 import { StyleBook, styleBox } from '../ui/styles'
 import { flash } from '../ui/hand'
 import { assemble, ASCENDER, DESCENDER, type BuiltGlyph, type Check } from './assemble'
+import { placeOutline, readingOrder, scales, type Drawing } from './freehand'
 import { traceKey, traceSheet } from './make'
 import { COMPOSITES, type Cmd } from './outline'
+import { trace } from '../trace'
+import type { Mask } from '../image'
 import { findSheetMarkers, readSheet, type SheetRead } from './read'
 import { sampleSheetPhoto } from './sample'
 import { GRID, SHEETS, sheetSvg, traceSize, type TraceLetters } from './sheet'
@@ -173,8 +176,232 @@ function showSheetState() {
     const markers = r.markers === 4 ? t('font.markers-all') : t('font.markers-some', { n: r.markers })
     return t('font.page-read', { page: page + 1, drawn: drawn === undefined ? '…' : t('font.page-drawn', { n: drawn, total: SHEETS[page].length }), markers })
   })
-  if (notSheet) lines.unshift(t('font.not-sheet'))
+  // Freehand pages aren't letter sheets, and aren't meant to be.
+  if (notSheet && !tray.length && !placed.size) lines.unshift(t('font.not-sheet'))
+  if (placed.size) lines.push(t('font.freehand.placed', { n: placed.size }))
   $('sheet-state').innerHTML = lines.map((l) => `<span>${l}</span>`).join('')
+}
+
+// ---- Freehand letters ----
+
+/** The drawings Scan last split its page into, in reading order. */
+let tray: Drawing[] = []
+/** Drawings placed on letters; kept when Scan moves on to another photo. */
+const placed = new Map<string, Drawing>()
+/** Each placed drawing's trace, by the settings it was traced with. */
+const tracedDrawings = new WeakMap<Mask, { key: string; paths: string }>()
+/** A drawing picked up by a tap: the next tap on a letter puts it there. */
+type Held = { tray: number } | { char: string }
+let held: Held | null = null
+
+const ALL_CHARS = SHEETS.flat().map((s) => s.char)
+
+/** A drawing as a small dark picture. */
+function thumb(mask: Mask, side: number): HTMLCanvasElement {
+  const full = document.createElement('canvas')
+  full.width = mask.width
+  full.height = mask.height
+  const img = new ImageData(mask.width, mask.height)
+  for (let p = 0, j = 0; p < mask.data.length; p++, j += 4) {
+    if (!mask.data[p]) continue
+    img.data[j] = 0x1d
+    img.data[j + 1] = 0x1a
+    img.data[j + 2] = 0x24
+    img.data[j + 3] = 255
+  }
+  full.getContext('2d')!.putImageData(img, 0, 0)
+  const s = Math.min(1, side / Math.max(mask.width, mask.height))
+  const c = document.createElement('canvas')
+  c.width = Math.max(1, Math.round(mask.width * s))
+  c.height = Math.max(1, Math.round(mask.height * s))
+  c.getContext('2d')!.drawImage(full, 0, 0, c.width, c.height)
+  return c
+}
+
+const isHeld = (h: Held) => !!held && JSON.stringify(held) === JSON.stringify(h)
+
+function showFreehand() {
+  const trayEl = $('freehand-tray')
+  if (!tray.length) {
+    const p = document.createElement('p')
+    p.className = 'hint'
+    p.textContent = t('font.freehand.none')
+    trayEl.replaceChildren(p)
+  } else {
+    trayEl.replaceChildren(
+      ...tray.map((d, i) => {
+        const btn = document.createElement('button')
+        btn.type = 'button'
+        btn.className = 'piece'
+        btn.dataset.tray = String(i)
+        btn.setAttribute('aria-pressed', String(isHeld({ tray: i })))
+        btn.setAttribute('aria-label', t('font.freehand.drawing', { n: i + 1 }))
+        const n = document.createElement('span')
+        n.textContent = String(i + 1)
+        btn.append(thumb(d.mask, 64), n)
+        return btn
+      }),
+    )
+  }
+  $('freehand-slots').replaceChildren(
+    ...ALL_CHARS.map((char) => {
+      const d = placed.get(char)
+      const btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = d ? 'slot placed' : 'slot'
+      btn.dataset.char = char
+      btn.setAttribute('aria-pressed', String(isHeld({ char })))
+      btn.setAttribute('aria-label', t(d ? 'font.freehand.slot-placed' : 'font.freehand.slot-empty', { char }))
+      const label = document.createElement('span')
+      label.textContent = char
+      if (d) btn.append(thumb(d.mask, 40))
+      btn.append(label)
+      return btn
+    }),
+  )
+  $<HTMLButtonElement>('freehand-fill').disabled = !tray.length
+  $<HTMLButtonElement>('freehand-clear').disabled = !placed.size
+}
+
+/** Put what was picked up (a drawing, or a placed letter) on letter `char`; a placed letter swaps with what's there. */
+function putOn(from: Held, char: string) {
+  if ('tray' in from) placed.set(char, tray[from.tray])
+  else if (from.char !== char) {
+    const a = placed.get(from.char)
+    const b = placed.get(char)
+    if (!a) return
+    placed.set(char, a)
+    if (b) placed.set(from.char, b)
+    else placed.delete(from.char)
+  }
+  changed()
+}
+
+function changed() {
+  held = null
+  showFreehand()
+  buildSoon()
+}
+
+function tap(target: HTMLElement) {
+  const trayIndex = target.dataset.tray
+  const char = target.dataset.char
+  if (trayIndex !== undefined) {
+    // A placed letter tapped back onto the drawings comes out.
+    if (held && 'char' in held) {
+      placed.delete(held.char)
+      return changed()
+    }
+    const h = { tray: Number(trayIndex) }
+    held = isHeld(h) ? null : h
+  } else if (char !== undefined) {
+    if (held) return putOn(held, char)
+    if (placed.has(char)) held = { char }
+  }
+  showFreehand()
+}
+
+// Dragging with any pointer (mouse, finger, pen); a press that doesn't move is a tap.
+let press: { el: HTMLElement; x: number; y: number; ghost: HTMLElement | null } | null = null
+
+const handle = (e: Event) => (e.target as HTMLElement).closest<HTMLElement>('[data-tray], [data-char]')
+
+function onDown(e: PointerEvent) {
+  const el = handle(e)
+  if (!el || e.button !== 0) return
+  // Only drawings and placed letters can be dragged; an empty letter is just tapped.
+  if (el.dataset.char !== undefined && !placed.has(el.dataset.char)) return
+  press = { el, x: e.clientX, y: e.clientY, ghost: null }
+}
+
+function onMove(e: PointerEvent) {
+  if (!press) return
+  if (!press.ghost) {
+    if (Math.hypot(e.clientX - press.x, e.clientY - press.y) < 6) return
+    const canvas = press.el.querySelector('canvas')
+    if (!canvas) return
+    const ghost = document.createElement('div')
+    ghost.className = 'freehand-ghost'
+    const copy = document.createElement('canvas')
+    copy.width = canvas.width
+    copy.height = canvas.height
+    copy.getContext('2d')!.drawImage(canvas, 0, 0)
+    ghost.append(copy)
+    document.body.append(ghost)
+    press.ghost = ghost
+    held = null
+  }
+  e.preventDefault()
+  press.ghost.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`
+  for (const el of document.querySelectorAll('.freehand .over')) el.classList.remove('over')
+  dropTarget(e)?.classList.add('over')
+}
+
+/** What's under the pointer: a letter, or the drawings (to take a letter out). */
+function dropTarget(e: PointerEvent): HTMLElement | null {
+  const under = document.elementFromPoint(e.clientX, e.clientY)
+  return (under?.closest<HTMLElement>('[data-char]') ?? under?.closest<HTMLElement>('#freehand-tray')) || null
+}
+
+function onUp(e: PointerEvent) {
+  if (!press) return
+  const { el, ghost } = press
+  press = null
+  if (!ghost) return
+  ghost.remove()
+  for (const o of document.querySelectorAll('.freehand .over')) o.classList.remove('over')
+  const target = dropTarget(e)
+  const from: Held = el.dataset.tray !== undefined ? { tray: Number(el.dataset.tray) } : { char: el.dataset.char! }
+  if (target?.dataset.char !== undefined) putOn(from, target.dataset.char)
+  else if (target?.id === 'freehand-tray' && 'char' in from) {
+    placed.delete(from.char)
+    changed()
+  }
+  // A drag ends in a click right after; that isn't a tap.
+  dragged = true
+  setTimeout(() => (dragged = false))
+}
+
+let dragged = false
+const pane = $('freehand')
+pane.addEventListener('pointerdown', onDown)
+addEventListener('pointermove', onMove, { passive: false })
+addEventListener('pointerup', onUp)
+addEventListener('pointercancel', () => {
+  press?.ghost?.remove()
+  press = null
+})
+pane.addEventListener('click', (e) => {
+  if (dragged) {
+    dragged = false
+    return
+  }
+  const el = handle(e)
+  if (el) tap(el)
+})
+pane.addEventListener('keydown', (e) => {
+  if ((e.key === 'Delete' || e.key === 'Backspace') && held && 'char' in held) {
+    placed.delete(held.char)
+    changed()
+  }
+})
+
+// Typed letters fill the drawings in reading order; spaces are skipped.
+$('freehand-fill').addEventListener('click', () => {
+  const chars = [...$<HTMLInputElement>('freehand-order').value].filter((c) => c.trim() && ALL_CHARS.includes(c))
+  chars.slice(0, tray.length).forEach((c, i) => placed.set(c, tray[i]))
+  changed()
+})
+$('freehand-clear').addEventListener('click', () => {
+  placed.clear()
+  changed()
+})
+
+/** Called with the drawings Scan split its page into (none when the sheet setting is off). */
+export function setDrawings(next: Drawing[]) {
+  tray = readingOrder(next)
+  if (held && 'tray' in held) held = null
+  showFreehand()
 }
 
 // ---- Building ----
@@ -217,9 +444,23 @@ async function build() {
     if (mine !== run) return
     traced[page] = { key, ...result }
   }
+  // Freehand drawings: each traced once per setting, then placed on its letter.
+  for (const d of placed.values()) {
+    const done = tracedDrawings.get(d.mask)
+    if (done?.key === key) continue
+    const r = await trace(d.mask, { ignore: 4, smoothness: style.trace.smoothness, simplify: style.trace.simplify })
+    if (mine !== run) return
+    tracedDrawings.set(d.mask, { key, paths: r.paths.join('') })
+  }
   showSheetState()
   const drawn = new Map<string, Cmd[]>()
   for (const t of traced) if (t) for (const [c, o] of t.outlines) drawn.set(c, o)
+  // A letter placed freehand wins over the same letter on a sheet: it was put there on purpose.
+  const perPx = scales(placed)
+  for (const [c, d] of placed) {
+    const cmds = placeOutline(c, d, tracedDrawings.get(d.mask)!.paths, perPx.get(d.source))
+    if (cmds.length) drawn.set(c, cmds)
+  }
   if (drawn.size === 0) {
     $('font-stats').textContent = t('font.no-letters')
     return
@@ -339,3 +580,4 @@ export function showFont() {
 fillFields(style)
 box.refresh()
 showSheetState()
+showFreehand()

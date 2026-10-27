@@ -96,6 +96,21 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `font.stats` {n} characters ({made} made from accents){kerned} · {kb} KB
 `font.kerned` · {n} kerning pairs
 
+## Freehand letters
+
+`font.freehand` Freehand letters
+`font.freehand.hint` For letters drawn on any paper: open the page in Scan with “Several drawings on this sheet” ticked. Drag each drawing onto its letter, or tap a drawing and then its letter; or type the letters in the order they were drawn (rows from the top, left to right) and fill them in. Drag a placed letter onto another to swap them, or back to the drawings to take it out.
+`font.freehand.none` No drawings yet: open a page in Scan with “Several drawings on this sheet” ticked.
+`font.freehand.drawings` Drawings from Scan
+`font.freehand.slots` Letters
+`font.freehand.order` Letters in drawing order
+`font.freehand.fill` Fill in order
+`font.freehand.clear` Clear letters
+`font.freehand.drawing` Drawing {n}
+`font.freehand.slot-empty` {char}: no drawing
+`font.freehand.slot-placed` {char}: drawn freehand
+`font.freehand.placed` {n} letters placed freehand
+
 ## Checks
 
 `font.checks` Checks

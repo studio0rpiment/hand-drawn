@@ -341,6 +341,17 @@
           </div>
           <textarea id="font-sample" class="font-sample" rows="4" spellcheck="false" aria-label="{{font.preview}}"></textarea>
         </div>
+        <div class="pane freehand" id="freehand">
+          <h2>{{font.freehand}}</h2>
+          <p class="hint" id="freehand-hint">{{font.freehand.hint}}</p>
+          <div class="pieces freehand-tray" id="freehand-tray" aria-label="{{font.freehand.drawings}}"></div>
+          <div class="row freehand-order">
+            <label class="field">{{font.freehand.order}} <input id="freehand-order" type="text" spellcheck="false" autocomplete="off" /></label>
+            <button id="freehand-fill" class="button small" type="button">{{font.freehand.fill}}</button>
+            <button id="freehand-clear" class="button small" type="button">{{font.freehand.clear}}</button>
+          </div>
+          <div class="freehand-slots" id="freehand-slots" aria-label="{{font.freehand.slots}}"></div>
+        </div>
         <div class="pane" id="font-checks-pane" hidden>
           <h2>{{font.checks}}</h2>
           <ul class="font-checks" id="font-checks"></ul>

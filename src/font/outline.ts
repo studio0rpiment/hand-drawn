@@ -23,9 +23,11 @@ export interface Box {
 export const X_HEIGHT = (GUIDES.baseline - GUIDES.x) * UNITS
 export const CAP_HEIGHT = (GUIDES.baseline - GUIDES.cap) * UNITS
 
-/** Path data (as traced, in pixels of a cut-out box) to absolute commands in font units. */
-export function fromTraced(d: string): Cmd[] {
-  const u = (x: number, y: number) => ({ x: (x / RES) * UNITS, y: ((BASELINE_PX - y) / RES) * UNITS })
+/** A sheet box's pixels to font units. */
+const boxUnits = (x: number, y: number) => ({ x: (x / RES) * UNITS, y: ((BASELINE_PX - y) / RES) * UNITS })
+
+/** Path data (as traced, in pixels of a cut-out box, or placed by `u`) to absolute commands in font units. */
+export function fromTraced(d: string, u: (x: number, y: number) => { x: number; y: number } = boxUnits): Cmd[] {
   const out: Cmd[] = []
   let cx = 0
   let cy = 0

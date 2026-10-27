@@ -258,6 +258,26 @@ narrowed to fit): trace them with a marker to test the whole font pipeline.
 The light print drops out when the photo is read. A ready-made copy of all three
 pages is in `guides/letter-sheet-trace.pdf`.
 
+
+## Freehand letters
+
+Letters can also be drawn on any paper, without the sheet. Open the page in
+Scan with **Several drawings on this sheet** ticked; in Font, the drawings
+appear under **Freehand letters**, in reading order (rows from the top, each
+left to right). Drag each onto its letter, or tap a drawing and then its
+letter, or type the letters in the order they were drawn and **Fill in
+order**. A placed letter dragged onto another swaps with it; dragged back to
+the drawings, it comes out. Placed letters stay when Scan moves on to another
+photo, so a font can be gathered from several pages, and a letter placed
+freehand wins over the same letter on a sheet.
+
+With no guide lines, the size comes from the letters themselves: one scale
+per photo, set so its capitals, figures and small letters without ascenders
+reach their usual heights (by the median). Each letter is then set on the
+baseline by its kind: g p q y hang from the x-height, j from below the line,
+quotes and small raised signs from the cap height, dashes and arithmetic signs
+on the middle of the x-height, brackets around the middle of the line.
+
 ## Photos
 
 - Work size is capped at 2400 px on the long side.

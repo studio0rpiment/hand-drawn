@@ -1422,3 +1422,98 @@ label.off {
     --flag-from: 0;
   }
 }
+
+/* ---- Freehand letters (Font) ---- */
+
+.freehand-tray .piece,
+.freehand-slots .slot.placed {
+  /* A finger drags the drawing instead of scrolling the page. */
+  touch-action: none;
+  cursor: grab;
+}
+
+.freehand-tray .piece[aria-pressed='true'],
+.freehand-slots .slot[aria-pressed='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.freehand-tray.over {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+}
+
+.freehand-order {
+  align-items: end;
+  flex-wrap: wrap;
+  margin: 0.5rem 0;
+}
+
+.freehand-order .field {
+  flex: 1 1 12rem;
+}
+
+.freehand-tray,
+.freehand-slots {
+  user-select: none;
+}
+
+.freehand-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr));
+  gap: 0.3rem;
+}
+
+.slot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 3.25rem;
+  padding: 0.2rem;
+  border: 1px solid var(--line);
+  border-radius: 0.375rem;
+  background: #fbfaf6;
+  color: #6b645e;
+  font: inherit;
+  font-size: 0.875rem;
+  /* Letters keep their case here: A and a are different places. */
+  text-transform: none;
+  cursor: pointer;
+}
+
+.slot.placed span {
+  position: absolute;
+  top: 0.1rem;
+  left: 0.25rem;
+  font-size: 0.625rem;
+}
+
+.slot canvas {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.slot.over {
+  border-color: var(--accent);
+  background: #fff7c7;
+}
+
+.freehand-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  pointer-events: none;
+  margin: -1.5rem 0 0 -1.5rem;
+  padding: 0.2rem;
+  border: 1px solid var(--accent);
+  border-radius: 0.375rem;
+  background: #fbfaf6;
+  opacity: 0.9;
+}
+
+.freehand-ghost canvas {
+  display: block;
+  max-width: 3rem;
+  max-height: 3rem;
+}

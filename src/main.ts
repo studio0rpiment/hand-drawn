@@ -3,7 +3,7 @@ import { zip } from './icon/files'
 import { padBox, splitDrawings } from './split'
 import { otsu, shrinkGray, toGray, type GrayImage, type Mask, type Quad, type RGBAImage } from './image'
 import { findPaper, findPaperInColour, fullFrame, quadSize, warp } from './paper'
-import { loadSampleSheets, setPage, showFont } from './font/ui'
+import { loadSampleSheets, setDrawings, setPage, showFont } from './font/ui'
 import { onSheetPick, setMask, setSheet, showIcon } from './icon/ui'
 import { decorate, favicon, flash, handSliders, installSprite, reserveHoverWidths } from './ui/hand'
 import { privacyNotice, privacySettings } from './ui/privacy'
@@ -515,6 +515,7 @@ function showSheet() {
   if (!sh) {
     strip.replaceChildren()
     setSheet(null, 0)
+    setDrawings([])
     return
   }
   const [r, g, b] = hexRgb(scanColours().ink)
@@ -557,6 +558,8 @@ function showSheet() {
     }),
   )
   setSheet(sheetPieces(), state.pick)
+  // The Font view places them on letters, so it gets where each was on the page.
+  setDrawings(sh.boxes.map((box) => ({ mask: cropMask(sh.mask, padBox(box, 2, sh.mask.width, sh.mask.height)), box, source: state.photo! })))
 }
 
 $('dl-all').addEventListener('click', async (e) => {
