@@ -28,10 +28,11 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 ## 1 · Paper
 
 `scan.paper` 1 · Paper
-`scan.paper.hint` Drag the corners onto the sheet's corners. Rotation turns the photo freely and stops at each quarter turn.
+`scan.paper.hint` Drag the corners onto the sheet's corners. A photo taken sideways or upside down: turn it a quarter at a time with ↻; the Rotation slider straightens a slight tilt.
 `scan.detect` Find the sheet
 `scan.whole` Use whole photo
 `scan.turn` Rotation
+`scan.turn-90` Turn a quarter clockwise
 
 ## 2 · Ink
 

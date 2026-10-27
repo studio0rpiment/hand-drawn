@@ -161,14 +161,6 @@ const turnInput = $<HTMLInputElement>('turn')
 /** The photo as opened, before any rotation; every rotation starts from it. */
 let unturned: HTMLCanvasElement | null = null
 
-/** Within this many degrees of a quarter turn, the rotation stops on it. */
-const STOP = 4
-
-function snapTurn(deg: number): number {
-  const quarter = Math.round(deg / 90) * 90
-  return Math.abs(deg - quarter) <= STOP ? quarter : deg
-}
-
 /**
  * The opened photo turned by `deg`, on a canvas big enough for all of it.
  * The corners it uncovers are filled with the colour round the photo's edge,
@@ -201,24 +193,32 @@ function edgeColour(src: HTMLCanvasElement): string {
   return `rgb(${r} ${gr} ${b})`
 }
 
+/** Quarter turns clockwise, from the ↻ button; the slider adds a slight tilt to them. */
+let quarters = 0
 let turnTimer = 0
-turnInput.addEventListener('input', () => {
-  const deg = snapTurn(Number(turnInput.value))
-  turnInput.value = String(deg)
-  $('turn-out').textContent = `${deg > 0 ? '+' : ''}${deg}°`
+
+function applyTurn() {
+  const deg = quarters * 90 + Number(turnInput.value)
+  const tilt = Number(turnInput.value)
+  $('turn-out').textContent = `${tilt > 0 ? '+' : ''}${tilt.toFixed(1)}°${quarters ? ` · ${quarters * 90}°` : ''}`
   // Turning re-finds the sheet, which takes a moment: once the slider rests briefly.
   clearTimeout(turnTimer)
   turnTimer = window.setTimeout(() => {
     if (!unturned) return
-    const c = deg ? turned(unturned, deg) : unturned
-    showPhoto(c, state.name)
+    showPhoto(deg ? turned(unturned, deg) : unturned, state.name)
   }, 80)
+}
+turnInput.addEventListener('input', applyTurn)
+$('turn-90').addEventListener('click', () => {
+  quarters = (quarters + 1) % 4
+  applyTurn()
 })
 
 /** Back to no rotation, for a newly opened photo. */
 function resetTurn() {
+  quarters = 0
   turnInput.value = '0'
-  $('turn-out').textContent = '0°'
+  $('turn-out').textContent = '0.0°'
 }
 resetTurn()
 

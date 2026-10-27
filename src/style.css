@@ -255,6 +255,18 @@ legend {
   justify-content: space-between;
 }
 
+.turn-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 0.5rem;
+}
+
+.button.mini {
+  padding: 0.15rem 0.45rem;
+  font-size: 0.75rem;
+}
+
 .slider output {
   color: var(--accent);
 }
