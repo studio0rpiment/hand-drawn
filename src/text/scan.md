@@ -18,8 +18,8 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 
 `scan.sheet` Sheet
 `scan.sheet-on` Several drawings on this sheet
-`scan.sheet.hint` For a page of icons, or of logo iterations: each drawing is found and numbered, row by row. Pick one in the tray; every output works on it. Small drawings found as one: lower the gap.
-`scan.gap` Parts closer than this are one drawing
+`scan.sheet.hint` For a page of icons, or of logo iterations: each drawing is found and numbered, row by row. Pick one in the tray; every output works on it. Small drawings found as one: lower the group marks limit.
+`scan.gap` Group marks limit
 `scan.found` {n} drawings found · working on {pick}
 `scan.found-one` 1 drawing found · working on 1
 `scan.found-none` 0 drawings found
