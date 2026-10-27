@@ -28,9 +28,10 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 ## 1 · Paper
 
 `scan.paper` 1 · Paper
-`scan.paper.hint` Drag the corners onto the sheet's corners.
+`scan.paper.hint` Drag the corners onto the sheet's corners. Rotation turns the photo freely and stops at each quarter turn.
 `scan.detect` Find the sheet
 `scan.whole` Use whole photo
+`scan.turn` Rotation
 
 ## 2 · Ink
 

@@ -57,6 +57,11 @@
             <button id="detect" class="button small" type="button">{{scan.detect}}</button>
             <button id="whole" class="button small" type="button">{{scan.whole}}</button>
           </div>
+          <label class="slider">
+            <span>{{scan.turn}} <output id="turn-out"></output></span>
+            <input id="turn" type="range" min="-180" max="180" step="0.5" value="0" list="turn-stops" />
+          </label>
+          <datalist id="turn-stops"><option value="-180"></option><option value="-90"></option><option value="0"></option><option value="90"></option><option value="180"></option></datalist>
         </fieldset>
 
         <fieldset>
