@@ -36,8 +36,11 @@ pnpm test
      Scan buttons, if they reach lower), and stays
      until a choice is made.
 2. **Logo** — traces the ink with potrace and exports an SVG in plain pixel
-   coordinates, a single evenodd path, in the scan's colours or its own, with
-   or without a background. A transparent PNG of the cleaned ink too.
+   coordinates, a single evenodd path, in the scan's colours or its own. The
+   SVG, PNG and set of all SVGs are transparent unless the background is
+   filled on the Logo tab (with the scan's colours, in its paper colour);
+   keeping the paper on the Scan view doesn't carry over. A PNG of the
+   cleaned ink too.
    **Fine tuning** works on the vector only: rotate (±15°, to straighten a
    drawing), line spread (edges out or in by up to a pixel, finer than the
    scan's line weight), ignore spots under a size, and a square artboard.

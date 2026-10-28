@@ -30,7 +30,7 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `logo.colour` Colour
 `logo.ink` Ink
 `logo.bg` Background
-`logo.bg-on` Fill
+`logo.bg-on` Fill the background (off: transparent)
 
 ## Export
 

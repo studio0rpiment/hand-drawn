@@ -526,13 +526,15 @@ $('measure').addEventListener('click', () => {
   schedule(makeInk)
 })
 
-/** The logo's colours: the scan's, or its own. */
+/**
+ * The logo's colours: the scan's, or its own. The background is the logo's
+ * own choice, off (transparent) unless filled here; keeping the paper on the
+ * scan doesn't carry over. Filled with the scan's colours, it is the paper's.
+ */
 function logoColours() {
-  if (logoScan.checked) {
-    const c = scanColours()
-    return { ink: c.ink, background: c.paper }
-  }
-  return { ink: inkColor.value, background: bgOn.checked ? bgColor.value : null }
+  const ink = logoScan.checked ? scanColours().ink : inkColor.value
+  const fill = logoScan.checked ? hslHex(hslOf('paper')) : bgColor.value
+  return { ink, background: bgOn.checked ? fill : null }
 }
 
 logoScan.addEventListener('change', () => {
@@ -665,13 +667,12 @@ function drawInk() {
   }
   inkCanvas.width = m.width
   inkCanvas.height = m.height
-  inkCanvas.getContext('2d')!.putImageData(maskImage(m), 0, 0)
+  inkCanvas.getContext('2d')!.putImageData(maskImage(m, scanColours()), 0, 0)
 }
 
-/** The mask in the scan's ink colour, on its paper colour or transparent. */
-function maskImage(m: Mask): ImageData {
+/** The mask in an ink colour, on a paper colour or transparent. */
+function maskImage(m: Mask, { ink, paper }: { ink: string; paper: string | null }): ImageData {
   const img = new ImageData(m.width, m.height)
-  const { ink, paper } = scanColours()
   const [r, g, b] = hexRgb(ink)
   const [br, bg, bb] = hexRgb(paper ?? '#ffffff')
   for (let i = 0, j = 0; i < m.data.length; i++, j += 4) {
@@ -861,10 +862,16 @@ $('copy-svg').addEventListener('click', async (e) => {
   flash(btn)
 })
 
+// The cleaned scan as pixels, in the logo's colours.
 $('dl-png').addEventListener('click', () => {
-  if (!state.mask) return
-  drawInk()
-  inkCanvas.toBlob((b) => b && download(b, `${state.name}-ink.png`), 'image/png')
+  const m = state.mask
+  if (!m) return
+  const { ink, background } = logoColours()
+  const c = document.createElement('canvas')
+  c.width = m.width
+  c.height = m.height
+  c.getContext('2d')!.putImageData(maskImage(m, { ink, paper: background }), 0, 0)
+  c.toBlob((b) => b && download(b, `${state.name}-ink.png`), 'image/png')
 })
 
 showOutputs()

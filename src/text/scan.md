@@ -47,7 +47,7 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 ## 3 · Colour
 
 `scan.colour` 3 · Colour
-`scan.colour.hint` Read from the photo; every output uses these unless it is set to its own.
+`scan.colour.hint` Read from the photo; every output uses these unless it is set to its own. Logo downloads stay transparent unless their background is filled on the Logo tab.
 `scan.ink-h` Ink hue
 `scan.ink-s` Ink saturation
 `scan.ink-l` Ink lightness
