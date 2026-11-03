@@ -37,13 +37,8 @@
   /* Pantone 115 C. Text on it is dark. */
   --accent: #fdda24;
   --accent-text: #121210;
-  /* Green-grey: a choice still shown that no longer holds (a preset since
-     changed), and the background of secondary buttons. */
-  --stale: #8cbd96;
-  /* Outlines of secondary buttons that need telling apart: the same lightness
-     and saturation as the green-grey, other hues. */
-  --purple-grey: #a08cbd;
-  --red-grey: #bd8c8c;
+  /* Silver: secondary buttons' outline, and a choice still shown that no
+     longer holds (a preset since changed). Quiet, so the yellow leads. */
   --silver: #c0c0c0;
   --handle: #fdda24;
   /* The part of a slider past its value. */
@@ -153,8 +148,7 @@ h2 {
   align-items: center;
 }
 
-/* Primary actions are yellow and filled; secondary ones a dashed outline,
-   green-grey unless a tone class gives them another colour. */
+/* Primary actions are yellow and filled; secondary ones a dashed silver outline. */
 .button {
   display: inline-flex;
   align-items: center;
@@ -163,23 +157,12 @@ h2 {
   font-size: 0.9375rem;
   padding: 0.45rem 0.85rem;
   border-radius: var(--radius);
-  border: 1px dashed var(--tone, var(--stale));
+  border: 1px dashed var(--silver);
   background: none;
   color: var(--text);
   cursor: pointer;
 }
 
-.tone-purple {
-  --tone: var(--purple-grey);
-}
-
-.tone-red {
-  --tone: var(--red-grey);
-}
-
-.tone-silver {
-  --tone: var(--silver);
-}
 
 .button:disabled {
   opacity: 0.45;
@@ -676,8 +659,8 @@ select {
 }
 
 .style-pick.stale {
-  color: var(--stale);
-  border-color: var(--stale);
+  color: var(--silver);
+  border-color: var(--silver);
 }
 
 .style-actions {
