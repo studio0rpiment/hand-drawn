@@ -309,15 +309,6 @@
     <main id="font-app" class="font-app" hidden>
       <aside class="controls" aria-label="{{font.settings}}">
         <fieldset>
-          <legend>{{font.letters}}</legend>
-          <div class="row">
-            <button id="font-upload" class="button primary small" type="button" data-icon="arrow-bar-fill-r270">{{font.upload}}</button>
-          </div>
-          <p class="pages-count" id="pages-count" aria-live="polite"></p>
-          <p class="hint sheet-state" id="sheet-state" aria-live="polite"></p>
-          <p class="hint">{{font.upload.hint}}</p>
-        </fieldset>
-        <fieldset>
           <details class="fold">
             <summary>{{font.sheet}}</summary>
             <div class="fold-body">
@@ -333,8 +324,18 @@
           </details>
         </fieldset>
         <fieldset>
-          <label class="field">{{font.family}} <input id="font-family" type="text" value="{{font.family-default}}" spellcheck="false" /></label>
-          <label class="field">{{font.designer}} <input id="font-designer" type="text" spellcheck="false" /></label>
+          <legend>{{font.letters}}</legend>
+          <div class="upload-row">
+            <button id="font-upload" class="button primary small" type="button" data-icon="arrow-bar-fill-r270">{{font.upload}}</button>
+            <span class="pages-count" id="pages-count" aria-live="polite"></span>
+          </div>
+          <p class="hint sheet-state" id="sheet-state" aria-live="polite" hidden></p>
+        </fieldset>
+        <fieldset>
+          <div class="name-row">
+            <label class="field inline">{{font.family}} <input id="font-family" type="text" value="{{font.family-default}}" spellcheck="false" /></label>
+            <label class="field inline">{{font.designer}} <input id="font-designer" type="text" spellcheck="false" /></label>
+          </div>
         </fieldset>
         <div id="font-style-box"></div>
         <div id="font-fields"></div>
@@ -345,6 +346,7 @@
             <button id="font-css" class="button small" type="button" data-icon="equals-fill">{{font.copy-css}}</button>
           </div>
           <p class="stats" id="font-stats" aria-live="polite"></p>
+          <div id="font-style-actions"></div>
         </fieldset>
       </aside>
 

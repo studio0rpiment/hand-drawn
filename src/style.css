@@ -37,6 +37,8 @@
   /* Pantone 115 C. Text on it is dark. */
   --accent: #fdda24;
   --accent-text: #121210;
+  /* A choice still shown that no longer holds (a preset since changed). */
+  --stale: #b9c9bd;
   --handle: #fdda24;
   /* The part of a slider past its value. */
   --rest: #4a4640;
@@ -642,6 +644,22 @@ select {
   flex: 1 1 100%;
 }
 
+/* The picked preset is a choice: yellow, in a dashed box. Changed since, it greys. */
+.style-pick {
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+}
+
+.style-pick.stale {
+  color: var(--stale);
+  border-color: var(--stale);
+}
+
+.style-actions {
+  display: grid;
+  gap: 0.6rem;
+}
+
 .multi {
   display: flex;
   flex-wrap: wrap;
@@ -795,9 +813,53 @@ h3 {
   font-variant-numeric: tabular-nums;
 }
 
+.upload-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+}
+
 .pages-count {
-  margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+/* Font name and designer: one line when the panel has room, else a line each,
+   each label beside its box. */
+.name-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.field.inline {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1 1 auto;
+  white-space: nowrap;
+}
+
+.field.inline input {
+  flex: 1;
+  width: 5.5rem;
+}
+
+/* The type box and glyphs stay wholly in view down to the bottom of the
+   settings, where the footer would otherwise push them up. */
+@media (min-width: 48.01rem) {
+  main.font-app .icon-preview {
+    max-height: calc(100vh - 7rem);
+  }
+}
+
+/* Wide windows give the Font settings room for the upload button and its
+   count, and the name and designer, each on one line. */
+@media (min-width: 72rem) {
+  main.font-app {
+    grid-template-columns: 28rem minmax(0, 1fr);
+  }
 }
 
 /* A fieldset that folds: its summary stands in for the legend. */

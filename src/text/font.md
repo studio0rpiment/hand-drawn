@@ -11,13 +11,12 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 ## Drawn letters
 
 `font.letters` Drawn letters
-`font.upload` Upload drawn letters
-`font.upload.hint` Photos of the letter template sheets are read on their own. For letters drawn on any paper, open the photo in Scan with “Several drawings on this sheet” ticked.
-`font.pages-uploaded` {n} of {total} pages uploaded
+`font.upload` Upload drawn letters (glyphs)
+`font.pages-uploaded` {n}–{total} (minimum 1)
 
 ## Letter template sheets
 
-`font.sheet` Letter template sheets
+`font.sheet` Print a letter template sheet for faster glyph generation
 `font.sheet.hint` Draw each character in its box, photograph each page flat with all four corner squares in view.
 `font.page-1` Page 1: Latin letterforms
 `font.page-2` Page 2: symbols, accents, letter variations
@@ -31,8 +30,7 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `font.family` Font name
 `font.family-default` My Hand
 `font.designer` Designer
-`font.presets` Preset variations of {name}
-`font.presets-unnamed` font
+`font.presets` Preset variations
 
 ## Ink
 
@@ -91,8 +89,6 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 
 ## Status
 
-`font.page-unread` Page {page}: not read yet. Photograph it and open the photo.
-`font.page-unread-optional` Page {page}: not read yet (optional). Photograph it and open the photo.
 `font.page-read` Page {page}: {drawn} · {markers}
 `font.page-sample` Page {page}: sample letters; they go when other letters come in.
 `font.page-drawn` {n} of {total} boxes drawn

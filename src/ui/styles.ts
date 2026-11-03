@@ -149,15 +149,29 @@ function download(blob: Blob, filename: string) {
  * The Style fieldset: pick a style, save, delete, export, import, reset.
  * `changed` runs after anything replaces the edited style. Returns a refresh function.
  */
+export interface StyleBoxOptions {
+  /** Mark built-in styles "(built in)" in the list (the Font view leaves it off). */
+  markBuiltIn?: boolean
+  /** Keep the save, delete, export, import and reset buttons apart, for the view to place (`actions`). */
+  actionsApart?: boolean
+}
+
 export function styleBox<T extends Named>(
   book: StyleBook<T>,
   changed: () => void,
-): { element: HTMLElement; refresh: () => void; title: (text: string) => void } {
+  { markBuiltIn = true, actionsApart = false }: StyleBoxOptions = {},
+): { element: HTMLElement; actions: HTMLElement; refresh: () => void; title: (text: string) => void } {
   const fs = document.createElement('fieldset')
   fs.innerHTML = `
     <legend>${tHtml('common.style')}</legend>
     <div class="row">
       <select aria-label="${tHtml('common.style')}" class="style-pick"></select>
+    </div>
+    <p class="hint" aria-live="polite"></p>`
+  const actions = document.createElement('div')
+  actions.className = 'style-actions'
+  actions.innerHTML = `
+    <div class="row">
       <button class="button small" type="button" data-act="save" data-icon="cross-fill">${tHtml('common.style-save')}</button>
       <button class="button small" type="button" data-act="delete" data-icon="big-x-fill">${tHtml('common.style-delete')}</button>
     </div>
@@ -165,19 +179,21 @@ export function styleBox<T extends Named>(
       <button class="button small" type="button" data-act="export" data-icon="arrow-bar-fill-r90">${tHtml('common.style-export')}</button>
       <label class="button small" data-icon="arrow-bar-fill-r270">${tHtml('common.style-import')} <input type="file" accept="application/json,.json" hidden /></label>
       <button class="button small" type="button" data-act="reset" data-icon="c-spiral-fill">${tHtml('common.style-reset')}</button>
-    </div>
-    <p class="hint" aria-live="polite"></p>`
+    </div>`
+  if (!actionsApart) fs.querySelector('.row')!.after(actions)
   const pick = fs.querySelector('select')!
-  const del = fs.querySelector<HTMLButtonElement>('[data-act="delete"]')!
+  const del = actions.querySelector<HTMLButtonElement>('[data-act="delete"]')!
   const hint = fs.querySelector('.hint')!
-  const file = fs.querySelector<HTMLInputElement>('input[type="file"]')!
+  const file = actions.querySelector<HTMLInputElement>('input[type="file"]')!
 
   const refresh = () => {
     pick.replaceChildren(
-      ...book.all().map((s) => new Option(book.isBuiltIn(s.name) ? t('common.style-built-in', { name: s.name }) : s.name, s.name)),
+      ...book.all().map((s) => new Option(markBuiltIn && book.isBuiltIn(s.name) ? t('common.style-built-in', { name: s.name }) : s.name, s.name)),
     )
     pick.value = book.picked.name
     del.disabled = book.isBuiltIn(book.picked.name)
+    // Still shown, no longer true: the style was changed since it was picked.
+    pick.classList.toggle('stale', book.changed())
     hint.textContent = book.changed() ? t('common.style-changed', { name: book.picked.name }) : ''
   }
   const after = () => {
@@ -193,7 +209,7 @@ export function styleBox<T extends Named>(
       after()
     }
   })
-  fs.querySelector('[data-act="save"]')!.addEventListener('click', () => {
+  actions.querySelector('[data-act="save"]')!.addEventListener('click', () => {
     const suggestion = book.isBuiltIn(book.picked.name) ? t('common.style-variant', { name: book.picked.name }) : book.picked.name
     const name = prompt(t('common.style-name', { kind: book.kind.noun }), suggestion)?.trim().slice(0, 60)
     if (!name) return
@@ -208,11 +224,11 @@ export function styleBox<T extends Named>(
     book.remove(name)
     after()
   })
-  fs.querySelector('[data-act="reset"]')!.addEventListener('click', () => {
+  actions.querySelector('[data-act="reset"]')!.addEventListener('click', () => {
     book.choose(book.picked)
     after()
   })
-  fs.querySelector('[data-act="export"]')!.addEventListener('click', () => {
+  actions.querySelector('[data-act="export"]')!.addEventListener('click', () => {
     const s = book.named()
     download(new Blob([JSON.stringify(s, null, 2) + '\n'], { type: 'application/json' }), `${slug(s.name)}.${book.kind.noun}-style.json`)
   })
@@ -234,5 +250,5 @@ export function styleBox<T extends Named>(
     fs.querySelector('legend')!.textContent = text
     pick.setAttribute('aria-label', text)
   }
-  return { element: fs, refresh, title }
+  return { element: fs, actions, refresh, title }
 }

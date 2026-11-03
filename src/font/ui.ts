@@ -113,13 +113,11 @@ function dropSample() {
 }
 let built: ReturnType<typeof assemble> | null = null
 
-const box = styleBox(book, () => applied())
+const box = styleBox(book, () => applied(), { markBuiltIn: false, actionsApart: true })
 $('font-style-box').replaceWith(box.element)
-/** The style box is named after the font: "Preset variations of My Hand". */
-const familyName = () => $<HTMLInputElement>('font-family').value.trim()
-const nameBox = () => box.title(t('font.presets', { name: familyName() || t('font.presets-unnamed') }))
-nameBox()
-$('font-family').addEventListener('input', nameBox)
+box.title(t('font.presets'))
+// Saving, sharing and resetting presets sit with the export, at the bottom.
+$('font-style-actions').replaceWith(box.actions)
 const fillFields = buildFields($('font-fields'), GROUPS, 'font', () => style, update)
 
 function update(next: FontStyle) {
@@ -203,8 +201,9 @@ $('font-upload').addEventListener('click', () => $('file').click())
 let notSheet = false
 
 function showSheetState() {
-  const lines = reads.map((r, page) => {
-    if (!r) return t(page === 2 ? 'font.page-unread-optional' : 'font.page-unread', { page: page + 1 })
+  // Only the pages read so far; none is required.
+  const lines = reads.flatMap((r, page) => {
+    if (!r) return []
     if (fromSample[page]) return t('font.page-sample', { page: page + 1 })
     const drawn = traced[page]?.outlines.size
     const markers = r.markers === 4 ? t('font.markers-all') : t('font.markers-some', { n: r.markers })
@@ -215,6 +214,7 @@ function showSheetState() {
   if (placed.size) lines.push(t('font.freehand.placed', { n: placed.size }))
   const own = reads.filter((r, page) => r && !fromSample[page]).length
   $('pages-count').textContent = t('font.pages-uploaded', { n: own, total: SHEETS.length })
+  $('sheet-state').hidden = !lines.length
   $('sheet-state').innerHTML = lines.map((l) => `<span>${l}</span>`).join('')
 }
 

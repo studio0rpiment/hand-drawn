@@ -83,6 +83,7 @@ export const BUILT_IN: FontStyle[] = [
   { ...AS_DRAWN, name: 'Typewriter', spacing: { ...AS_DRAWN.spacing, mono: true, side: 30, optical: false }, kerning: false, figures: 'tabular' },
 ]
 
+/** Untrusted JSON as a font style; every value kept within its slider's range, so the sliders can show it. */
 export function readFontStyle(raw: unknown, base: FontStyle = AS_DRAWN): FontStyle {
   const obj = (v: unknown) => (v && typeof v === 'object' ? (v as Record<string, unknown>) : {})
   const r = obj(raw)
@@ -98,19 +99,19 @@ export function readFontStyle(raw: unknown, base: FontStyle = AS_DRAWN): FontSty
   return {
     name: typeof r.name === 'string' && r.name.trim() ? r.name.trim().slice(0, 60) : base.name,
     ink: {
-      cutoff: int(i.cutoff, base.ink.cutoff, 0, 254),
-      speck: int(i.speck, base.ink.speck, 0, 2000),
+      cutoff: int(i.cutoff, base.ink.cutoff, 0, 250),
+      speck: int(i.speck, base.ink.speck, 0, 400),
       weight: int(i.weight, base.ink.weight, -4, 6),
       balance: bool(i.balance, base.ink.balance),
     },
     trace: {
-      smoothness: num(t.smoothness, base.trace.smoothness, 0, 1.34),
-      simplify: num(t.simplify, base.trace.simplify, 0, 2),
+      smoothness: num(t.smoothness, base.trace.smoothness, 0, 1.33),
+      simplify: num(t.simplify, base.trace.simplify, 0, 1.5),
     },
     spacing: {
-      side: int(sp.side, base.spacing.side, -100, 300),
-      tracking: int(sp.tracking, base.spacing.tracking, -200, 400),
-      space: int(sp.space, base.spacing.space, 50, 1000),
+      side: int(sp.side, base.spacing.side, -50, 200),
+      tracking: int(sp.tracking, base.spacing.tracking, -150, 300),
+      space: int(sp.space, base.spacing.space, 100, 800),
       mono: bool(sp.mono, base.spacing.mono),
       optical: bool(sp.optical, base.spacing.optical),
       punctuation: bool(sp.punctuation, base.spacing.punctuation),
@@ -119,15 +120,15 @@ export function readFontStyle(raw: unknown, base: FontStyle = AS_DRAWN): FontSty
     overshoot: bool(r.overshoot, base.overshoot),
     figures: r.figures === 'tabular' || r.figures === 'proportional' ? r.figures : base.figures,
     shape: {
-      slant: num(sh.slant, base.shape.slant, -30, 30),
-      bounce: int(sh.bounce, base.shape.bounce, 0, 200),
-      wobble: num(sh.wobble, base.shape.wobble, 0, 20),
+      slant: num(sh.slant, base.shape.slant, -20, 30),
+      bounce: int(sh.bounce, base.shape.bounce, 0, 150),
+      wobble: num(sh.wobble, base.shape.wobble, 0, 15),
       seed: int(sh.seed, base.shape.seed, 0, 999999),
     },
     marks: {
-      gap: int(m.gap, base.marks.gap, -100, 300),
-      scale: num(m.scale, base.marks.scale, 0.3, 2),
+      gap: int(m.gap, base.marks.gap, -60, 200),
+      scale: num(m.scale, base.marks.scale, 0.4, 1.6),
     },
-    lineGap: int(r.lineGap, base.lineGap, 0, 1000),
+    lineGap: int(r.lineGap, base.lineGap, 0, 600),
   }
 }

@@ -806,6 +806,8 @@ document.querySelectorAll<HTMLButtonElement>('.tab').forEach((tab) =>
       $(t.dataset.view!).hidden = !on
     })
     reserveHoverWidths($(tab.dataset.view!))
+    // The Font view has its own upload button.
+    $('file').closest('label')!.hidden = tab.dataset.view === 'font-app'
     if (tab.dataset.view === 'icon-app') showIcon()
     if (tab.dataset.view === 'texture-app') showTexture()
     if (tab.dataset.view === 'font-app') showFont()

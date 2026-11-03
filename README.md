@@ -256,11 +256,16 @@ height 700 of a 1000 em) and an `@font-face` rule. **Shuffle (randomize!)**
 sets a random slant (within 10°), bounce and wobble, and a new pattern of which
 letters bounce and turn which way.
 
-**Upload drawn letters** at the top of the Font tab opens the photos, and
-counts the pages uploaded. *Try a sample* opens both pages of the alphabet as
+**Print a letter template sheet for faster glyph generation**, at the top of
+the Font tab, folds open to print each page. **Upload drawn letters (glyphs)**
+opens the photos (the header's Open photo is hidden on this tab), with a count
+beside it; no page is required, one is enough. The preset variations' save,
+delete, export, import and reset sit at the bottom with the export. A preset
+shows in yellow while it holds, and in a light green-grey once a setting
+below is changed. *Try a sample* opens both pages of the alphabet as
 Kevin traced them, to try it without drawing (from Scan, alongside the sample
 drawing; the font is built in the background, ready when the Font tab is
-opened). The **Letter template sheets** fold open to print each page. Tick **with letters to trace** before
+opened). Tick **with letters to trace** before
 printing to get light Helvetica letters in every box (wide capitals are
 narrowed to fit): trace them with a marker to test the whole font pipeline.
 The light print drops out when the photo is read. A ready-made copy of all three
