@@ -22,6 +22,16 @@ import { BUILT_IN, readFontStyle, type FontStyle } from './style'
 const units = (v: number) => `${v}`
 const degrees = (v: number) => `${v}°`
 
+const between = (lo: number, hi: number, step: number) => lo + Math.round((Math.random() * (hi - lo)) / step) * step
+
+/**
+ * Shuffle: a random slant, bounce and wobble, and a new seed for which letters
+ * bounce and turn which way. The slant stays within Hochuli's 10°.
+ */
+function shuffled(): FontStyle['shape'] {
+  return { slant: between(-10, 10, 1), bounce: between(0, 120, 5), wobble: between(0, 10, 0.5), seed: Math.floor(Math.random() * 1000000) }
+}
+
 const GROUPS: FieldGroup[] = [
   {
     legend: t('font.g.ink'),
@@ -53,12 +63,11 @@ const GROUPS: FieldGroup[] = [
   {
     legend: t('font.g.character'),
     hint: t('font.g.character.hint'),
-    presets: [{ label: 'Shuffle', path: 'shape.seed', value: () => Math.floor(Math.random() * 1000000), icon: 'scatter-fill' }],
+    presets: [{ label: 'Shuffle', apply: (s: FontStyle) => ({ ...s, shape: shuffled() }), icon: 'scatter-fill' }],
     fields: [
       { kind: 'range', path: 'shape.slant', label: t('font.f.shape-slant'), min: -20, max: 30, step: 1, fmt: degrees },
       { kind: 'range', path: 'shape.bounce', label: t('font.f.shape-bounce'), min: 0, max: 150, step: 5, fmt: units },
       { kind: 'range', path: 'shape.wobble', label: t('font.f.shape-wobble'), min: 0, max: 15, step: 0.5, fmt: degrees },
-      { kind: 'range', path: 'shape.seed', label: t('font.f.shape-seed'), min: 0, max: 999, step: 1, fmt: plain },
       { kind: 'check', path: 'overshoot', label: t('font.f.overshoot') },
     ],
   },
@@ -106,6 +115,11 @@ let built: ReturnType<typeof assemble> | null = null
 
 const box = styleBox(book, () => applied())
 $('font-style-box').replaceWith(box.element)
+/** The style box is named after the font: "Preset variations of My Hand". */
+const familyName = () => $<HTMLInputElement>('font-family').value.trim()
+const nameBox = () => box.title(t('font.presets', { name: familyName() || t('font.presets-unnamed') }))
+nameBox()
+$('font-family').addEventListener('input', nameBox)
 const fillFields = buildFields($('font-fields'), GROUPS, 'font', () => style, update)
 
 function update(next: FontStyle) {
@@ -182,7 +196,8 @@ export async function loadSampleSheets() {
   buildHidden = true
   buildSoon()
 }
-$('sheet-samples').addEventListener('click', () => void loadSampleSheets())
+// Photos of the letters go through the same opening as every other photo.
+$('font-upload').addEventListener('click', () => $('file').click())
 
 /** The last photo opened wasn't a letter sheet (its corner squares weren't found). */
 let notSheet = false
@@ -198,6 +213,8 @@ function showSheetState() {
   // Freehand pages aren't letter sheets, and aren't meant to be.
   if (notSheet && !tray.length && !placed.size) lines.unshift(t('font.not-sheet'))
   if (placed.size) lines.push(t('font.freehand.placed', { n: placed.size }))
+  const own = reads.filter((r, page) => r && !fromSample[page]).length
+  $('pages-count').textContent = t('font.pages-uploaded', { n: own, total: SHEETS.length })
   $('sheet-state').innerHTML = lines.map((l) => `<span>${l}</span>`).join('')
 }
 
@@ -240,6 +257,8 @@ function thumb(mask: Mask, side: number): HTMLCanvasElement {
 const isHeld = (h: Held) => !!held && JSON.stringify(held) === JSON.stringify(h)
 
 function showFreehand() {
+  // Only for letters drawn freehand: the template sheets map themselves.
+  $('freehand').hidden = !tray.length && !placed.size
   const trayEl = $('freehand-tray')
   if (!tray.length) {
     const p = document.createElement('p')
@@ -579,9 +598,13 @@ $('font-css').addEventListener('click', async (e) => {
 })
 
 for (const id of ['font-family', 'font-designer']) $(id).addEventListener('change', buildSoon)
-$<HTMLInputElement>('font-size').addEventListener('input', (e) => {
-  $('font-sample').style.fontSize = `${(e.target as HTMLInputElement).value}px`
-})
+function showSize() {
+  const px = $<HTMLInputElement>('font-size').value
+  $('font-sample').style.fontSize = `${px}px`
+  $('font-size-out').textContent = `${px} px`
+}
+$('font-size').addEventListener('input', showSize)
+showSize()
 $<HTMLTextAreaElement>('font-sample').value = SAMPLE_TEXT
 
 // ---- Wiring to the Logo view ----

@@ -786,18 +786,51 @@ h3 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  width: 12rem;
+  width: 15rem;
+}
+
+.size-slider output {
+  min-width: 3.5rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.pages-count {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/* A fieldset that folds: its summary stands in for the legend. */
+.fold > summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.fold-body {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.sheet-page {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
 }
 
 .size-slider .hand-range {
   flex: 1;
 }
 
+/* Fixed: one line at the largest size (96 px, about a tenth of the window) fits; more scrolls. */
 .font-sample {
   width: 100%;
-  min-height: 12rem;
-  resize: vertical;
-  font-size: 56px;
+  height: 9rem;
+  resize: none;
+  overflow-y: auto;
+  font-size: 48px;
   line-height: 1.25;
   padding: 0.75rem 1rem;
   border: 1px solid var(--line);

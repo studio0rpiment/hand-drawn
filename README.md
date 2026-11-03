@@ -252,10 +252,15 @@ is ours and the code says so.
 Built-ins: As drawn, Tidy, Bouncy, Bold marker, Slanted, Typewriter. The style
 name becomes the font's style name, so one drawing can give a family (*My Hand
 Bouncy*, *My Hand Bold marker* …). Exports an `.otf` (cubic outlines, cap
-height 700 of a 1000 em) and an `@font-face` rule. **Try the sample sheets**
-opens both pages of the alphabet as Kevin traced them, to try it without
-drawing. *Try a sample* loads them too, alongside the sample drawing, and
-the font is built in the background, ready when the Font tab is opened. Tick **with letters to trace** before
+height 700 of a 1000 em) and an `@font-face` rule. **Shuffle (randomize!)**
+sets a random slant (within 10°), bounce and wobble, and a new pattern of which
+letters bounce and turn which way.
+
+**Upload drawn letters** at the top of the Font tab opens the photos, and
+counts the pages uploaded. *Try a sample* opens both pages of the alphabet as
+Kevin traced them, to try it without drawing (from Scan, alongside the sample
+drawing; the font is built in the background, ready when the Font tab is
+opened). The **Letter template sheets** fold open to print each page. Tick **with letters to trace** before
 printing to get light Helvetica letters in every box (wide capitals are
 narrowed to fit): trace them with a marker to test the whole font pipeline.
 The light print drops out when the photo is read. A ready-made copy of all three
@@ -266,7 +271,8 @@ pages is in `guides/letter-sheet-trace.pdf`.
 
 Letters can also be drawn on any paper, without the sheet. Open the page in
 Scan with **Several drawings on this sheet** ticked; in Font, the drawings
-appear under **Freehand letters**, in reading order (rows from the top, each
+appear under **Freehand letters**, below the glyphs (only then; template
+sheets map themselves), in reading order (rows from the top, each
 left to right). Drag each onto its letter, or tap a drawing and then its
 letter, or type the letters in the order they were drawn and **Fill in
 order**. A placed letter dragged onto another swaps with it; dragged back to

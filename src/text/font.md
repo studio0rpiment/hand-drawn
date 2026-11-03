@@ -8,23 +8,31 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 
 `font.settings` Font style
 
-## Letter sheet
+## Drawn letters
 
-`font.sheet` Letter sheet
-`font.sheet.hint` Print the pages (page 3 is optional: signs, fractions, arrows), draw each character in its box, photograph each page flat with all four corner squares in view, and open the photos.
-`font.print-1` Print page 1
-`font.print-2` Print page 2
-`font.print-3` Print page 3
-`font.dl-sheets` Download sheets
+`font.letters` Drawn letters
+`font.upload` Upload drawn letters
+`font.upload.hint` Photos of the letter template sheets are read on their own. For letters drawn on any paper, open the photo in Scan with “Several drawings on this sheet” ticked.
+`font.pages-uploaded` {n} of {total} pages uploaded
+
+## Letter template sheets
+
+`font.sheet` Letter template sheets
+`font.sheet.hint` Draw each character in its box, photograph each page flat with all four corner squares in view.
+`font.page-1` Page 1: Latin letterforms
+`font.page-2` Page 2: symbols, accents, letter variations
+`font.page-3` Page 3: signs, fractions, arrows (optional)
+`font.print` Print
+`font.dl-sheets` Download all pages
 `font.trace` with letters to trace
-`font.samples` Try the sample sheets
 
-## Font
+## Font name
 
-`font.font` Font
-`font.family` Family name
+`font.family` Font name
 `font.family-default` My Hand
 `font.designer` Designer
+`font.presets` Preset variations of {name}
+`font.presets-unnamed` font
 
 ## Ink
 
@@ -58,7 +66,6 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `font.f.shape-slant` Slant
 `font.f.shape-bounce` Bounce
 `font.f.shape-wobble` Wobble
-`font.f.shape-seed` Variation
 `font.f.overshoot` Round letters overshoot the lines
 
 ## Accents
@@ -69,7 +76,7 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 
 ## Shape
 
-`font.preset.shuffle` Shuffle
+`font.preset.shuffle` Shuffle (randomize!)
 
 ## Option names
 
@@ -100,7 +107,7 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 ## Freehand letters
 
 `font.freehand` Freehand letters
-`font.freehand.hint` For letters drawn on any paper: open the page in Scan with “Several drawings on this sheet” ticked. Drag each drawing onto its letter, or tap a drawing and then its letter; or type the letters in the order they were drawn (rows from the top, left to right) and fill them in. Drag a placed letter onto another to swap them, or back to the drawings to take it out.
+`font.freehand.hint` **Map each glyph to its character.** Drag each drawing onto its letter, or tap a drawing and then its letter; or type the letters in the order they were drawn (rows from the top, left to right) and fill them in. Drag a placed letter onto another to swap them, or back to the drawings to take it out.
 `font.freehand.none` No drawings yet: open a page in Scan with “Several drawings on this sheet” ticked.
 `font.freehand.drawings` Drawings from Scan
 `font.freehand.slots` Letters
@@ -135,7 +142,7 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 
 ## Characters
 
-`font.characters` Characters
+`font.characters` Glyphs
 `font.made-from-accent` {char}: made from a letter and an accent
 `font.missing` Not in the font yet: {chars}
 `font.complete` Every character on the sheets is in the font.

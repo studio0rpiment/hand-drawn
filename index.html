@@ -309,22 +309,30 @@
     <main id="font-app" class="font-app" hidden>
       <aside class="controls" aria-label="{{font.settings}}">
         <fieldset>
-          <legend>{{font.sheet}}</legend>
-          <p class="hint">{{font.sheet.hint}}</p>
+          <legend>{{font.letters}}</legend>
           <div class="row">
-            <button id="sheet-print-1" class="button small" type="button" data-icon="strokes-fill">{{font.print-1}}</button>
-            <button id="sheet-print-2" class="button small" type="button" data-icon="strokes-fill">{{font.print-2}}</button>
-            <button id="sheet-print-3" class="button small" type="button" data-icon="strokes-fill">{{font.print-3}}</button>
-            <button id="sheet-svg" class="button small" type="button" data-icon="arrow-bar-fill-r90">{{font.dl-sheets}}</button>
+            <button id="font-upload" class="button primary small" type="button" data-icon="arrow-bar-fill-r270">{{font.upload}}</button>
           </div>
-          <label class="check"><input id="sheet-trace" type="checkbox" /> {{font.trace}}</label>
-          <div class="row">
-            <button id="sheet-samples" class="button small" type="button" data-icon="star-scribble-fill">{{font.samples}}</button>
-          </div>
+          <p class="pages-count" id="pages-count" aria-live="polite"></p>
           <p class="hint sheet-state" id="sheet-state" aria-live="polite"></p>
+          <p class="hint">{{font.upload.hint}}</p>
         </fieldset>
         <fieldset>
-          <legend>{{font.font}}</legend>
+          <details class="fold">
+            <summary>{{font.sheet}}</summary>
+            <div class="fold-body">
+              <p class="hint">{{font.sheet.hint}}</p>
+              <div class="sheet-page"><span>{{font.page-1}}</span><button id="sheet-print-1" class="button small" type="button" data-icon="strokes-fill">{{font.print}}</button></div>
+              <div class="sheet-page"><span>{{font.page-2}}</span><button id="sheet-print-2" class="button small" type="button" data-icon="strokes-fill">{{font.print}}</button></div>
+              <div class="sheet-page"><span>{{font.page-3}}</span><button id="sheet-print-3" class="button small" type="button" data-icon="strokes-fill">{{font.print}}</button></div>
+              <label class="check"><input id="sheet-trace" type="checkbox" /> {{font.trace}}</label>
+              <div class="row">
+                <button id="sheet-svg" class="button small" type="button" data-icon="arrow-bar-fill-r90">{{font.dl-sheets}}</button>
+              </div>
+            </div>
+          </details>
+        </fieldset>
+        <fieldset>
           <label class="field">{{font.family}} <input id="font-family" type="text" value="{{font.family-default}}" spellcheck="false" /></label>
           <label class="field">{{font.designer}} <input id="font-designer" type="text" spellcheck="false" /></label>
         </fieldset>
@@ -344,11 +352,16 @@
         <div class="pane">
           <div class="pane-head">
             <h2>{{font.type-here}}</h2>
-            <label class="slider size-slider"><span>{{font.size}}</span><input id="font-size" type="range" min="16" max="160" value="56" /></label>
+            <label class="slider size-slider"><span>{{font.size}}</span><input id="font-size" type="range" min="12" max="96" value="48" /><output id="font-size-out"></output></label>
           </div>
-          <textarea id="font-sample" class="font-sample" rows="4" spellcheck="false" aria-label="{{font.preview}}"></textarea>
+          <textarea id="font-sample" class="font-sample" rows="2" spellcheck="false" aria-label="{{font.preview}}"></textarea>
         </div>
-        <div class="pane freehand" id="freehand">
+        <div class="pane">
+          <h2>{{font.characters}}</h2>
+          <p class="hint" id="glyphs-missing"></p>
+          <div class="glyphs" id="glyphs"></div>
+        </div>
+        <div class="pane freehand" id="freehand" hidden>
           <h2>{{font.freehand}}</h2>
           <p class="hint" id="freehand-hint">{{font.freehand.hint}}</p>
           <div class="pieces freehand-tray" id="freehand-tray" aria-label="{{font.freehand.drawings}}"></div>
@@ -362,11 +375,6 @@
         <div class="pane" id="font-checks-pane" hidden>
           <h2>{{font.checks}}</h2>
           <ul class="font-checks" id="font-checks"></ul>
-        </div>
-        <div class="pane">
-          <h2>{{font.characters}}</h2>
-          <p class="hint" id="glyphs-missing"></p>
-          <div class="glyphs" id="glyphs"></div>
         </div>
       </section>
     </main>

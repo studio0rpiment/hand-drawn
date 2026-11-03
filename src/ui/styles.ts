@@ -149,7 +149,10 @@ function download(blob: Blob, filename: string) {
  * The Style fieldset: pick a style, save, delete, export, import, reset.
  * `changed` runs after anything replaces the edited style. Returns a refresh function.
  */
-export function styleBox<T extends Named>(book: StyleBook<T>, changed: () => void): { element: HTMLElement; refresh: () => void } {
+export function styleBox<T extends Named>(
+  book: StyleBook<T>,
+  changed: () => void,
+): { element: HTMLElement; refresh: () => void; title: (text: string) => void } {
   const fs = document.createElement('fieldset')
   fs.innerHTML = `
     <legend>${tHtml('common.style')}</legend>
@@ -226,5 +229,10 @@ export function styleBox<T extends Named>(book: StyleBook<T>, changed: () => voi
     book.add(raw)
     after()
   })
-  return { element: fs, refresh }
+  /** Name the box something other than Style (the Font view names it after the font). */
+  const title = (text: string) => {
+    fs.querySelector('legend')!.textContent = text
+    pick.setAttribute('aria-label', text)
+  }
+  return { element: fs, refresh, title }
 }
