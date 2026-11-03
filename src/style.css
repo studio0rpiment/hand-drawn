@@ -877,12 +877,9 @@ h3 {
   border-radius: var(--radius);
 }
 
-/* Shrink-wrapped, so the two 1fr columns are both as wide as the wider of
-   the toggle and the upload button. */
+/* The toggle and the upload button share the box's width, half each. */
 .letters-grid {
-  display: inline-grid;
-  justify-self: start;
-  max-width: 100%;
+  display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-areas: 'toggle upload';
   align-items: center;
@@ -893,7 +890,7 @@ h3 {
   grid-template-areas:
     'toggle trace'
     'body body'
-    'upload .';
+    'upload upload';
 }
 
 /* "With letters to trace": only while the template is open, on the toggle's
@@ -963,17 +960,10 @@ h3 {
   letter-spacing: 0.12em;
 }
 
-/* The pages span the whole dashed box. The body itself is 0 wide, so it
-   doesn't widen the button columns; its rows are the box's width (100cqw). */
 .sheet-body {
   grid-area: body;
   display: grid;
   gap: 0.6rem;
-  width: 0;
-}
-
-.sheet-body > * {
-  width: 100cqw;
 }
 
 /* The three pages and Download all pages: four in a row, two by two when narrow. */
@@ -994,13 +984,16 @@ h3 {
 
 /* Too narrow for both: the template above the upload. */
 @container (max-width: 46rem) {
-  .letters-grid,
+  .letters-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'toggle' 'upload';
+  }
   .letters-grid:has([aria-expanded='true']) {
-    grid-template-columns: auto auto;
+    grid-template-columns: auto minmax(0, 1fr);
     grid-template-areas:
       'toggle trace'
       'body body'
-      'upload .';
+      'upload upload';
   }
   .sheet-pages {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1012,10 +1005,18 @@ h3 {
 
 /* Very narrow: the count under the upload button too. */
 @container (max-width: 28rem) {
-  .letters-grid,
+  .letters-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'toggle' 'upload';
+  }
   .letters-grid:has([aria-expanded='true']) {
-    grid-template-columns: auto;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'toggle' 'trace' 'body' 'upload';
+  }
+  /* On a phone the two buttons may wrap rather than keep their hover room. */
+  .letters-grid > .button {
+    min-width: 0 !important;
+    white-space: normal;
   }
 }
 
@@ -1054,10 +1055,17 @@ main.font-app .icon-preview {
 .glyphs-pane.empty {
   border: 1px dashed var(--accent);
   border-radius: var(--radius);
+  padding: 0.6rem 0.75rem;
 }
 
-.glyphs-pane.empty > * {
+/* Empty: only its name, in silver, in the upper left corner. */
+.glyphs-pane.empty > :not(h2) {
   display: none;
+}
+
+.glyphs-pane.empty > h2 {
+  margin: 0;
+  color: var(--silver);
 }
 
 /* Tall enough to reach the foot of the window beside the settings. */

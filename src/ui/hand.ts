@@ -170,10 +170,14 @@ export async function reserveHoverWidths(root: ParentNode = document) {
   root.querySelectorAll<HTMLElement>('.button, .tab').forEach((el) => {
     el.style.minWidth = ''
     el.style.transition = 'none'
+    // Measured at its own width, not as stretched by its container.
+    const width = el.style.width
+    el.style.width = 'max-content'
     // .is-wide is styled exactly like hover (see style.css).
     el.classList.add('is-wide')
     const w = el.getBoundingClientRect().width
     el.classList.remove('is-wide')
+    el.style.width = width
     el.style.transition = ''
     // Hidden views measure as zero; they get measured when shown.
     if (w > 0) el.style.minWidth = `${Math.ceil(w)}px`
