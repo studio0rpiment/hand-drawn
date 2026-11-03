@@ -3,6 +3,8 @@
 
 import { t } from '../text'
 import sprite from 'hand-icons/sprite.svg?raw'
+// Kevin's printer, until hand-icons ships it.
+import printer from './printer-sprite.svg?raw'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 
@@ -11,7 +13,7 @@ export function installSprite() {
   if (document.getElementById('hi-p-blob')) return
   // The sprite hides itself (zero size, absolutely placed); a display:none
   // wrapper would stop <use> from measuring it.
-  document.body.insertAdjacentHTML('afterbegin', sprite)
+  document.body.insertAdjacentHTML('afterbegin', sprite + printer)
 }
 
 /**
@@ -22,11 +24,11 @@ export function icon(id: string, cls = ''): string {
   return `<svg class="hi${cls ? ` ${cls}` : ''}" aria-hidden="true" focusable="false"><use href="#hi-${id}"/></svg>`
 }
 
-/** Add the icon named in each `data-icon` attribute in front of the element's text. */
+/** Add the icons named in each `data-icon` attribute (one, or several with spaces between) in front of the element's text. */
 export function decorate(root: ParentNode = document) {
   root.querySelectorAll<HTMLElement>('[data-icon]:not([data-iconed])').forEach((el) => {
     el.dataset.iconed = ''
-    el.insertAdjacentHTML('afterbegin', icon(el.dataset.icon!))
+    el.insertAdjacentHTML('afterbegin', el.dataset.icon!.split(/\s+/).map((id) => icon(id)).join(''))
   })
 }
 

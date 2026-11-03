@@ -194,6 +194,14 @@ export async function loadSampleSheets() {
   buildHidden = true
   buildSoon()
 }
+// The template pages fold away under their toggle.
+$('sheet-toggle').addEventListener('click', (e) => {
+  const btn = e.currentTarget as HTMLButtonElement
+  const open = btn.getAttribute('aria-expanded') !== 'true'
+  btn.setAttribute('aria-expanded', String(open))
+  $('sheet-body').hidden = !open
+})
+
 // Photos of the letters go through the same opening as every other photo.
 $('font-upload').addEventListener('click', () => $('file').click())
 

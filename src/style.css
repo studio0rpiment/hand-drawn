@@ -854,32 +854,92 @@ h3 {
   }
 }
 
-/* Wide windows give the Font settings room for the upload button and its
-   count, and the name and designer, each on one line. */
+/* Wide windows give the Font settings room for the name and designer on one line. */
 @media (min-width: 72rem) {
   main.font-app {
-    grid-template-columns: 28rem minmax(0, 1fr);
+    grid-template-columns: 24rem minmax(0, 1fr);
   }
 }
 
-/* A fieldset that folds: its summary stands in for the legend. */
-.fold > summary {
-  cursor: pointer;
-  font-size: 0.875rem;
+/* The letter template and the upload, together in a dashed box above the
+   type box: the toggle and the upload on one line, the pages opening below. */
+.letters-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'toggle upload'
+    'body body'
+    'state state';
+  align-items: center;
+  gap: 0.6rem 1rem;
+  padding: 0.75rem;
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius);
 }
 
-.fold-body {
+.fold-toggle {
+  grid-area: toggle;
+  justify-self: start;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--accent);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.fold-toggle::before {
+  content: '▸ ';
+}
+
+.fold-toggle[aria-expanded='true']::before {
+  content: '▾ ';
+}
+
+.letters-bar .upload-row {
+  grid-area: upload;
+}
+
+.sheet-body {
+  grid-area: body;
   display: grid;
   gap: 0.6rem;
-  margin-top: 0.6rem;
+}
+
+.letters-bar .sheet-state {
+  grid-area: state;
+}
+
+.letters-bar .sheet-state[hidden] {
+  display: none;
+}
+
+/* The three pages side by side, each its name above its print button. */
+.sheet-pages {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
 }
 
 .sheet-page {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
+  display: grid;
+  align-content: space-between;
+  justify-items: start;
+  gap: 0.4rem;
   font-size: 0.8125rem;
+}
+
+/* Narrow: the template first, its pages, then the upload, one under another. */
+@media (max-width: 36rem) {
+  .letters-bar {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'toggle' 'body' 'upload' 'state';
+  }
+  .sheet-pages {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .size-slider .hand-range {

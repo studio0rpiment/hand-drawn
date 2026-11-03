@@ -256,10 +256,11 @@ height 700 of a 1000 em) and an `@font-face` rule. **Shuffle (randomize!)**
 sets a random slant (within 10°), bounce and wobble, and a new pattern of which
 letters bounce and turn which way.
 
-**Print a letter template sheet for faster glyph generation**, at the top of
-the Font tab, folds open to print each page. **Upload drawn letters (glyphs)**
-opens the photos (the header's Open photo is hidden on this tab), with a count
-beside it; no page is required, one is enough. The preset variations' save,
+Above the type box, in one dashed box: **Letter template sheet to print**,
+which folds open to the three pages side by side, each with its print button,
+and **Upload drawn letters (glyphs)**, which opens the photos (the header's
+Open photo is hidden on this tab), with a count beside it; no page is
+required, one is enough. The preset variations' save,
 delete, export, import and reset sit at the bottom with the export. A preset
 shows in yellow while it holds, and in a light green-grey once a setting
 below is changed. *Try a sample* opens both pages of the alphabet as

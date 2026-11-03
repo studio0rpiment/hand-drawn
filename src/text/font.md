@@ -10,17 +10,16 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 
 ## Drawn letters
 
-`font.letters` Drawn letters
 `font.upload` Upload drawn letters (glyphs)
 `font.pages-uploaded` {n}–{total} (minimum 1)
 
 ## Letter template sheets
 
-`font.sheet` Print a letter template sheet for faster glyph generation
+`font.sheet` Letter template sheet to print
 `font.sheet.hint` Draw each character in its box, photograph each page flat with all four corner squares in view.
-`font.page-1` Page 1: Latin letterforms
-`font.page-2` Page 2: symbols, accents, letter variations
-`font.page-3` Page 3: signs, fractions, arrows (optional)
+`font.page-1` Pg 1: Latin letterforms
+`font.page-2` Pg 2: symbols, accents, letter variations
+`font.page-3` Pg 3: signs, fractions, arrows (optional)
 `font.print` Print
 `font.dl-sheets` Download all pages
 `font.trace` with letters to trace
