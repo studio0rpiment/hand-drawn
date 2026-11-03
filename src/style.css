@@ -158,8 +158,8 @@ h2 {
   padding: 0.45rem 0.85rem;
   border-radius: var(--radius);
   border: 1px solid transparent;
-  /* The green-grey at half strength: subtle on the dark page, with light text. */
-  background: color-mix(in srgb, var(--stale) 50%, transparent);
+  /* The green-grey at a quarter strength: subtle on the dark page, with light text. */
+  background: color-mix(in srgb, var(--stale) 25%, transparent);
   color: var(--text);
   cursor: pointer;
 }
