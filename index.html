@@ -331,6 +331,7 @@
         <div class="letters-bar">
           <div class="letters-grid">
             <button id="sheet-toggle" class="button small fold-toggle" type="button" aria-expanded="false" aria-controls="sheet-body">{{font.sheet}}</button>
+            <label class="check trace-check"><input id="sheet-trace" type="checkbox" /> {{font.trace}}</label>
             <button id="font-upload" class="button primary small" type="button" data-icon="arrow-bar-fill-r270">{{font.upload}}</button>
             <span class="pages-count" id="pages-count" aria-live="polite"></span>
             <div class="sheet-body" id="sheet-body" hidden>
@@ -341,7 +342,6 @@
                 <button id="sheet-print-3" class="button small sheet-print" type="button" title="{{font.page-3.title}}" data-icon="strokes-fill" data-icon-after="printer-fill">{{font.page-3}}</button>
               </div>
               <div class="row">
-                <label class="check"><input id="sheet-trace" type="checkbox" /> {{font.trace}}</label>
                 <button id="sheet-svg" class="button small" type="button" data-icon="arrow-bar-fill-r90">{{font.dl-sheets}}</button>
               </div>
             </div>

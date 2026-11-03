@@ -895,9 +895,37 @@ h3 {
 
 .letters-grid:has([aria-expanded='true']) {
   grid-template-areas:
-    'toggle . .'
+    'toggle trace trace'
     'body body body'
     'upload count .';
+}
+
+/* "With letters to trace": only while the template is open, on the toggle's
+   line, its words wrapping as the room runs out. */
+.trace-check {
+  grid-area: trace;
+  min-width: 0;
+}
+
+.letters-grid:not(:has([aria-expanded='true'])) .trace-check {
+  display: none;
+}
+
+/* Its box: a dashed silver square, empty; ticked, a yellow tick. */
+.trace-check input {
+  appearance: none;
+  flex: none;
+  width: 0.95rem;
+  height: 0.95rem;
+  margin: 0;
+  border: 1px dashed var(--silver);
+  border-radius: 0.2rem;
+  background: transparent center / 80% no-repeat;
+  cursor: pointer;
+}
+
+.trace-check input:checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3 3 7-7' fill='none' stroke='%23fdda24' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 .letters-grid > .button {
@@ -969,7 +997,7 @@ h3 {
   .letters-grid:has([aria-expanded='true']) {
     grid-template-columns: auto auto;
     grid-template-areas:
-      'toggle .'
+      'toggle trace'
       'body body'
       'upload count';
   }
@@ -980,7 +1008,7 @@ h3 {
   .letters-grid,
   .letters-grid:has([aria-expanded='true']) {
     grid-template-columns: auto;
-    grid-template-areas: 'toggle' 'body' 'upload' 'count';
+    grid-template-areas: 'toggle' 'trace' 'body' 'upload' 'count';
   }
 }
 
