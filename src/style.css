@@ -922,13 +922,17 @@ h3 {
   grid-area: count;
 }
 
-/* The pages don't widen the columns: they take the grid's width and wrap in it. */
+/* The pages span the whole dashed box. The body itself is 0 wide, so it
+   doesn't widen the button columns; its rows are the box's width (100cqw). */
 .sheet-body {
   grid-area: body;
   display: grid;
   gap: 0.6rem;
   width: 0;
-  min-width: 100%;
+}
+
+.sheet-body > * {
+  width: 100cqw;
 }
 
 /* Each page one button: the strokes, its name, the printer. They wrap when the row is full. */
@@ -939,6 +943,7 @@ h3 {
 }
 
 .sheet-print {
+  flex: 1 1 auto;
   gap: 0.35rem;
   white-space: nowrap;
 }
