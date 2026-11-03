@@ -329,21 +329,21 @@
 
       <section class="icon-preview">
         <div class="letters-bar">
-          <button id="sheet-toggle" class="fold-toggle" type="button" aria-expanded="false" aria-controls="sheet-body">{{font.sheet}}</button>
-          <div class="upload-row">
+          <div class="letters-grid">
+            <button id="sheet-toggle" class="button small fold-toggle" type="button" aria-expanded="false" aria-controls="sheet-body">{{font.sheet}}</button>
             <button id="font-upload" class="button primary small" type="button" data-icon="arrow-bar-fill-r270">{{font.upload}}</button>
             <span class="pages-count" id="pages-count" aria-live="polite"></span>
-          </div>
-          <div class="sheet-body" id="sheet-body" hidden>
-            <p class="hint">{{font.sheet.hint}}</p>
-            <div class="sheet-pages">
-              <div class="sheet-page"><span>{{font.page-1}}</span><button id="sheet-print-1" class="button small" type="button" data-icon="strokes-fill printer-fill">{{font.print}}</button></div>
-              <div class="sheet-page"><span>{{font.page-2}}</span><button id="sheet-print-2" class="button small" type="button" data-icon="strokes-fill printer-fill">{{font.print}}</button></div>
-              <div class="sheet-page"><span>{{font.page-3}}</span><button id="sheet-print-3" class="button small" type="button" data-icon="strokes-fill printer-fill">{{font.print}}</button></div>
-            </div>
-            <div class="row">
-              <label class="check"><input id="sheet-trace" type="checkbox" /> {{font.trace}}</label>
-              <button id="sheet-svg" class="button small" type="button" data-icon="arrow-bar-fill-r90">{{font.dl-sheets}}</button>
+            <div class="sheet-body" id="sheet-body" hidden>
+              <p class="hint">{{font.sheet.hint}}</p>
+              <div class="sheet-pages">
+                <button id="sheet-print-1" class="button small sheet-print" type="button" title="{{font.page-1.title}}" data-icon="strokes-fill" data-icon-after="printer-fill">{{font.page-1}}</button>
+                <button id="sheet-print-2" class="button small sheet-print" type="button" title="{{font.page-2.title}}" data-icon="strokes-fill" data-icon-after="printer-fill">{{font.page-2}}</button>
+                <button id="sheet-print-3" class="button small sheet-print" type="button" title="{{font.page-3.title}}" data-icon="strokes-fill" data-icon-after="printer-fill">{{font.page-3}}</button>
+              </div>
+              <div class="row">
+                <label class="check"><input id="sheet-trace" type="checkbox" /> {{font.trace}}</label>
+                <button id="sheet-svg" class="button small" type="button" data-icon="arrow-bar-fill-r90">{{font.dl-sheets}}</button>
+              </div>
             </div>
           </div>
           <p class="hint sheet-state" id="sheet-state" aria-live="polite" hidden></p>

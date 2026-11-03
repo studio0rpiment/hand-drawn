@@ -17,10 +17,12 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 
 `font.sheet` Letter template sheet to print
 `font.sheet.hint` Draw each character in its box, photograph each page flat with all four corner squares in view.
-`font.page-1` Pg 1: Latin letterforms
-`font.page-2` Pg 2: symbols, accents, letter variations
-`font.page-3` Pg 3: signs, fractions, arrows (optional)
-`font.print` Print
+`font.page-1` Pg 1: letterforms
+`font.page-1.title` Print page 1: Latin letterforms
+`font.page-2` Pg 2: symbols
+`font.page-2.title` Print page 2: symbols, accents, letter variations
+`font.page-3` Pg 3: signs
+`font.page-3.title` Print page 3 (optional): signs, fractions, arrows
 `font.dl-sheets` Download all pages
 `font.trace` with letters to trace
 

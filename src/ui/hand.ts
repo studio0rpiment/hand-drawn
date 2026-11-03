@@ -24,11 +24,12 @@ export function icon(id: string, cls = ''): string {
   return `<svg class="hi${cls ? ` ${cls}` : ''}" aria-hidden="true" focusable="false"><use href="#hi-${id}"/></svg>`
 }
 
-/** Add the icons named in each `data-icon` attribute (one, or several with spaces between) in front of the element's text. */
+/** Add the icon named in each `data-icon` attribute in front of the element's text, and any `data-icon-after` after it. */
 export function decorate(root: ParentNode = document) {
   root.querySelectorAll<HTMLElement>('[data-icon]:not([data-iconed])').forEach((el) => {
     el.dataset.iconed = ''
-    el.insertAdjacentHTML('afterbegin', el.dataset.icon!.split(/\s+/).map((id) => icon(id)).join(''))
+    el.insertAdjacentHTML('afterbegin', icon(el.dataset.icon!))
+    if (el.dataset.iconAfter) el.insertAdjacentHTML('beforeend', icon(el.dataset.iconAfter, 'after'))
   })
 }
 
