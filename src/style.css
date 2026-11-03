@@ -958,9 +958,9 @@ h3 {
   margin-left: 0.5rem;
   /* Only the figures and dash are in it; anything else falls back to the page's font. */
   font-family: 'KP Hand Figures', 'NaN Gothic UI Mono', ui-monospace, monospace;
-  font-size: 1.4em;
+  font-size: 1.1em;
   line-height: 1;
-  letter-spacing: 0;
+  letter-spacing: 0.12em;
 }
 
 /* The pages span the whole dashed box. The body itself is 0 wide, so it
@@ -1036,6 +1036,35 @@ h3 {
   border-radius: var(--radius);
   background: #fbfaf6;
   color: #1d1a24;
+}
+
+/* The glyphs fill the rest of the preview column. With none yet, the pane is
+   an empty yellow dashed box down to the column's foot (never shorter than
+   the type box); with letters, it grows to show them all. */
+main.font-app .icon-preview {
+  display: flex;
+  flex-direction: column;
+}
+
+.glyphs-pane {
+  flex: 1 0 auto;
+  min-height: 9rem;
+}
+
+.glyphs-pane.empty {
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius);
+}
+
+.glyphs-pane.empty > * {
+  display: none;
+}
+
+/* Tall enough to reach the foot of the window beside the settings. */
+@media (min-width: 48.01rem) {
+  main.font-app .icon-preview {
+    height: calc(100vh - 7rem);
+  }
 }
 
 .glyphs {

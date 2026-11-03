@@ -513,6 +513,7 @@ async function build() {
   }
   if (drawn.size === 0) {
     $('font-stats').textContent = t('font.no-letters')
+    renderGlyphs([], drawn)
     return
   }
   const family = ($<HTMLInputElement>('font-family').value || t('font.family-default')).trim()
@@ -583,6 +584,8 @@ function renderGlyphs(glyphs: BuiltGlyph[], drawn: Map<string, Cmd[]>) {
     return fig
   })
   $('glyphs').replaceChildren(...cells)
+  // No letters yet: the pane is an empty dashed box, waiting for them.
+  $('glyphs-pane').classList.toggle('empty', !glyphs.length)
   const wanted = [...SHEETS.flat().map((s) => s.char), ...COMPOSITES.map((c) => c.char)]
   const missing = wanted.filter((c) => !glyphs.some((g) => g.char === c) && !drawn.has(c))
   $('glyphs-missing').textContent = missing.length ? t('font.missing', { chars: missing.join(' ') }) : t('font.complete')
