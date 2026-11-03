@@ -40,6 +40,11 @@
   /* Green-grey: a choice still shown that no longer holds (a preset since
      changed), and the background of secondary buttons. */
   --stale: #8cbd96;
+  /* Outlines of secondary buttons that need telling apart: the same lightness
+     and saturation as the green-grey, other hues. */
+  --purple-grey: #a08cbd;
+  --red-grey: #bd8c8c;
+  --silver: #c0c0c0;
   --handle: #fdda24;
   /* The part of a slider past its value. */
   --rest: #4a4640;
@@ -148,7 +153,8 @@ h2 {
   align-items: center;
 }
 
-/* Primary actions are yellow; secondary ones green-grey. */
+/* Primary actions are yellow and filled; secondary ones a dashed outline,
+   green-grey unless a tone class gives them another colour. */
 .button {
   display: inline-flex;
   align-items: center;
@@ -157,11 +163,22 @@ h2 {
   font-size: 0.9375rem;
   padding: 0.45rem 0.85rem;
   border-radius: var(--radius);
-  border: 1px solid transparent;
-  /* The green-grey at a tenth of its strength: subtle on the dark page, with light text. */
-  background: color-mix(in srgb, var(--stale) 10%, transparent);
+  border: 1px dashed var(--tone, var(--stale));
+  background: none;
   color: var(--text);
   cursor: pointer;
+}
+
+.tone-purple {
+  --tone: var(--purple-grey);
+}
+
+.tone-red {
+  --tone: var(--red-grey);
+}
+
+.tone-silver {
+  --tone: var(--silver);
 }
 
 .button:disabled {
@@ -175,7 +192,7 @@ h2 {
 
 .button.primary {
   background: var(--accent);
-  border-color: var(--accent);
+  border: 1px solid var(--accent);
   color: var(--accent-text);
 }
 
@@ -911,7 +928,7 @@ h3 {
   white-space: nowrap;
   color: var(--accent);
   background: var(--surface);
-  border-color: var(--line);
+  border: 1px solid var(--line);
 }
 
 .fold-toggle::before {
