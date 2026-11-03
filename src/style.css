@@ -37,8 +37,9 @@
   /* Pantone 115 C. Text on it is dark. */
   --accent: #fdda24;
   --accent-text: #121210;
-  /* A choice still shown that no longer holds (a preset since changed). */
-  --stale: #a3d6ad;
+  /* Green-grey: a choice still shown that no longer holds (a preset since
+     changed), and the background of secondary buttons. */
+  --stale: #8cbd96;
   --handle: #fdda24;
   /* The part of a slider past its value. */
   --rest: #4a4640;
@@ -147,6 +148,7 @@ h2 {
   align-items: center;
 }
 
+/* Primary actions are yellow; secondary ones green-grey. */
 .button {
   display: inline-flex;
   align-items: center;
@@ -155,10 +157,15 @@ h2 {
   font-size: 0.9375rem;
   padding: 0.45rem 0.85rem;
   border-radius: var(--radius);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--stale);
+  background: var(--stale);
+  color: var(--accent-text);
   cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .button:hover {
@@ -896,11 +903,14 @@ h3 {
   width: 100%;
 }
 
+/* A choice, not an action: outlined, in yellow. */
 .fold-toggle {
   grid-area: toggle;
   justify-content: flex-start;
   white-space: nowrap;
   color: var(--accent);
+  background: var(--surface);
+  border-color: var(--line);
 }
 
 .fold-toggle::before {
