@@ -25,6 +25,14 @@
   font-display: swap;
 }
 
+/* Kevin's own hand-drawn figures and dash, from his KP Quickhand typewriter
+   font (made with Hand Drawn), cut down to 0–9, the hyphen and the en dash. */
+@font-face {
+  font-family: 'KP Hand Figures';
+  src: url('./assets/kp-hand-figures.otf') format('opentype');
+  font-display: swap;
+}
+
 :root {
   /* Always dark: the drawings and previews read best against it. */
   color-scheme: dark;
@@ -821,18 +829,6 @@ h3 {
   font-variant-numeric: tabular-nums;
 }
 
-.upload-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem 0.6rem;
-}
-
-.pages-count {
-  font-size: 0.75rem;
-  white-space: nowrap;
-}
-
 /* Font name and designer: one line when the panel has room, else a line each,
    each label beside its box. */
 .name-row {
@@ -887,17 +883,17 @@ h3 {
   display: inline-grid;
   justify-self: start;
   max-width: 100%;
-  grid-template-columns: 1fr 1fr auto;
-  grid-template-areas: 'toggle upload count';
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas: 'toggle upload';
   align-items: center;
   gap: 0.6rem;
 }
 
 .letters-grid:has([aria-expanded='true']) {
   grid-template-areas:
-    'toggle trace trace'
-    'body body body'
-    'upload count .';
+    'toggle trace'
+    'body body'
+    'upload .';
 }
 
 /* "With letters to trace": only while the template is open, on the toggle's
@@ -957,8 +953,14 @@ h3 {
   padding-inline: 0.45rem;
 }
 
-.letters-grid .pages-count {
-  grid-area: count;
+/* The pages uploaded, in Kevin's hand, inside the upload button. */
+.pages-count {
+  margin-left: 0.5rem;
+  /* Only the figures and dash are in it; anything else falls back to the page's font. */
+  font-family: 'KP Hand Figures', 'NaN Gothic UI Mono', ui-monospace, monospace;
+  font-size: 1.4em;
+  line-height: 1;
+  letter-spacing: 0;
 }
 
 /* The pages span the whole dashed box. The body itself is 0 wide, so it
@@ -974,15 +976,14 @@ h3 {
   width: 100cqw;
 }
 
-/* Each page one button: the strokes, its name, the printer. They wrap when the row is full. */
+/* The three pages and Download all pages: four in a row, two by two when narrow. */
 .sheet-pages {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.5rem;
 }
 
 .sheet-print {
-  flex: 1 1 auto;
   gap: 0.35rem;
   white-space: nowrap;
 }
@@ -999,7 +1000,13 @@ h3 {
     grid-template-areas:
       'toggle trace'
       'body body'
-      'upload count';
+      'upload .';
+  }
+  .sheet-pages {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sheet-print {
+    white-space: normal;
   }
 }
 
@@ -1008,7 +1015,7 @@ h3 {
   .letters-grid,
   .letters-grid:has([aria-expanded='true']) {
     grid-template-columns: auto;
-    grid-template-areas: 'toggle' 'trace' 'body' 'upload' 'count';
+    grid-template-areas: 'toggle' 'trace' 'body' 'upload';
   }
 }
 

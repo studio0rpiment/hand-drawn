@@ -257,10 +257,12 @@ sets a random slant (within 10°), bounce and wobble, and a new pattern of which
 letters bounce and turn which way.
 
 Above the type box, in one dashed box: **Letter template sheet to print**,
-which folds open to the three pages side by side, each with its print button,
-and **Upload drawn letters (glyphs)**, which opens the photos (the header's
-Open photo is hidden on this tab), with a count beside it; no page is
-required, one is enough. The preset variations' save,
+which folds open to the three pages and *download all pages*, four buttons
+side by side (two by two when narrow), and **Upload drawn letters (glyphs)**,
+which opens the photos (the header's Open photo is hidden on this tab). The
+button counts the pages read (0–3) in Kevin's own hand-drawn figures:
+`src/assets/kp-hand-figures.otf`, 0–9 and the dashes cut from his KP
+Quickhand typewriter font, made with Hand Drawn. The preset variations' save,
 delete, export, import and reset sit at the bottom with the export. A preset
 shows in yellow while it holds, and in a light green-grey once a setting
 below is changed. *Try a sample* opens both pages of the alphabet as

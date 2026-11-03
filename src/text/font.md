@@ -11,7 +11,7 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 ## Drawn letters
 
 `font.upload` Upload drawn letters (glyphs)
-`font.pages-uploaded` {n}–{total} (minimum 1)
+`font.pages-uploaded` {n}–{total}
 
 ## Letter template sheets
 
