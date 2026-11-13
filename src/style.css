@@ -518,22 +518,26 @@ input[type='color'] {
   grid-area: 1 / 1;
 }
 
-#photo-stage {
+#photo-stage,
+.photo-stage {
   touch-action: none;
 }
 
-#handles {
+#handles,
+.handles {
   overflow: visible;
 }
 
-#handles polygon {
+#handles polygon,
+.handles polygon {
   fill: color-mix(in srgb, var(--handle) 12%, transparent);
   stroke: var(--handle);
   vector-effect: non-scaling-stroke;
   stroke-width: 2;
 }
 
-#handles circle {
+#handles circle,
+.handles circle {
   fill: var(--surface);
   stroke: var(--handle);
   stroke-width: 3;
@@ -541,7 +545,8 @@ input[type='color'] {
   cursor: grab;
 }
 
-#handles circle:focus-visible {
+#handles circle:focus-visible,
+.handles circle:focus-visible {
   outline: none;
   fill: var(--handle);
 }
@@ -1295,12 +1300,14 @@ main.font-app .icon-preview {
   position: relative;
 }
 
-.result-wrap #result-stage {
+.result-wrap #result-stage,
+.result-wrap .result-stage {
   min-height: 16rem;
 }
 
 /* Leave room for the globes below without scrolling. */
 .result-wrap #result-stage canvas,
+.result-wrap .result-stage canvas,
 /* The Logo and Texture viewers keep one size, whatever is in them: the
    drawing is fitted inside, so changing its size never moves the page or
    pushes its bottom out of view. */
@@ -1828,4 +1835,63 @@ label.off {
   display: block;
   max-width: 3rem;
   max-height: 3rem;
+}
+
+/* ---- Icon view: one flow, top to bottom, like the Font view ---- */
+
+/* The steps down the settings: adjust image, adjust drawing, adjust styles,
+   output and system. Labels are white. */
+.controls > h2.step {
+  margin: 0.75rem 0 -0.25rem;
+  font-size: 0.875rem;
+  color: var(--text);
+}
+
+.controls > h2.step:first-child {
+  margin-top: 0;
+}
+
+/* The upload, in a yellow dashed box above the previews. */
+.upload-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius);
+}
+
+#icon-upload {
+  flex: 1 1 auto;
+}
+
+/* An empty result: a yellow dashed box, its name in silver in the upper left
+   corner, and nothing else in it. */
+.image-pane.empty,
+.result-pane.empty {
+  min-height: 9rem;
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.75rem;
+}
+
+.image-pane.empty {
+  min-height: 16rem;
+}
+
+.result-pane.empty > :not(h2),
+.image-pane.empty .toggle,
+.image-pane.empty .result-wrap,
+.image-pane.empty .pieces {
+  display: none;
+}
+
+.result-pane.empty > h2,
+.image-pane.empty h2 {
+  margin: 0;
+  color: var(--silver);
+}
+
+.image-pane .pieces {
+  margin-top: 0.5rem;
 }

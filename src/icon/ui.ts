@@ -1,9 +1,13 @@
-// The Icon view: style controls from the shared field list, live previews of
-// the family and the favicon sizes, and the exports.
+// The Icon view, top to bottom like the Font view: upload a photo, adjust the
+// image (its own scan step), adjust the drawing (fine tuning), adjust the
+// style, then the downloads with the preset controls.
 
-import { flipLightness } from '../colour'
+import { despeckle } from '../clean'
+import { flipLightness, hexRgb } from '../colour'
+import { fineTune, type FineTune } from '../finetune'
 import type { Mask } from '../image'
-import { onScanColours, scanColours } from '../ui/scan-colour'
+import { toSvg, trace } from '../trace'
+import { ScanStep, type Scanned } from '../ui/scan-step'
 import { t, tn, tOr } from '../text'
 import { buildFields, fixed, pct, plain, type FieldGroup } from '../ui/fields'
 import { StyleBook, styleBox } from '../ui/styles'
@@ -78,14 +82,17 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 
 // Storage keys keep the project's first name, sketch-to-mark, so styles saved before the rename still load.
 const book = new StyleBook<IconStyle>({ noun: 'icon', key: 'sketch-to-mark.styles', builtIn: BUILT_IN, read: readStyle })
+/** The latest from the scan step: the drawings on the photo and its colours. */
+let scanned: Scanned = { name: 'drawing', drawings: [], pick: 0, sheet: false, colours: { ink: '#1d1a24', paper: null }, photo: 0 }
+
 /**
- * The style as drawn: the edited one, with the scan's colours when "Colours
- * from the scan" is on (the dark version turns their lightness over). The
+ * The style as drawn: the edited one, with the image's colours when "Icons
+ * in these colours" is on (the dark version turns their lightness over). The
  * book keeps the style's own colours either way.
  */
 function withScan(s: IconStyle): IconStyle {
   if (!$<HTMLInputElement>('icon-scan-colours').checked) return s
-  const { ink, paper } = scanColours()
+  const { ink, paper } = scanned.colours
   const bg = paper ?? '#ffffff'
   return { ...s, light: { ink, bg }, dark: { ink: flipLightness(ink), bg: flipLightness(bg) } }
 }
@@ -100,8 +107,11 @@ let dirty = true
 
 // ---- Controls ----
 
-const box = styleBox(book, () => applied())
+const box = styleBox(book, () => applied(), { markBuiltIn: false, actionsApart: true })
 $('icon-style-box').replaceWith(box.element)
+box.title(t('icon.presets'))
+// Saving, sharing and resetting presets sit with the downloads, at the bottom.
+$('icon-style-actions').replaceWith(box.actions)
 const fillFields = buildFields($('style-fields'), GROUPS, 'icon', () => book.current, update)
 
 /** Every edit goes through here: validate, remember, redraw. */
@@ -123,9 +133,6 @@ function applied() {
 }
 
 $('icon-scan-colours').addEventListener('change', applied)
-onScanColours(() => {
-  if ($<HTMLInputElement>('icon-scan-colours').checked) applied()
-})
 
 const nameInput = $<HTMLInputElement>('icon-name')
 nameInput.addEventListener('input', () => {
@@ -164,6 +171,7 @@ let urls: string[] = []
 async function render() {
   if (!paths) return
   const p = paths
+  showEmpty()
   const run = ++renderRun
   renderFamily(p)
   const kb = (n: string) => (new Blob([n]).size / 1024).toFixed(1)
@@ -300,21 +308,173 @@ $('copy-head').addEventListener('click', async (e) => {
   flash(btn)
 })
 
-// ---- Wiring to the Logo view ----
+/**
+ * The picked drawing on its own, as fine tuned (on a square artboard if
+ * ticked), with the style's clear space round it: for the plain SVG and PNG.
+ */
+function plainMask(): Mask | null {
+  if (!scanned.drawings.length) return null
+  const m = tuned(scanned.pick, { square: square.checked })
+  const pad = Math.round(style.padding * Math.max(m.width, m.height))
+  const out: Mask = { width: m.width + 2 * pad, height: m.height + 2 * pad, data: new Uint8Array((m.width + 2 * pad) * (m.height + 2 * pad)) }
+  for (let y = 0; y < m.height; y++) out.data.set(m.data.subarray(y * m.width, (y + 1) * m.width), (y + pad) * out.width + pad)
+  return out
+}
 
-/** Called with each new cleaned mask from the Logo view. */
-export function setMask(m: Mask | null, name: string) {
-  mask = m
-  maskName = name
-  if (!nameTouched) nameInput.value = name
-  dirty = true
-  builtFor = ''
-  if (!$('icon-app').hidden) retraceSoon()
+/** The plain downloads: the light ink, on the paper colour only while the paper is kept. */
+const plainColours = () => ({ ink: style.light.ink, background: scanned.colours.paper ? style.light.bg : null })
+
+$('icon-dl-svg').addEventListener('click', async () => {
+  const m = plainMask()
+  if (!m) return
+  const r = await trace(m, { ignore: 2, smoothness: style.trace.smoothness, simplify: style.trace.simplify })
+  download(new Blob([toSvg(r, plainColours())], { type: 'image/svg+xml' }), `${iconName()}.svg`)
+})
+
+$('icon-dl-png').addEventListener('click', () => {
+  const m = plainMask()
+  if (!m) return
+  const { ink, background } = plainColours()
+  const img = new ImageData(m.width, m.height)
+  const [r, g, b] = hexRgb(ink)
+  const [br, bg, bb] = hexRgb(background ?? '#ffffff')
+  for (let i = 0, j = 0; i < m.data.length; i++, j += 4) {
+    if (m.data[i]) img.data.set([r, g, b, 255], j)
+    else if (background) img.data.set([br, bg, bb, 255], j)
+  }
+  const c = document.createElement('canvas')
+  c.width = m.width
+  c.height = m.height
+  c.getContext('2d')!.putImageData(img, 0, 0)
+  c.toBlob((blob) => blob && download(blob, `${iconName()}.png`), 'image/png')
+})
+
+// ---- Upload and adjust image ----
+
+const scan = new ScanStep('icon', (next) => {
+  const newPhoto = next.photo !== scanned.photo
+  const coloursChanged = JSON.stringify(next.colours) !== JSON.stringify(scanned.colours)
+  scanned = next
+  if (newPhoto) tunes.clear()
+  showTune()
+  useDrawings()
+  if (coloursChanged && $<HTMLInputElement>('icon-scan-colours').checked) applied()
+})
+
+$('icon-upload').addEventListener('click', () => $('icon-file').click())
+$<HTMLInputElement>('icon-file').addEventListener('change', (e) => {
+  const input = e.target as HTMLInputElement
+  const f = input.files?.[0]
+  input.value = ''
+  if (f) void scan.open(f, f.name)
+})
+
+/** A photo opened, dropped or pasted while the Icon view is open. */
+export function openIconPhoto(blob: Blob, name: string) {
+  return scan.open(blob, name)
+}
+
+/** The sample: one of Kevin's own drawings, photographed in a sketchbook, the page filling the photo. */
+export async function loadIconSample() {
+  const res = await fetch('/sample-drawing.jpg')
+  if (!res.ok) return
+  const bitmap = await createImageBitmap(await res.blob())
+  const c = document.createElement('canvas')
+  c.width = bitmap.width
+  c.height = bitmap.height
+  c.getContext('2d', { willReadFrequently: true })!.drawImage(bitmap, 0, 0)
+  bitmap.close()
+  scan.openCanvas(c, 'sample', true)
+}
+
+// ---- Adjust drawing ----
+
+/** Fine tuning, per drawing of the sheet: rotate and line spread as in FineTune, and spots to ignore. */
+interface Tune {
+  rotate: number
+  spread: number
+  ignore: number
+}
+const NO_TUNE: Tune = { rotate: 0, spread: 0, ignore: 0 }
+const tunes = new Map<number, Tune>()
+const tuneIn = { rotate: $<HTMLInputElement>('icon-rotate'), spread: $<HTMLInputElement>('icon-spread'), ignore: $<HTMLInputElement>('icon-ignore') }
+const square = $<HTMLInputElement>('icon-square')
+const tuneFormats: Record<keyof Tune, (v: number) => string> = {
+  rotate: (v) => `${v > 0 ? '+' : ''}${v.toFixed(1)}°`,
+  spread: (v) => `${v > 0 ? '+' : ''}${v.toFixed(2)} px`,
+  ignore: (v) => (v ? `${v} px` : t('common.off')),
+}
+const tuneOf = (i: number) => tunes.get(i) ?? NO_TUNE
+
+/** The fine tuning sliders show the picked drawing's own. */
+function showTune() {
+  const tune = tuneOf(scanned.pick)
+  for (const k of Object.keys(tuneIn) as (keyof Tune)[]) {
+    tuneIn[k].value = String(tune[k])
+    $(`icon-${k}-out`).textContent = tuneFormats[k](tune[k])
+  }
+}
+
+for (const k of Object.keys(tuneIn) as (keyof Tune)[]) {
+  tuneIn[k].addEventListener('input', () => {
+    tunes.set(scanned.pick, { ...tuneOf(scanned.pick), [k]: Number(tuneIn[k].value) })
+    showTune()
+    useDrawings()
+  })
+}
+
+/** Each drawing as fine tuned, kept while neither the drawing nor its tuning changes. */
+const tunedCache = new WeakMap<Mask, { key: string; mask: Mask }>()
+
+function tuned(i: number, extra: Partial<FineTune> = {}): Mask {
+  const m = scanned.drawings[i]
+  const tune = tuneOf(i)
+  const f: FineTune = { rotate: tune.rotate, spread: tune.spread, square: false, ...extra }
+  const key = JSON.stringify([tune.ignore, f])
+  const kept = tunedCache.get(m)
+  if (kept?.key === key) return kept.mask
+  const mask = fineTune(tune.ignore ? despeckle(m, tune.ignore) : m, f)
+  // Only the plain tuning is kept; the square artboard is for the downloads.
+  if (!extra.square) tunedCache.set(m, { key, mask })
+  return mask
+}
+
+const two = (n: number) => String(n).padStart(2, '0')
+
+/** Hand the picked drawing to the previews and every drawing of a sheet to the set. */
+function useDrawings() {
+  const { drawings, pick, sheet, name } = scanned
+  const several = sheet && drawings.length > 1
+  const next = drawings.length ? tuned(pick) : null
+  const nextName = several ? `${name}-${two(pick + 1)}` : name
+  if (!nameTouched) nameInput.value = nextName
+  if (next !== mask) {
+    mask = next
+    maskName = nextName
+    builtFor = ''
+    dirty = true
+    if (!mask) clearPreviews()
+    else if (!$('icon-app').hidden) retraceSoon()
+  }
+  setSheet(sheet && drawings.length ? drawings.map((_, i) => ({ mask: tuned(i), name: `${name}-${two(i + 1)}` })) : null, pick)
+}
+
+/** No drawing: the result panes go back to empty boxes. */
+function clearPreviews() {
+  paths = null
+  $('sizes').replaceChildren()
+  $('family').replaceChildren()
+  $('icon-stats').textContent = ''
+  showEmpty()
+}
+
+function showEmpty() {
+  for (const id of ['icon-sizes-pane', 'icon-family-pane']) $(id).classList.toggle('empty', !paths)
 }
 
 /** Called when the Icon view is shown. */
 export function showIcon() {
-  if (dirty) retraceSoon()
+  if (dirty && mask) retraceSoon()
   buildSetSoon()
 }
 
@@ -326,22 +486,12 @@ let picked = 0
 let setPaths: (IconPaths | null)[] = []
 let setBuiltFor = ''
 let setRun = 0
-let pick: ((i: number) => void) | null = null
 
-/** Lets a click in the set choose the drawing the whole app works on. */
-export function onSheetPick(fn: (i: number) => void) {
-  pick = fn
-}
-
-/** Called with every drawing of a sheet (or null when the photo is one drawing). */
-export function setSheet(next: { mask: Mask; name: string }[] | null, current: number) {
-  const changed = next?.length !== pieces?.length || next?.some((p, i) => p.mask !== pieces?.[i].mask)
+/** Every drawing of a sheet (or null when the photo is one drawing); a drawing that changed is built again. */
+function setSheet(next: { mask: Mask; name: string }[] | null, current: number) {
+  setPaths = (next ?? []).map((p, i) => (pieces?.[i]?.mask === p.mask ? (setPaths[i] ?? null) : null))
   pieces = next
   picked = current
-  if (changed) {
-    setPaths = []
-    setBuiltFor = ''
-  }
   $('icon-set-pane').hidden = !pieces
   buildSetSoon()
 }
@@ -394,7 +544,7 @@ function drawSet() {
       num.className = 'set-num'
       num.textContent = String(i + 1)
       btn.append(num)
-      btn.addEventListener('click', () => pick?.(i))
+      btn.addEventListener('click', () => scan.choose(i))
       return btn
     }),
   )
@@ -416,7 +566,7 @@ $('dl-set').addEventListener('click', async (e) => {
       setPaths[i] ??= (await buildIcon(pieces[i].mask, style)).paths
     }
     const icons = pieces.map((p, i) => ({ name: slug(p.name), paths: setPaths[i]! }))
-    const root = `${slug(maskName)}-icon-set`
+    const root = `${slug(scanned.name)}-icon-set`
     const files: ZipFile[] = []
     const set = spriteSet(icons, style)
     files.push({ path: `${root}/sprite/${root}.svg`, data: set.svg })

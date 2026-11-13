@@ -12,7 +12,8 @@ pnpm test
 
 ## How it works
 
-1. **Scan** — the first tab captures the drawing, once, for every output:
+1. **Scan** — the first tab captures the drawing, once, for Logo and Texture
+   (Icon and Font take their own photos):
    - **Paper:** finds the sheet in the photo by its colour (paper is grey or
      white, a table is not; brightness alone is the fallback), takes the
      largest four-sided shape inside its outline, and straightens it. Drag the four corners to
@@ -48,10 +49,22 @@ pnpm test
 Every control updates as it moves: while a globe rolls or a slider is
 dragged, the drawing is worked out on a half-size copy, and a full-size pass
 follows when it is let go.
-3. **Icon** — turns the cleaned ink into an icon family under a
-   *style* (see below): line, fill and tint variants, rotations and mirrors,
-   an optional container, light and dark colours (by default the scan's, with
-   the dark version's lightness turned over), favicons and a sprite.
+3. **Icon** — one flow, top to bottom, like Font. Upload a photo in the
+   yellow dashed box above the previews, then down the settings:
+   - **Adjust image:** the tab's own scan step (`src/ui/scan-step.ts`, the
+     same image work as Scan): paper corners and rotation, ink, colour, and
+     several drawings on a sheet, picked in the tray under the image.
+   - **Adjust drawing:** Logo's fine tuning (rotate, line spread, ignore
+     spots under a size), kept per drawing of a sheet; square artboard for
+     the plain downloads.
+   - **Adjust styles:** the icon *style* (see below): line, fill and tint
+     variants, rotations and mirrors, an optional container, light and dark
+     colours (by default the image's, with the dark version's lightness
+     turned over), favicons and a sprite.
+   - **Output and system:** the icon pack, sprite, `<head>` tags, a plain SVG
+     and PNG of the drawing, and the preset controls (save, delete, export,
+     import, reset).
+   Empty results are yellow dashed boxes named in silver.
 4. **Texture** — prints the drawing with its hand-made quality
    kept: rubber stamp, risograph, halftone or the ink as drawn, once or as a
    seamless repeating tile. Also driven by styles.
@@ -93,8 +106,8 @@ thumbnails above the scan picks the drawing every output works on.
 
 - **Logo:** *Download all SVGs* traces every drawing with the current settings
   into one zip, for comparing iterations.
-- **Icon:** the *Icon set* panel builds every drawing in the current icon
-  style; *Download icon set* gives one sprite with all of them (hand-icons
+- **Icon:** the same tick is in the Icon tab's own *Drawings on this sheet*;
+  the *Icon set* panel builds every drawing in the current icon style; *Download icon set* gives one sprite with all of them (hand-icons
   symbol names, numbered manifest), an SVG per icon, variant and direction,
   and the style. Clicking an icon picks it for the detailed previews.
 

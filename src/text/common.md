@@ -28,11 +28,11 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 ## Tab flags (open on hover or keyboard focus; about the thing, never "you")
 
 `flag.tab.scan.title` Scan
-`flag.tab.scan` Where every drawing starts. A photo of a drawing on paper is straightened, its light evened out and its ink picked out from the paper, in the ink's own colour. A page of several drawings is split into a numbered tray; the one picked there is what Logo, Icon and Texture work on.
+`flag.tab.scan` Where every drawing starts. A photo of a drawing on paper is straightened, its light evened out and its ink picked out from the paper, in the ink's own colour. A page of several drawings is split into a numbered tray; the one picked there is what Logo and Texture work on.
 `flag.tab.logo.title` Logo
 `flag.tab.logo` The scanned drawing traced into a vector: an SVG of clean curves that holds at any size. Smoothness and simplify set how closely the curves follow the hand; fine tuning straightens the drawing or thickens its line by a fraction of a pixel. The colours are the scan's, or its own.
 `flag.tab.icon.title` Icon
-`flag.tab.icon` The drawing as a family of icons under one style: line, fill and tint versions, turns and mirrors, an optional container, light and dark colours, favicons and a sprite. A page of drawings becomes a whole set in the same style.
+`flag.tab.icon` A photo of a drawing made into a family of icons under one style: line, fill and tint versions, turns and mirrors, an optional container, light and dark colours, favicons and a sprite. The photo is straightened and its ink picked out here; a page of drawings becomes a whole set in the same style.
 `flag.tab.texture.title` Texture
 `flag.tab.texture` The drawing printed with its hand-made quality kept: rubber stamp, risograph, halftone or the ink as drawn. Once on a canvas, or as a seamless repeating tile, at any size up to print at 300 dpi.
 `flag.tab.font.title` Font

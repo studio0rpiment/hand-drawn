@@ -1,18 +1,47 @@
 # Icon
 
-The words on the Icon tab: the icon, its style settings, the small sizes, the family, the icon set and export.
+The words on the Icon tab, top to bottom: the upload, adjusting the image, adjusting the drawing, the style settings, the downloads, and the previews (image, icon set, small sizes, family). The scan step shares some words with the Scan tab (scan.md).
 
 How to edit: change the words after a key; don't change the key in backticks, which ties the words to their place in the app. A long text may run on over several lines; a blank line ends it. {name} is filled in by the app (a number, a name). **bold**, *emphasis* and [a link](https://…) work. The screens show most words in lower case; write them in sentence case here.
 
 ## Settings
 
-`icon.settings` Icon style
+`icon.settings` Icon settings
 
-## Icon
+## Steps
 
-`icon.icon` Icon
-`icon.name` Name
-`icon.scan-colours` Colours from the scan
+`icon.step-image` Adjust image
+`icon.step-drawing` Adjust drawing
+`icon.step-styles` Adjust styles
+`icon.step-output` Output and system
+
+## Upload
+
+`icon.upload` Upload a drawing (photo)
+`icon.image` Image
+
+## Adjust image
+
+`icon.paper` Paper
+`icon.ink` Ink
+`icon.colour` Colour
+`icon.colour.hint` Read from the photo.
+`icon.scan-colours` Icons in these colours (off: the style’s own)
+`icon.sheet` Drawings on this sheet
+`icon.sheet.hint` For a page of icons: each drawing is found and numbered, row by row, and the page becomes an icon set. Pick one in the tray under the image to adjust it and see it large. Small drawings found as one: lower the group marks limit.
+
+## Adjust drawing
+
+`icon.tuning` Fine tuning
+`icon.tuning.hint` For the picked drawing only, before it is traced; the image stays as it is.
+`icon.rotate` Rotate
+`icon.spread` Line spread
+`icon.ignore` Ignore spots under
+`icon.square` Square artboard (plain SVG and PNG)
+
+## Adjust styles
+
+`icon.presets` Preset styles
 
 ## Shape
 
@@ -88,9 +117,12 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 ## Export
 
 `icon.export` Export
+`icon.name` Name
 `icon.dl-pack` Download icon pack
 `icon.dl-sprite` Download sprite
 `icon.copy-head` Copy <head> tags
+`icon.dl-svg` Download plain SVG
+`icon.dl-png` Download plain PNG
 `icon.packing` Packing…
 
 ## Status

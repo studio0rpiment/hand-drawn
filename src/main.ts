@@ -4,7 +4,8 @@ import { padBox, splitDrawings } from './split'
 import { otsu, shrinkGray, toGray, type GrayImage, type Mask, type Quad, type RGBAImage } from './image'
 import { findPaper, findPaperInColour, fullFrame, quadSize, warp } from './paper'
 import { loadSampleSheets, setDrawings, setPage, showFont } from './font/ui'
-import { onSheetPick, setMask, setSheet, showIcon } from './icon/ui'
+import { loadIconSample, openIconPhoto, showIcon } from './icon/ui'
+import { baseName, openImage, turned, WORK_SIDE } from './ui/open-image'
 import { decorate, favicon, flash, handSliders, installSprite, reserveHoverWidths } from './ui/hand'
 import { privacyNotice, privacySettings } from './ui/privacy'
 import { installFlags } from './ui/flags'
@@ -19,9 +20,6 @@ import { toSvg, trace, type TraceResult } from './trace'
 
 installSprite()
 favicon()
-
-// Photos are worked on at this size at most; plenty for a logo, and keeps sliders live.
-const WORK_SIDE = 2400
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T
 const app = $('app')
@@ -95,51 +93,19 @@ const state: {
 
 // ---- Loading ----
 
-/** An iPhone HEIC/HEIF photo, by its type, its name, or the brand in its first bytes. */
-async function isHeic(blob: Blob, name: string): Promise<boolean> {
-  if (/^image\/hei[cf]/.test(blob.type) || /\.hei[cf]$/i.test(name)) return true
-  const head = new TextDecoder().decode(await blob.slice(4, 12).arrayBuffer())
-  return /^ftyp(heic|heix|hevc|mif1|msf1)/.test(head)
-}
-
 /** While a HEIC photo converts (the first one takes a few seconds), the open button says so. */
 const openText = [...$('file').closest('label')!.childNodes].find((n) => n.nodeType === Node.TEXT_NODE && n.textContent!.trim())!
 const openWas = openText.textContent
 const converting = (on: boolean) => (openText.textContent = on ? ` ${t('common.converting')} ` : openWas)
 
 async function loadBlob(blob: Blob, name: string) {
-  let bitmap: ImageBitmap
-  try {
-    bitmap = await createImageBitmap(blob, { imageOrientation: 'from-image' })
-  } catch {
-    // Most browsers other than Safari can't read HEIC: convert it to PNG here, in the page.
-    // The converter is large, so it only loads when a HEIC photo comes in.
-    try {
-      if (!(await isHeic(blob, name))) throw new Error('not HEIC')
-      converting(true)
-      const { heicTo } = await import('heic-to/csp')
-      const png = await heicTo({ blob, type: 'image/png' })
-      bitmap = await createImageBitmap(png, { imageOrientation: 'from-image' })
-    } catch {
-      alert(t('common.unreadable'))
-      return
-    } finally {
-      converting(false)
-    }
-  }
-  loadSource(bitmap, bitmap.width, bitmap.height, name)
-  bitmap.close()
-}
-
-function loadSource(src: CanvasImageSource, w: number, h: number, name: string) {
-  const s = Math.min(1, WORK_SIDE / Math.max(w, h))
-  const c = document.createElement('canvas')
-  c.width = Math.round(w * s)
-  c.height = Math.round(h * s)
-  c.getContext('2d', { willReadFrequently: true })!.drawImage(src, 0, 0, c.width, c.height)
+  // With the Icon view open, the photo is the Icon view's own.
+  if (!$('icon-app').hidden) return openIconPhoto(blob, name)
+  const c = await openImage(blob, name, converting)
+  if (!c) return
   unturned = c
   resetTurn()
-  showPhoto(c, name.replace(/\.[^.]+$/, '') || 'drawing')
+  showPhoto(c, baseName(name))
 }
 
 /** Put a photo (as opened, or turned) in the Scan view and find the sheet in it. */
@@ -160,38 +126,6 @@ function showPhoto(c: HTMLCanvasElement, name: string) {
 const turnInput = $<HTMLInputElement>('turn')
 /** The photo as opened, before any rotation; every rotation starts from it. */
 let unturned: HTMLCanvasElement | null = null
-
-/**
- * The opened photo turned by `deg`, on a canvas big enough for all of it.
- * The corners it uncovers are filled with the colour round the photo's edge,
- * so they read as the table, not as ink or paper.
- */
-function turned(src: HTMLCanvasElement, deg: number): HTMLCanvasElement {
-  const a = (deg * Math.PI) / 180
-  const cos = Math.abs(Math.cos(a))
-  const sin = Math.abs(Math.sin(a))
-  const c = document.createElement('canvas')
-  c.width = Math.round(src.width * cos + src.height * sin)
-  c.height = Math.round(src.width * sin + src.height * cos)
-  const g = c.getContext('2d')!
-  g.fillStyle = edgeColour(src)
-  g.fillRect(0, 0, c.width, c.height)
-  g.translate(c.width / 2, c.height / 2)
-  g.rotate(a)
-  g.drawImage(src, -src.width / 2, -src.height / 2)
-  return c
-}
-
-/** The median colour along a canvas's four edges. */
-function edgeColour(src: HTMLCanvasElement): string {
-  const g = src.getContext('2d', { willReadFrequently: true })!
-  const { width: w, height: h } = src
-  const strips = [g.getImageData(0, 0, w, 1), g.getImageData(0, h - 1, w, 1), g.getImageData(0, 0, 1, h), g.getImageData(w - 1, 0, 1, h)]
-  const ch: number[][] = [[], [], []]
-  for (const s of strips) for (let i = 0; i < s.data.length; i += 4) for (let k = 0; k < 3; k++) ch[k].push(s.data[i + k])
-  const [r, gr, b] = ch.map((v) => v.sort((x, y) => x - y)[v.length >> 1])
-  return `rgb(${r} ${gr} ${b})`
-}
 
 /** Quarter turns clockwise, from the ↻ button; the slider adds a slight tilt to them. */
 let quarters = 0
@@ -237,6 +171,7 @@ $<HTMLInputElement>('file').addEventListener('change', (e) => {
 // in the Font view, his two traced pages of the alphabet.
 $('sample').addEventListener('click', async () => {
   if (!$('font-app').hidden) return loadSampleSheets()
+  if (!$('icon-app').hidden) return loadIconSample()
   const res = await fetch('/sample-drawing.jpg')
   if (!res.ok) return
   await loadBlob(await res.blob(), 'sample')
@@ -473,7 +408,6 @@ function makeInk() {
     readColours(state.flat, mask)
   }
   if (!rolling) {
-    setMask(state.mask, state.name)
     // The Font view reads the whole straightened page, not the cropped drawing.
     setPage(base, state.photo!)
     // Textures keep the photo's own tones, so they get the light-evened grey too.
@@ -588,7 +522,6 @@ function showSheet() {
   strip.hidden = !sh
   if (!sh) {
     strip.replaceChildren()
-    setSheet(null, 0)
     setDrawings([])
     return
   }
@@ -631,7 +564,6 @@ function showSheet() {
       return btn
     }),
   )
-  setSheet(sheetPieces(), state.pick)
   // The Font view places them on letters, so it gets where each was on the page.
   setDrawings(sh.boxes.map((box) => ({ mask: cropMask(sh.mask, padBox(box, 2, sh.mask.width, sh.mask.height)), box, source: state.photo! })))
 }
@@ -759,11 +691,6 @@ function showOutputs() {
 }
 
 sheetOn.addEventListener('change', () => schedule(makeInk))
-// Choosing an icon in the Icon view's set picks that drawing everywhere.
-onSheetPick((i) => {
-  state.pick = i
-  schedule(makeInk)
-})
 for (const k of ['flatten', 'weight', 'speck', 'trim', 'pad', 'gap'] as const) {
   sliders[k].addEventListener('input', () => schedule(makeInk))
 }
@@ -791,11 +718,11 @@ document.querySelectorAll<HTMLInputElement>('input[name="view"]').forEach((r) =>
 // ---- Views ----
 
 /**
- * Logo, Icon and Texture need a scanned drawing. Until there is one they are
+ * Logo and Texture need a scanned drawing. Until there is one they are
  * marked aria-disabled rather than disabled, so they can still take focus and
  * show their explanation flag.
  */
-const outputTabs = () => [logoTab, $<HTMLButtonElement>('icon-tab'), $<HTMLButtonElement>('texture-tab')]
+const outputTabs = () => [logoTab, $<HTMLButtonElement>('texture-tab')]
 
 document.querySelectorAll<HTMLButtonElement>('.tab').forEach((tab) =>
   tab.addEventListener('click', () => {
@@ -806,8 +733,8 @@ document.querySelectorAll<HTMLButtonElement>('.tab').forEach((tab) =>
       $(t.dataset.view!).hidden = !on
     })
     reserveHoverWidths($(tab.dataset.view!))
-    // The Font view has its own upload button.
-    $('file').closest('label')!.hidden = tab.dataset.view === 'font-app'
+    // The Font and Icon views have their own upload buttons.
+    $('file').closest('label')!.hidden = tab.dataset.view === 'font-app' || tab.dataset.view === 'icon-app'
     if (tab.dataset.view === 'icon-app') showIcon()
     if (tab.dataset.view === 'texture-app') showTexture()
     if (tab.dataset.view === 'font-app') showFont()
@@ -832,13 +759,12 @@ function removePhoto() {
   handles.replaceChildren()
   vectorView.innerHTML = ''
   stats.textContent = ''
-  setMask(null, 'drawing')
   setArt(null, 'drawing')
   showSheet()
   for (const t of outputTabs()) t.setAttribute('aria-disabled', 'true')
   // Back to Scan if an output that needs the photo is showing.
   const scanTab = document.querySelector<HTMLButtonElement>('.tab[data-view="app"]')!
-  if ($('font-app').hidden) scanTab.click()
+  if ($('font-app').hidden && $('icon-app').hidden) scanTab.click()
   app.classList.add('empty')
 }
 $('remove-photo').addEventListener('click', removePhoto)
