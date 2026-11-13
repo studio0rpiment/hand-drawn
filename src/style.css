@@ -1853,16 +1853,22 @@ label.off {
 
 /* The upload, in a yellow dashed box above the previews. */
 .upload-bar {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.6rem;
   padding: 0.75rem;
   border: 1px dashed var(--accent);
   border-radius: var(--radius);
 }
 
+/* The upload fills the box; it already has the room its letters spread into. */
 #icon-upload {
-  flex: 1 1 auto;
+  min-width: 0 !important;
+}
+
+/* With no photo to remove, the upload takes the whole line. */
+.upload-bar:not(:has(#icon-remove:not([hidden]))) #icon-upload {
+  grid-column: 1 / -1;
 }
 
 /* An empty result: a yellow dashed box, its name in silver in the upper left
