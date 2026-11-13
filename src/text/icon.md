@@ -36,7 +36,6 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `icon.tuning.hint` For the picked drawing only, before it is traced; the image stays as it is.
 `icon.rotate` Rotate
 `icon.spread` Line spread
-`icon.ignore` Ignore spots under
 `icon.square` Square artboard (plain SVG and PNG)
 
 ## Adjust styles
@@ -54,7 +53,6 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `icon.f.pinholes` Fill pinholes under
 `icon.f.trace-smoothness` Smoothness
 `icon.f.trace-simplify` Simplify curves
-`icon.f.trace-ignore` Ignore specks under
 `icon.f.canvas` Canvas
 
 ## Variants

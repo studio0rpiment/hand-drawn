@@ -54,9 +54,11 @@ follows when it is let go.
    - **Adjust image:** the tab's own scan step (`src/ui/scan-step.ts`, the
      same image work as Scan): paper corners and rotation, ink, colour, and
      several drawings on a sheet, picked in the tray under the image.
-   - **Adjust drawing:** Logo's fine tuning (rotate, line spread, ignore
-     spots under a size), kept per drawing of a sheet; square artboard for
-     the plain downloads.
+   - **Adjust drawing:** Logo's fine tuning (rotate, line spread), kept per
+     drawing of a sheet; square artboard for the plain downloads. Specks are
+     removed in one place only, *Remove specks under* in Ink; the style's
+     trace speck size stays in its JSON (8, as hand-icons) but has no control
+     here.
    - **Adjust styles:** the icon *style* (see below): line, fill and tint
      variants, rotations and mirrors, an optional container, light and dark
      colours (by default the image's, with the dark version's lightness

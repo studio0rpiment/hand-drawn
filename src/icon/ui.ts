@@ -2,7 +2,6 @@
 // image (its own scan step), adjust the drawing (fine tuning), adjust the
 // style, then the downloads with the preset controls.
 
-import { despeckle } from '../clean'
 import { flipLightness, hexRgb } from '../colour'
 import { fineTune, type FineTune } from '../finetune'
 import type { Mask } from '../image'
@@ -31,7 +30,6 @@ const GROUPS: FieldGroup[] = [
       { kind: 'range', path: 'pinholes', label: t('icon.f.pinholes'), min: 0, max: 2000, step: 10, fmt: plain },
       { kind: 'range', path: 'trace.smoothness', label: t('icon.f.trace-smoothness'), min: 0, max: 1.33, step: 0.01, fmt: fixed(2) },
       { kind: 'range', path: 'trace.simplify', label: t('icon.f.trace-simplify'), min: 0, max: 1.5, step: 0.05, fmt: fixed(2) },
-      { kind: 'range', path: 'trace.ignore', label: t('icon.f.trace-ignore'), min: 0, max: 200, step: 1, fmt: plain },
       { kind: 'select', path: 'canvas', label: t('icon.f.canvas'), options: [512, 1024, 2048] },
     ],
   },
@@ -389,20 +387,21 @@ export async function loadIconSample() {
 
 // ---- Adjust drawing ----
 
-/** Fine tuning, per drawing of the sheet: rotate and line spread as in FineTune, and spots to ignore. */
+/**
+ * Fine tuning, per drawing of the sheet: rotate and line spread as in
+ * FineTune. Specks are removed once, in the image's Ink settings.
+ */
 interface Tune {
   rotate: number
   spread: number
-  ignore: number
 }
-const NO_TUNE: Tune = { rotate: 0, spread: 0, ignore: 0 }
+const NO_TUNE: Tune = { rotate: 0, spread: 0 }
 const tunes = new Map<number, Tune>()
-const tuneIn = { rotate: $<HTMLInputElement>('icon-rotate'), spread: $<HTMLInputElement>('icon-spread'), ignore: $<HTMLInputElement>('icon-ignore') }
+const tuneIn = { rotate: $<HTMLInputElement>('icon-rotate'), spread: $<HTMLInputElement>('icon-spread') }
 const square = $<HTMLInputElement>('icon-square')
 const tuneFormats: Record<keyof Tune, (v: number) => string> = {
   rotate: (v) => `${v > 0 ? '+' : ''}${v.toFixed(1)}°`,
   spread: (v) => `${v > 0 ? '+' : ''}${v.toFixed(2)} px`,
-  ignore: (v) => (v ? `${v} px` : t('common.off')),
 }
 const tuneOf = (i: number) => tunes.get(i) ?? NO_TUNE
 
@@ -430,10 +429,10 @@ function tuned(i: number, extra: Partial<FineTune> = {}): Mask {
   const m = scanned.drawings[i]
   const tune = tuneOf(i)
   const f: FineTune = { rotate: tune.rotate, spread: tune.spread, square: false, ...extra }
-  const key = JSON.stringify([tune.ignore, f])
+  const key = JSON.stringify(f)
   const kept = tunedCache.get(m)
   if (kept?.key === key) return kept.mask
-  const mask = fineTune(tune.ignore ? despeckle(m, tune.ignore) : m, f)
+  const mask = fineTune(m, f)
   // Only the plain tuning is kept; the square artboard is for the downloads.
   if (!extra.square) tunedCache.set(m, { key, mask })
   return mask
