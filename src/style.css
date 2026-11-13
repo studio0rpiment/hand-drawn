@@ -205,23 +205,56 @@ main {
   align-items: start;
 }
 
-main.empty .controls,
-main.empty .pane,
-main.empty .workspace {
-  display: none;
-}
-
-main:not(.empty) .intro {
-  display: none;
-}
-
-.intro {
-  grid-column: 1 / -1;
+/* The landing: the name large, and what can be made, each a way in. */
+main.home {
+  display: block;
   text-align: center;
-  padding: 3rem 1.5rem;
-  border: 2px dashed var(--line);
-  border-radius: 1rem;
-  font-size: 1.0625rem;
+  padding: 6rem 1.5rem;
+}
+
+.home-title {
+  font-size: clamp(2.5rem, 9vw, 6rem);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.01em;
+  margin: 0 0 1.5rem;
+}
+
+.home-lead {
+  font-size: 1.25rem;
+  max-width: 36rem;
+  margin: 0 auto;
+  line-height: 1.8;
+}
+
+/* A choice: yellow words in a dashed yellow box. */
+.home-choice {
+  font: inherit;
+  color: var(--accent);
+  background: none;
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius);
+  padding: 0.05rem 0.45rem;
+  margin: 0 0.15rem;
+  cursor: pointer;
+  text-transform: inherit;
+}
+
+.home-choice:hover,
+.home-choice:focus-visible {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+/* The wordmark leads back to the landing. */
+.home-link {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-transform: inherit;
 }
 
 .quiet,
@@ -498,17 +531,6 @@ input[type='color'] {
   height: auto;
 }
 
-#vector-view {
-  width: 100%;
-}
-
-#vector-view svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 75vh;
-}
-
 /* minmax(0, 1fr): otherwise the column grows to the canvas's pixel width. */
 .stage {
   grid-template-columns: minmax(0, 1fr);
@@ -518,17 +540,14 @@ input[type='color'] {
   grid-area: 1 / 1;
 }
 
-#photo-stage,
 .photo-stage {
   touch-action: none;
 }
 
-#handles,
 .handles {
   overflow: visible;
 }
 
-#handles polygon,
 .handles polygon {
   fill: color-mix(in srgb, var(--handle) 12%, transparent);
   stroke: var(--handle);
@@ -536,7 +555,6 @@ input[type='color'] {
   stroke-width: 2;
 }
 
-#handles circle,
 .handles circle {
   fill: var(--surface);
   stroke: var(--handle);
@@ -545,7 +563,6 @@ input[type='color'] {
   cursor: grab;
 }
 
-#handles circle:focus-visible,
 .handles circle:focus-visible {
   outline: none;
   fill: var(--handle);
@@ -591,7 +608,6 @@ input[type='color'] {
   .controls {
     order: 3;
   }
-  .logo-stage,
   .texture-stage {
     height: 30vh;
   }
@@ -1287,7 +1303,7 @@ main.font-app .icon-preview {
   color: #ff2fb4;
 }
 
-/* ---- Logo workspace: the result large, the photo small in its corner, globes in an arc ---- */
+/* ---- The image: the result large, the photo small in its corner, globes in an arc ---- */
 
 .workspace {
   display: grid;
@@ -1300,31 +1316,19 @@ main.font-app .icon-preview {
   position: relative;
 }
 
-.result-wrap #result-stage,
 .result-wrap .result-stage {
   min-height: 16rem;
 }
 
 /* Leave room for the globes below without scrolling. */
-.result-wrap #result-stage canvas,
 .result-wrap .result-stage canvas,
-/* The Logo and Texture viewers keep one size, whatever is in them: the
+/* The image and the Texture viewer keep one size, whatever is in them: the
    drawing is fitted inside, so changing its size never moves the page or
    pushes its bottom out of view. */
-.logo-stage,
 .texture-stage {
   height: clamp(16rem, 100vh - 22rem, 52rem);
   /* One row the stage's height, so what's inside can be fitted to it. */
   grid-template-rows: minmax(0, 1fr);
-}
-
-.logo-stage #vector-view {
-  height: 100%;
-}
-
-#vector-view svg {
-  height: 100%;
-  max-height: none;
 }
 
 .texture-stage {
@@ -1634,18 +1638,6 @@ label.off {
 
 /* Scan, large: at least as wide as the two buttons under it (both scale with
    the text size), narrowed to the screen on a phone. */
-.intro-title {
-  font-size: min(9rem, 24vw);
-  font-weight: 200;
-  line-height: 1;
-  margin: 0 0 1.5rem;
-  color: var(--accent);
-}
-
-.intro-actions {
-  justify-content: center;
-}
-
 
 /* ---- Explanation flags (src/ui/flags.ts; words in src/flags.md) ----
    After Variable Machine's: a slanted outline bubble with a tail pointing at
@@ -1862,12 +1854,12 @@ label.off {
 }
 
 /* The upload fills the box; it already has the room its letters spread into. */
-#icon-upload {
+.upload-bar .upload {
   min-width: 0 !important;
 }
 
 /* With no photo to remove, the upload takes the whole line. */
-.upload-bar:not(:has(#icon-remove:not([hidden]))) #icon-upload {
+.upload-bar:not(:has(.remove:not([hidden]))) .upload {
   grid-column: 1 / -1;
 }
 
@@ -1900,4 +1892,13 @@ label.off {
 
 .image-pane .pieces {
   margin-top: 0.5rem;
+}
+
+/* The globes sit in an arc under the image, four in a row when there's room. */
+.image-pane {
+  container-type: inline-size;
+}
+
+.image-pane.empty .globe-arc {
+  display: none;
 }

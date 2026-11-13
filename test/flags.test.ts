@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { explanation } from '../src/ui/flags'
 
 describe('tab flags', () => {
-  const tabs = ['scan', 'logo', 'icon', 'texture', 'font']
+  const tabs = ['icon', 'texture', 'font']
 
-  it('has a flag for each of the five tabs', () => {
+  it('has a flag for each of the three tabs', () => {
     for (const tab of tabs) expect(explanation(`tab.${tab}`)?.text.length).toBeGreaterThan(40)
-    expect(explanation('tab.scan')!.title).toBe('Scan')
+    expect(explanation('tab.icon')!.title).toBe('Icon')
   })
 
   it('speaks about the thing, never to the reader', () => {

@@ -1,8 +1,11 @@
 // The Font view: print the letter sheet, read photos of it, and build a font
 // under a font style, with a live type preview and OTF export.
 
-import { flattenLight } from '../clean'
-import { toGray, type GrayImage, type RGBAImage } from '../image'
+import { cropMask, despeckle, flattenLight, threshold, trimEdges } from '../clean'
+import { otsu, toGray, type GrayImage, type RGBAImage } from '../image'
+import { findPaper, findPaperInColour, fullFrame, quadSize, warp } from '../paper'
+import { padBox, splitDrawings } from '../split'
+import { openImage, WORK_SIDE } from '../ui/open-image'
 import { slug } from '../icon/style'
 import { t } from '../text'
 import { buildFields, fixed, plain, type FieldGroup } from '../ui/fields'
@@ -186,7 +189,6 @@ export async function loadSampleSheets() {
   for (const page of [0, 1]) {
     const c = await sampleSheetPhoto(page)
     const photo = c.getContext('2d', { willReadFrequently: true })!.getImageData(0, 0, c.width, c.height)
-    // Straight into the Font view, not through Scan, so the scanned drawing stays as it is.
     samplePhotos.add(photo)
     pendingPages.set(photo, toGray(photo))
   }
@@ -202,8 +204,38 @@ $('sheet-toggle').addEventListener('click', (e) => {
   $('sheet-body').hidden = !open
 })
 
-// Photos of the letters go through the same opening as every other photo.
-$('font-upload').addEventListener('click', () => $('file').click())
+// Photos of the letters: letter sheets, or letters drawn freehand on any paper.
+$('font-upload').addEventListener('click', () => $('font-file').click())
+$<HTMLInputElement>('font-file').addEventListener('change', (e) => {
+  const input = e.target as HTMLInputElement
+  const files = [...(input.files ?? [])]
+  input.value = ''
+  void openFontPhotos(files)
+})
+
+/** A photo's page: found in it, straightened, and its light evened out. */
+function straightPage(photo: RGBAImage): GrayImage {
+  const quad = findPaperInColour(photo) ?? findPaper(toGray(photo)) ?? fullFrame(photo.width, photo.height)
+  const { width, height } = quadSize(quad, WORK_SIDE)
+  return flattenLight(toGray(warp(photo, quad, width, height)), 0.9)
+}
+
+/** Photos opened, dropped or pasted in the Font view, one after another. */
+export async function openFontPhotos(files: File[]) {
+  for (const f of files) {
+    const c = await openImage(f, f.name)
+    if (!c) continue
+    const photo = c.getContext('2d', { willReadFrequently: true })!.getImageData(0, 0, c.width, c.height)
+    setPage(straightPage(photo), photo)
+  }
+}
+
+/** A page that isn't a letter sheet: every drawing on it, for placing on letters freehand. */
+function freehandFrom(page: GrayImage, photo: RGBAImage) {
+  const mask = despeckle(trimEdges(threshold(page, otsu(page)), 0.015), 40)
+  const boxes = splitDrawings(mask, 30, 40)
+  setDrawings(boxes.map((box) => ({ mask: cropMask(mask, padBox(box, 2, mask.width, mask.height)), box, source: photo })))
+}
 
 /** The last photo opened wasn't a letter sheet (its corner squares weren't found). */
 let notSheet = false
@@ -228,9 +260,9 @@ function showSheetState() {
 
 // ---- Freehand letters ----
 
-/** The drawings Scan last split its page into, in reading order. */
+/** The drawings the last freehand page was split into, in reading order. */
 let tray: Drawing[] = []
-/** Drawings placed on letters; kept when Scan moves on to another photo. */
+/** Drawings placed on letters; kept when another photo comes in. */
 const placed = new Map<string, Drawing>()
 /** Each placed drawing's trace, by the settings it was traced with. */
 const tracedDrawings = new WeakMap<Mask, { key: string; paths: string }>()
@@ -444,8 +476,8 @@ $('freehand-clear').addEventListener('click', () => {
   changed()
 })
 
-/** Called with the drawings Scan split its page into (none when the sheet setting is off). */
-export function setDrawings(next: Drawing[]) {
+/** The drawings a freehand page was split into. */
+function setDrawings(next: Drawing[]) {
   tray = readingOrder(next)
   if (held && 'tray' in held) held = null
   showFreehand()
@@ -469,7 +501,7 @@ async function build() {
   buildHidden = false
   for (const [photo, page] of pendingPages) {
     // The sheet's own corner squares place it best, found in the whole photo;
-    // failing that, the page as the Scan view straightened it.
+    // failing that, the page as found and straightened when the photo was opened.
     const raw = flattenLight(toGray(photo), 0.9)
     const corners = findSheetMarkers(raw)
     const r = corners ? readSheet(raw, corners) : readSheet(page)
@@ -481,7 +513,10 @@ async function build() {
       fromSample[r.page] = sample
       delete traced[r.page]
       notSheet = false
-    } else notSheet = true
+    } else {
+      notSheet = true
+      freehandFrom(page, photo)
+    }
   }
   pendingPages.clear()
   const mine = ++run
@@ -618,10 +653,10 @@ $('font-size').addEventListener('input', showSize)
 showSize()
 $<HTMLTextAreaElement>('font-sample').value = SAMPLE_TEXT
 
-// ---- Wiring to the Logo view ----
+// ---- Photos in ----
 
-/** Called with each straightened, light-evened page from the Scan view, and the photo it came from. */
-export function setPage(gray: GrayImage, photo: RGBAImage) {
+/** A straightened, light-evened page, and the photo it came from. */
+function setPage(gray: GrayImage, photo: RGBAImage) {
   pendingPages.delete(photo)
   pendingPages.set(photo, gray)
   // Only the latest few photos wait; older ones were for other tabs.

@@ -6,8 +6,10 @@ import { flipLightness, hexRgb } from '../colour'
 import { fineTune, type FineTune } from '../finetune'
 import type { Mask } from '../image'
 import { toSvg, trace } from '../trace'
+import { scanControls } from '../ui/scan-markup'
 import { ScanStep, type Scanned } from '../ui/scan-step'
-import { t, tn, tOr } from '../text'
+import { globePair } from '../ui/sphere'
+import { t, tHtml, tn, tOr } from '../text'
 import { buildFields, fixed, pct, plain, type FieldGroup } from '../ui/fields'
 import { StyleBook, styleBox } from '../ui/styles'
 import { flash } from '../ui/hand'
@@ -15,6 +17,13 @@ import { buildIcon, faviconVariant, headSnippet, packZip, rasterize, shapeKey } 
 import { BUILT_IN, CONTAINERS, DIRECTIONS, DIRECTION_GROUPS, VARIANTS, readStyle, slug, type IconStyle } from './style'
 import { zip, type ZipFile } from './files'
 import { sprite, spriteSet, standaloneSvg, type IconPaths } from './svg'
+
+// The scan step's controls go in first: the rest of the view reads them.
+scanControls('icon', {
+  upload: tHtml('icon.upload'),
+  sheetHint: tHtml('icon.sheet.hint'),
+  colourExtra: `<label class="check"><input id="icon-scan-colours" type="checkbox" checked /> ${tHtml('icon.scan-colours')}</label>`,
+})
 
 // ---- The editable fields. One line per style setting. ----
 
@@ -81,7 +90,7 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 // Storage keys keep the project's first name, sketch-to-mark, so styles saved before the rename still load.
 const book = new StyleBook<IconStyle>({ noun: 'icon', key: 'sketch-to-mark.styles', builtIn: BUILT_IN, read: readStyle })
 /** The latest from the scan step: the drawings on the photo and its colours. */
-let scanned: Scanned = { name: 'drawing', drawings: [], pick: 0, sheet: false, colours: { ink: '#1d1a24', paper: null }, photo: 0 }
+let scanned: Scanned = { name: 'drawing', drawings: [], pick: 0, sheet: false, colours: { ink: '#1d1a24', paper: null }, art: null, photo: 0 }
 
 /**
  * The style as drawn: the edited one, with the image's colours when "Icons
@@ -329,6 +338,15 @@ $('icon-dl-svg').addEventListener('click', async () => {
   download(new Blob([toSvg(r, plainColours())], { type: 'image/svg+xml' }), `${iconName()}.svg`)
 })
 
+$('icon-copy-svg').addEventListener('click', async (e) => {
+  const m = plainMask()
+  if (!m) return
+  const btn = e.currentTarget as HTMLButtonElement
+  const r = await trace(m, { ignore: 2, smoothness: style.trace.smoothness, simplify: style.trace.simplify })
+  await navigator.clipboard.writeText(toSvg(r, plainColours()))
+  flash(btn)
+})
+
 $('icon-dl-png').addEventListener('click', () => {
   const m = plainMask()
   if (!m) return
@@ -357,14 +375,6 @@ const scan = new ScanStep('icon', (next) => {
   showTune()
   useDrawings()
   if (coloursChanged && $<HTMLInputElement>('icon-scan-colours').checked) applied()
-})
-
-$('icon-upload').addEventListener('click', () => $('icon-file').click())
-$<HTMLInputElement>('icon-file').addEventListener('change', (e) => {
-  const input = e.target as HTMLInputElement
-  const f = input.files?.[0]
-  input.value = ''
-  if (f) void scan.open(f, f.name)
 })
 
 /** A photo opened, dropped or pasted while the Icon view is open. */
@@ -421,6 +431,8 @@ for (const k of Object.keys(tuneIn) as (keyof Tune)[]) {
     useDrawings()
   })
 }
+// Rotate and line spread share a globe, with the image's globes (Logo's "Tune").
+globePair(t('icon.globe-tune'), { input: tuneIn.rotate }, { input: tuneIn.spread }, $('icon-globes'))
 
 /** Each drawing as fine tuned, kept while neither the drawing nor its tuning changes. */
 const tunedCache = new WeakMap<Mask, { key: string; mask: Mask }>()

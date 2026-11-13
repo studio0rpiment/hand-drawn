@@ -18,16 +18,10 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 ## Upload
 
 `icon.upload` Upload a drawing (photo)
-`icon.image` Image
 
 ## Adjust image
 
-`icon.paper` Paper
-`icon.ink` Ink
-`icon.colour` Colour
-`icon.colour.hint` Read from the photo.
 `icon.scan-colours` Icons in these colours (off: the style’s own)
-`icon.sheet` Drawings on this sheet
 `icon.sheet.hint` For a page of icons: each drawing is found and numbered, row by row, and the page becomes an icon set. Pick one in the tray under the image to adjust it and see it large. Small drawings found as one: lower the group marks limit.
 
 ## Adjust drawing
@@ -37,6 +31,7 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `icon.rotate` Rotate
 `icon.spread` Line spread
 `icon.square` Square artboard (plain SVG and PNG)
+`icon.globe-tune` Tune
 
 ## Adjust styles
 
@@ -120,6 +115,7 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `icon.dl-sprite` Download sprite
 `icon.copy-head` Copy <head> tags
 `icon.dl-svg` Download plain SVG
+`icon.copy-svg` Copy plain SVG
 `icon.dl-png` Download plain PNG
 `icon.packing` Packing…
 

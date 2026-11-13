@@ -10,308 +10,28 @@
   <body>
     <header class="bar">
       <div class="title">
-        <h1>{{common.name}}</h1>
+        <h1><button id="home-link" class="home-link" type="button" aria-label="{{home.link}}">{{common.name}}</button></h1>
         <p class="tagline">{{common.tagline}}</p>
       </div>
       <nav class="tabs" aria-label="{{common.tabs}}">
-        <button data-flag="tab.scan" class="tab" type="button" data-view="app" aria-pressed="true" data-icon="horizon-fill">{{common.tab.scan}}</button>
-        <button data-flag="tab.logo" id="logo-tab" class="tab" type="button" data-view="logo-app" aria-pressed="false" aria-disabled="true" data-icon="blob-fill">{{common.tab.logo}}</button>
         <button data-flag="tab.icon" id="icon-tab" class="tab" type="button" data-view="icon-app" aria-pressed="false" data-icon="triangle-y-fill">{{common.tab.icon}}</button>
-        <button data-flag="tab.texture" id="texture-tab" class="tab" type="button" data-view="texture-app" aria-pressed="false" aria-disabled="true" data-icon="hatch-heavy-fill">{{common.tab.texture}}</button>
+        <button data-flag="tab.texture" id="texture-tab" class="tab" type="button" data-view="texture-app" aria-pressed="false" data-icon="hatch-heavy-fill">{{common.tab.texture}}</button>
         <button data-flag="tab.font" id="font-tab" class="tab" type="button" data-view="font-app" aria-pressed="false" data-icon="spiral-tight-fill">{{common.tab.font}}</button>
       </nav>
       <div class="bar-actions">
-        <label class="button primary" data-icon="arrow-bar-fill-r270">
-          {{common.open}}
-          <input id="file" type="file" accept="image/*,.heic,.heif" multiple hidden />
-        </label>
-        <button id="sample" class="button" type="button" data-icon="star-scribble-fill">{{common.sample}}</button>
+        <button id="sample" class="button" type="button" data-icon="star-scribble-fill" hidden>{{common.sample}}</button>
       </div>
     </header>
 
-    <main id="app" class="empty">
-      <section class="intro" id="intro">
-        <h2 class="intro-title">{{scan.title}}</h2>
-        <div class="row intro-actions">
-          <button id="intro-open" class="button primary" type="button" data-icon="arrow-bar-fill-r270">{{scan.open}}</button>
-          <button id="intro-sample" class="button" type="button" data-icon="star-scribble-fill">{{scan.sample}}</button>
-        </div>
-      </section>
-
-      <aside class="controls" aria-label="{{scan.settings}}">
-        <fieldset>
-          <legend>{{scan.sheet}}</legend>
-          <label class="check accent"><input id="sheet-on" type="checkbox" /> {{scan.sheet-on}}</label>
-          <p class="hint">{{scan.sheet.hint}}</p>
-          <label class="slider">
-            <span>{{scan.gap}} <output id="gap-out"></output></span>
-            <input id="gap" type="range" min="0" max="160" step="1" value="30" />
-          </label>
-          <p class="hint" id="sheet-count" aria-live="polite"></p>
-        </fieldset>
-
-        <fieldset>
-          <legend>{{scan.paper}}</legend>
-          <p class="hint">{{scan.paper.hint}}</p>
-          <div class="row">
-            <button id="detect" class="button small" type="button">{{scan.detect}}</button>
-            <button id="whole" class="button small" type="button">{{scan.whole}}</button>
-          </div>
-          <div class="turn-row">
-            <label class="slider">
-              <span>{{scan.turn}} <output id="turn-out"></output></span>
-              <input id="turn" type="range" min="-45" max="45" step="0.1" value="0" />
-            </label>
-            <button id="turn-90" class="button mini" type="button" aria-label="{{scan.turn-90}}" title="{{scan.turn-90}}">↻ 90°</button>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>{{scan.ink}}</legend>
-          <label class="slider">
-            <span>{{scan.flatten}} <output id="flatten-out"></output></span>
-            <input id="flatten" type="range" min="0" max="1" step="0.05" value="0.9" />
-          </label>
-          <label class="slider">
-            <span>{{scan.level}} <output id="level-out"></output></span>
-            <input id="level" type="range" min="1" max="254" step="1" value="128" />
-          </label>
-          <label class="check"><input id="level-auto" type="checkbox" checked /> {{scan.level-auto}}</label>
-          <label class="slider">
-            <span>{{scan.weight}} <output id="weight-out"></output></span>
-            <input id="weight" type="range" min="-3" max="3" step="1" value="0" />
-          </label>
-          <label class="slider">
-            <span>{{scan.speck}} <output id="speck-out"></output></span>
-            <input id="speck" type="range" min="0" max="400" step="5" value="40" />
-          </label>
-          <label class="slider">
-            <span>{{scan.trim}} <output id="trim-out"></output></span>
-            <input id="trim" type="range" min="0" max="0.08" step="0.005" value="0.015" />
-          </label>
-        </fieldset>
-
-        <fieldset>
-          <legend>{{scan.colour}}</legend>
-          <p class="hint">{{scan.colour.hint}}</p>
-          <label class="slider">
-            <span>{{scan.ink-h}} <output id="ink-h-out"></output></span>
-            <input id="ink-h" type="range" min="0" max="360" step="1" value="260" />
-          </label>
-          <label class="slider">
-            <span>{{scan.ink-s}} <output id="ink-s-out"></output></span>
-            <input id="ink-s" type="range" min="0" max="100" step="1" value="16" />
-          </label>
-          <label class="slider">
-            <span>{{scan.ink-l}} <output id="ink-l-out"></output></span>
-            <input id="ink-l" type="range" min="0" max="100" step="1" value="12" />
-          </label>
-          <label class="check"><input id="paper-on" type="checkbox" /> {{scan.paper-on}}</label>
-          <label class="slider">
-            <span>{{scan.paper-h}} <output id="paper-h-out"></output></span>
-            <input id="paper-h" type="range" min="0" max="360" step="1" value="40" />
-          </label>
-          <label class="slider">
-            <span>{{scan.paper-s}} <output id="paper-s-out"></output></span>
-            <input id="paper-s" type="range" min="0" max="100" step="1" value="20" />
-          </label>
-          <label class="slider">
-            <span>{{scan.paper-l}} <output id="paper-l-out"></output></span>
-            <input id="paper-l" type="range" min="0" max="100" step="1" value="96" />
-          </label>
-          <div class="row">
-            <button id="measure" class="button small" type="button" data-icon="c-spiral-fill">{{scan.measure}}</button>
-          </div>
-        </fieldset>
-      </aside>
-
-      <section class="workspace" aria-label="{{scan.heading}}">
-        <div class="pane-head">
-          <h2>{{scan.heading}}</h2>
-          <button id="remove-photo" class="button small" type="button" data-icon="big-x-fill">{{scan.remove}}</button>
-          <div class="toggle" role="radiogroup" aria-label="{{scan.show}}">
-            <label><input type="radio" name="view" value="ink" checked /> {{scan.show-ink}}</label>
-            <label><input type="radio" name="view" value="flat" /> {{scan.show-flat}}</label>
-          </div>
-        </div>
-        <div class="pieces" id="pieces" role="listbox" aria-label="{{scan.tray}}" hidden></div>
-        <div class="result-wrap">
-          <div class="stage checker" id="result-stage">
-            <canvas id="ink-view"></canvas>
-            <canvas id="flat-view" hidden></canvas>
-          </div>
-          <!-- The original photo, small in the corner; enlarge it to place the sheet corners. -->
-          <div class="photo-inset" id="photo-inset">
-            <div class="stage" id="photo-stage">
-              <canvas id="photo"></canvas>
-              <svg id="handles" aria-label="{{scan.corners}}"></svg>
-            </div>
-            <button id="inset-size" class="inset-size" type="button" aria-pressed="false">{{scan.enlarge}}</button>
-          </div>
-        </div>
-        <div class="globe-arc" id="globe-arc" aria-label="{{scan.globes}}"></div>
-      </section>
-    </main>
-
-    <main id="logo-app" class="logo-app" hidden>
-      <aside class="controls" aria-label="{{logo.settings}}">
-        <fieldset>
-          <legend>{{logo.vector}}</legend>
-          <label class="slider">
-            <span>{{logo.smooth}} <output id="smooth-out"></output></span>
-            <input id="smooth" type="range" min="0" max="1.33" step="0.01" value="1" />
-          </label>
-          <label class="slider">
-            <span>{{logo.simplify}} <output id="simplify-out"></output></span>
-            <input id="simplify" type="range" min="0" max="1.5" step="0.05" value="0.2" />
-          </label>
-          <label class="slider">
-            <span>{{logo.pad}} <output id="pad-out"></output></span>
-            <input id="pad" type="range" min="0" max="200" step="4" value="32" />
-          </label>
-        </fieldset>
-
-        <fieldset>
-          <legend>{{logo.tuning}}</legend>
-          <p class="hint">{{logo.tuning.hint}}</p>
-          <label class="slider">
-            <span>{{logo.rotate}} <output id="rotate-out"></output></span>
-            <input id="rotate" type="range" min="-15" max="15" step="0.1" value="0" />
-          </label>
-          <label class="slider">
-            <span>{{logo.spread}} <output id="spread-out"></output></span>
-            <input id="spread" type="range" min="-1" max="1" step="0.05" value="0" />
-          </label>
-          <label class="slider">
-            <span>{{logo.ignore}} <output id="ignore-out"></output></span>
-            <input id="ignore" type="range" min="0" max="200" step="1" value="2" />
-          </label>
-          <label class="check"><input id="square" type="checkbox" /> {{logo.square}}</label>
-        </fieldset>
-
-        <fieldset>
-          <legend>{{logo.colour}}</legend>
-          <label class="check"><input id="logo-scan-colours" type="checkbox" checked /> {{logo.scan-colours}}</label>
-          <div class="row" id="logo-own-colours" hidden>
-            <label class="swatch">{{logo.ink}} <input id="ink" type="color" value="#1d1a24" /></label>
-            <label class="swatch">{{logo.bg}} <input id="bg" type="color" value="#ffffff" /></label>
-          </div>
-          <label class="check"><input id="bg-on" type="checkbox" /> {{logo.bg-on}}</label>
-        </fieldset>
-
-        <fieldset>
-          <legend>{{logo.export}}</legend>
-          <div class="row">
-            <button id="dl-svg" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">{{logo.dl-svg}}</button>
-            <button id="copy-svg" class="button small" type="button" data-icon="equals-fill">{{logo.copy-svg}}</button>
-            <button id="dl-png" class="button small" type="button" data-icon="arrow-bar-fill-r90">{{logo.dl-png}}</button>
-          </div>
-          <div class="row">
-            <button id="dl-all" class="button small" type="button" data-icon="arrow-bar-fill-r90">{{logo.dl-all}}</button>
-          </div>
-          <p class="stats" id="stats" aria-live="polite"></p>
-        </fieldset>
-      </aside>
-
-      <section class="workspace" aria-label="{{logo.heading}}">
-        <div class="pane-head">
-          <h2>{{logo.heading}}</h2>
-        </div>
-        <div class="stage checker logo-stage" id="logo-stage">
-          <div id="vector-view"></div>
-        </div>
-        <div class="globe-arc" id="logo-globes" aria-label="{{logo.globes}}"></div>
-      </section>
+    <main id="home" class="home">
+      <h2 class="home-title">{{home.title}}</h2>
+      <p class="home-lead" id="home-lead"></p>
     </main>
 
     <main id="icon-app" class="icon-app" hidden>
       <aside class="controls" aria-label="{{icon.settings}}">
         <h2 class="step">{{icon.step-image}}</h2>
-        <fieldset>
-          <legend>{{icon.paper}}</legend>
-          <p class="hint">{{scan.paper.hint}}</p>
-          <div class="row">
-            <button id="icon-detect" class="button small" type="button">{{scan.detect}}</button>
-            <button id="icon-whole" class="button small" type="button">{{scan.whole}}</button>
-          </div>
-          <div class="turn-row">
-            <label class="slider">
-              <span>{{scan.turn}} <output id="icon-turn-out"></output></span>
-              <input id="icon-turn" type="range" min="-45" max="45" step="0.1" value="0" />
-            </label>
-            <button id="icon-turn-90" class="button mini" type="button" aria-label="{{scan.turn-90}}" title="{{scan.turn-90}}">↻ 90°</button>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>{{icon.ink}}</legend>
-          <label class="slider">
-            <span>{{scan.flatten}} <output id="icon-flatten-out"></output></span>
-            <input id="icon-flatten" type="range" min="0" max="1" step="0.05" value="0.9" />
-          </label>
-          <label class="slider">
-            <span>{{scan.level}} <output id="icon-level-out"></output></span>
-            <input id="icon-level" type="range" min="1" max="254" step="1" value="128" />
-          </label>
-          <label class="check"><input id="icon-level-auto" type="checkbox" checked /> {{scan.level-auto}}</label>
-          <label class="slider">
-            <span>{{scan.weight}} <output id="icon-weight-out"></output></span>
-            <input id="icon-weight" type="range" min="-3" max="3" step="1" value="0" />
-          </label>
-          <label class="slider">
-            <span>{{scan.speck}} <output id="icon-speck-out"></output></span>
-            <input id="icon-speck" type="range" min="0" max="400" step="5" value="40" />
-          </label>
-          <label class="slider">
-            <span>{{scan.trim}} <output id="icon-trim-out"></output></span>
-            <input id="icon-trim" type="range" min="0" max="0.08" step="0.005" value="0.015" />
-          </label>
-        </fieldset>
-
-        <fieldset>
-          <legend>{{icon.colour}}</legend>
-          <p class="hint">{{icon.colour.hint}}</p>
-          <label class="slider">
-            <span>{{scan.ink-h}} <output id="icon-ink-h-out"></output></span>
-            <input id="icon-ink-h" type="range" min="0" max="360" step="1" value="260" />
-          </label>
-          <label class="slider">
-            <span>{{scan.ink-s}} <output id="icon-ink-s-out"></output></span>
-            <input id="icon-ink-s" type="range" min="0" max="100" step="1" value="16" />
-          </label>
-          <label class="slider">
-            <span>{{scan.ink-l}} <output id="icon-ink-l-out"></output></span>
-            <input id="icon-ink-l" type="range" min="0" max="100" step="1" value="12" />
-          </label>
-          <label class="check"><input id="icon-paper-on" type="checkbox" /> {{scan.paper-on}}</label>
-          <label class="slider">
-            <span>{{scan.paper-h}} <output id="icon-paper-h-out"></output></span>
-            <input id="icon-paper-h" type="range" min="0" max="360" step="1" value="40" />
-          </label>
-          <label class="slider">
-            <span>{{scan.paper-s}} <output id="icon-paper-s-out"></output></span>
-            <input id="icon-paper-s" type="range" min="0" max="100" step="1" value="20" />
-          </label>
-          <label class="slider">
-            <span>{{scan.paper-l}} <output id="icon-paper-l-out"></output></span>
-            <input id="icon-paper-l" type="range" min="0" max="100" step="1" value="96" />
-          </label>
-          <div class="row">
-            <button id="icon-measure" class="button small" type="button" data-icon="c-spiral-fill">{{scan.measure}}</button>
-          </div>
-          <label class="check"><input id="icon-scan-colours" type="checkbox" checked /> {{icon.scan-colours}}</label>
-        </fieldset>
-
-        <fieldset>
-          <legend>{{icon.sheet}}</legend>
-          <label class="check accent"><input id="icon-sheet-on" type="checkbox" /> {{scan.sheet-on}}</label>
-          <p class="hint">{{icon.sheet.hint}}</p>
-          <label class="slider">
-            <span>{{scan.gap}} <output id="icon-gap-out"></output></span>
-            <input id="icon-gap" type="range" min="0" max="160" step="1" value="30" />
-          </label>
-          <p class="hint" id="icon-sheet-count" aria-live="polite"></p>
-        </fieldset>
+        <div id="icon-scan-controls"></div>
 
         <h2 class="step">{{icon.step-drawing}}</h2>
         <fieldset>
@@ -343,6 +63,7 @@
           </div>
           <div class="row">
             <button id="icon-dl-svg" class="button small" type="button" data-icon="arrow-bar-fill-r90">{{icon.dl-svg}}</button>
+            <button id="icon-copy-svg" class="button small" type="button" data-icon="equals-fill">{{icon.copy-svg}}</button>
             <button id="icon-dl-png" class="button small" type="button" data-icon="arrow-bar-fill-r90">{{icon.dl-png}}</button>
           </div>
           <p class="stats" id="icon-stats" aria-live="polite"></p>
@@ -351,34 +72,7 @@
       </aside>
 
       <section class="icon-preview">
-        <div class="upload-bar">
-          <button id="icon-upload" class="button primary small" type="button" data-icon="arrow-bar-fill-r270">{{icon.upload}}</button>
-          <input id="icon-file" type="file" accept="image/*,.heic,.heif" hidden />
-          <button id="icon-remove" class="button small" type="button" data-icon="big-x-fill" hidden>{{scan.remove}}</button>
-        </div>
-        <div class="pane image-pane empty" id="icon-image-pane">
-          <div class="pane-head">
-            <h2>{{icon.image}}</h2>
-            <div class="toggle" role="radiogroup" aria-label="{{scan.show}}">
-              <label><input type="radio" name="icon-view" value="ink" checked /> {{scan.show-ink}}</label>
-              <label><input type="radio" name="icon-view" value="flat" /> {{scan.show-flat}}</label>
-            </div>
-          </div>
-          <div class="result-wrap">
-            <div class="stage checker result-stage">
-              <canvas id="icon-ink-view"></canvas>
-              <canvas id="icon-flat-view" hidden></canvas>
-            </div>
-            <div class="photo-inset" id="icon-inset">
-              <div class="stage photo-stage">
-                <canvas id="icon-photo"></canvas>
-                <svg id="icon-handles" class="handles" aria-label="{{scan.corners}}"></svg>
-              </div>
-              <button id="icon-inset-size" class="inset-size" type="button" aria-pressed="false">{{scan.enlarge}}</button>
-            </div>
-          </div>
-          <div class="pieces" id="icon-pieces" role="listbox" aria-label="{{scan.tray}}" hidden></div>
-        </div>
+        <div id="icon-scan-image"></div>
         <div class="pane" id="icon-set-pane" hidden>
           <div class="pane-head">
             <h2>{{icon.set}}</h2>
@@ -400,11 +94,11 @@
 
     <main id="texture-app" class="texture-app" hidden>
       <aside class="controls" aria-label="{{texture.settings}}">
+        <h2 class="step">{{texture.step-image}}</h2>
+        <div id="texture-scan-controls"></div>
+
+        <h2 class="step">{{texture.step-styles}}</h2>
         <div id="texture-style-box"></div>
-        <fieldset>
-          <legend>{{texture.colour}}</legend>
-          <label class="check"><input id="texture-scan-colours" type="checkbox" checked /> {{texture.scan-colours}}</label>
-        </fieldset>
         <fieldset>
           <legend>{{texture.size}}</legend>
           <label class="field">{{texture.preset}} <select id="tex-preset"></select></label>
@@ -418,6 +112,8 @@
           <p class="hint" id="tex-size-note" aria-live="polite"></p>
         </fieldset>
         <div id="texture-fields"></div>
+
+        <h2 class="step">{{texture.step-output}}</h2>
         <fieldset>
           <legend>{{texture.export}}</legend>
           <div class="row">
@@ -425,11 +121,13 @@
             <button id="texture-css" class="button small" type="button" data-icon="equals-fill">{{texture.copy-css}}</button>
           </div>
           <p class="stats" id="texture-stats" aria-live="polite"></p>
+          <div id="texture-style-actions"></div>
         </fieldset>
       </aside>
 
       <section class="icon-preview">
-        <div class="pane">
+        <div id="texture-scan-image"></div>
+        <div class="pane result-pane empty" id="texture-print-pane">
           <h2>{{texture.print}}</h2>
           <div class="stage texture-stage"><canvas id="texture-view" class="checker"></canvas></div>
         </div>
@@ -467,6 +165,7 @@
             <button id="sheet-toggle" class="button small fold-toggle" type="button" aria-expanded="false" aria-controls="sheet-body">{{font.sheet}}</button>
             <label class="check trace-check"><input id="sheet-trace" type="checkbox" /> {{font.trace}}</label>
             <button id="font-upload" class="button primary small" type="button" data-icon="arrow-bar-fill-r270">{{font.upload}} <span class="pages-count" id="pages-count" aria-live="polite"></span></button>
+            <input id="font-file" type="file" accept="image/*,.heic,.heif" multiple hidden />
             <div class="sheet-body" id="sheet-body" hidden>
               <p class="hint">{{font.sheet.hint}}</p>
               <div class="sheet-pages">

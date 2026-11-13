@@ -64,7 +64,7 @@ describe('the text files', () => {
       ...['tiles', 'screens', 'print'].map((g) => `texture.size-group.${g}`),
       ...['square-512', 'square-1024', 'square-2048', 'square-4096', 'hd', '4k', 'post', 'story', 'banner', 'phone'].map((s) => `texture.size.${s}`),
       ...['a5', 'a4', 'letter', '5x7', '8x10', '11x14', '12x12'].map((s) => `texture.size.${s}`),
-      ...['scan', 'logo', 'icon', 'texture', 'font'].flatMap((tab) => [`flag.tab.${tab}`, `flag.tab.${tab}.title`]),
+      ...['icon', 'texture', 'font'].flatMap((tab) => [`flag.tab.${tab}`, `flag.tab.${tab}.title`]),
       ...['consent', 'icon', 'icon-current', 'texture', 'texture-current', 'font', 'font-current'].map((s) => `privacy.store-${s}`),
     ]
     for (const key of want) expect(TEXT[key], key).toBeDefined()

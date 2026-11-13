@@ -45,9 +45,9 @@ panel.addEventListener('click', (e) => {
   panel.hidden = true
 })
 
-/** Where the panel rests: halfway up the window, or just below the Scan buttons if they reach lower. */
+/** Where the panel rests: halfway up the window, or just below the landing's words if they reach lower. */
 function restingPlace() {
-  const buttons = document.querySelector('.intro-actions')
+  const buttons = document.querySelector('.home-lead')
   const below = buttons && buttons.getClientRects().length ? buttons.getBoundingClientRect().bottom + 16 : 0
   document.documentElement.style.setProperty('--notice-top', `${Math.max(innerHeight / 2, below)}px`)
 }

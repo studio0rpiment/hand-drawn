@@ -6,12 +6,20 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 
 ## Settings
 
-`texture.settings` Texture style
+`texture.settings` Texture settings
 
-## Colour
+## Steps
 
-`texture.colour` Colour
-`texture.scan-colours` Colours from the scan
+`texture.step-image` Adjust image
+`texture.step-styles` Adjust styles
+`texture.step-output` Output and system
+
+## Upload and adjust image
+
+`texture.upload` Upload a drawing (photo)
+`texture.scan-colours` Texture in these colours (off: the style’s own)
+`texture.sheet.hint` For a page of drawings: each one is found and numbered, row by row. Pick one in the tray under the image; that's the one printed. Small drawings found as one: lower the group marks limit.
+`texture.presets` Preset styles
 
 ## Size
 

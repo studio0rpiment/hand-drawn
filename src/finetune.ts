@@ -1,4 +1,4 @@
-// Fine tuning for a logo, on the scanned ink just before it is traced:
+// Fine tuning for a drawing, on the scanned ink just before it is traced:
 // a little rotation to straighten a drawing, a sub-pixel change of line
 // weight, and an optional square artboard. Pure, no DOM.
 

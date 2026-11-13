@@ -12,49 +12,46 @@ pnpm test
 
 ## How it works
 
-1. **Scan** — the first tab captures the drawing, once, for Logo and Texture
-   (Icon and Font take their own photos):
-   - **Paper:** finds the sheet in the photo by its colour (paper is grey or
-     white, a table is not; brightness alone is the fallback), takes the
-     largest four-sided shape inside its outline, and straightens it. Drag the four corners to
-     correct it; arrow keys nudge a focused corner (Shift for bigger steps).
-   - **Ink:** evens out the light by dividing by an estimate of the bare
-     paper, picks an ink cut-off (Otsu), trims the edges, removes specks and
-     fills pinholes, and adjusts line weight.
-   - **Colour:** reads the ink and paper colours from the photo (the middle
-     of each, so blended edges, shadows and glare don't count) and lets you
-     adjust them in hue, saturation and lightness, or leave the paper out.
-     Logo, icons and textures use these colours unless set to their own.
-   - **Sheet:** finds every drawing on a page; the one picked in the tray is
-     what every output works on.
-   - **Remove photo** clears the photo and everything made from it; the
-     settings stay. A first visit opens on the Scan title and its two
-     buttons; the open tab is marked in yellow. Each tab has an explanation
-     flag (after Variable Machine's: a slanted outline with a tail pointing
-     at the tab), on hover or keyboard focus; the words are in
-     `src/flags.md`. On arrival the privacy card appears at the bottom
-     centre, then slides up to rest halfway up the window (or just below the
-     Scan buttons, if they reach lower), and stays
-     until a choice is made.
-2. **Logo** — traces the ink with potrace and exports an SVG in plain pixel
-   coordinates, a single evenodd path, in the scan's colours or its own. The
-   SVG, PNG and set of all SVGs are transparent unless the background is
-   filled on the Logo tab (with the scan's colours, in its paper colour);
-   keeping the paper on the Scan view doesn't carry over. A PNG of the
-   cleaned ink too.
-   **Fine tuning** works on the vector only: rotate (±15°, to straighten a
-   drawing), line spread (edges out or in by up to a pixel, finer than the
-   scan's line weight), ignore spots under a size, and a square artboard.
+A first visit opens on the landing: **Hand Drawn**, large, and "Create an
+icon pack, a texture or a font from your own drawings", each of the three a
+yellow way into its tab. The wordmark in the header leads back. There are
+three tabs, each a generator with its own upload and scan step; the open tab
+is marked in yellow. Each tab has an explanation flag (after Variable
+Machine's: a slanted outline with a tail pointing at the tab), on hover or
+keyboard focus. On arrival the privacy card appears at the bottom centre,
+then slides up to rest halfway up the window (or just below the landing's
+words, if they reach lower), and stays until a choice is made. A photo
+dropped or pasted goes to the open tab (on the landing, to Icon).
 
-Every control updates as it moves: while a globe rolls or a slider is
-dragged, the drawing is worked out on a half-size copy, and a full-size pass
-follows when it is let go.
-3. **Icon** — one flow, top to bottom, like Font. Upload a photo in the
+**The scan step** (Icon and Texture; `src/ui/scan-step.ts`, its controls
+from `src/ui/scan-markup.ts`):
+
+- **Paper:** finds the sheet in the photo by its colour (paper is grey or
+  white, a table is not; brightness alone is the fallback), takes the
+  largest four-sided shape inside its outline, and straightens it. Drag the
+  four corners to correct it; arrow keys nudge a focused corner (Shift for
+  bigger steps). Rotation turns the photo by a quarter or a slight tilt.
+- **Ink:** evens out the light by dividing by an estimate of the bare paper,
+  picks an ink cut-off (Otsu), trims the edges, removes specks, and adjusts
+  line weight.
+- **Colour:** reads the ink and paper colours from the photo (the middle of
+  each, so blended edges, shadows and glare don't count) to adjust in hue,
+  saturation and lightness, or leave the paper out. The tab uses them unless
+  set to its style's own.
+- **Drawings on this sheet:** finds every drawing on a page; the one picked
+  in the tray under the image is what the tab works on.
+- **Globes:** related pairs are one ball, rolled to set both, in an arc under
+  the image: Light (even out light, cut-off), Ink (line weight, specks), Ink
+  colour (hue, saturation), and on the Icon tab Tune (rotate, line spread).
+  The paper's colour stays as sliders.
+- **Remove photo** clears the photo and everything made from it; the
+  settings stay.
+
+1. **Icon** — one flow, top to bottom, like Font. Upload a photo in the
    yellow dashed box above the previews, then down the settings:
-   - **Adjust image:** the tab's own scan step (`src/ui/scan-step.ts`, the
-     same image work as Scan): paper corners and rotation, ink, colour, and
-     several drawings on a sheet, picked in the tray under the image.
-   - **Adjust drawing:** Logo's fine tuning (rotate, line spread), kept per
+   - **Adjust image:** the scan step (above).
+   - **Adjust drawing:** fine tuning (rotate ±15°, to straighten a drawing;
+     line spread, edges out or in by up to a pixel), kept per
      drawing of a sheet; square artboard for the plain downloads. Specks are
      removed in one place only, *Remove specks under* in Ink; the style's
      trace speck size stays in its JSON (8, as hand-icons) but has no control
@@ -63,15 +60,21 @@ follows when it is let go.
      variants, rotations and mirrors, an optional container, light and dark
      colours (by default the image's, with the dark version's lightness
      turned over), favicons and a sprite.
-   - **Output and system:** the icon pack, sprite, `<head>` tags, a plain SVG
-     and PNG of the drawing, and the preset controls (save, delete, export,
+   - **Output and system:** the icon pack, sprite, `<head>` tags, the
+     drawing alone as a plain SVG (one evenodd path in pixel coordinates;
+     download or copy) and PNG, transparent unless the paper is kept, and
+     the preset controls (save, delete, export,
      import, reset).
    Empty results are yellow dashed boxes named in silver.
-4. **Texture** — prints the drawing with its hand-made quality
-   kept: rubber stamp, risograph, halftone or the ink as drawn, once or as a
-   seamless repeating tile. Also driven by styles.
-5. **Font** — prints a two-page letter sheet, reads photos of
-   it, and builds an OpenType font under a font style.
+2. **Texture** — the same flow: upload, adjust image (the scan step), then
+   prints the picked drawing with its hand-made quality kept: rubber stamp,
+   risograph, halftone or the ink as drawn, once or as a seamless repeating
+   tile. Also driven by styles, with the preset controls by the export.
+3. **Font** — prints a two-page letter sheet, reads photos of it (or of
+   letters drawn freehand on any paper), and builds an OpenType font under a
+   font style.
+
+Every control updates as it moves.
 
 The code is split so the image processing (`src/image.ts`, `src/paper.ts`,
 `src/clean.ts`, `src/svgpath.ts`, and in `src/icon/`, `src/texture/` and
@@ -88,7 +91,8 @@ in a text file in `src/text/`:
 | File | What it holds |
 |---|---|
 | `common.md` | what every screen shares: header, tabs and their flags, footer, privacy card, style box, a few messages |
-| `scan.md`, `logo.md`, `icon.md`, `texture.md`, `font.md` | one per tab |
+| `scan.md` | the scan step, shared by Icon and Texture |
+| `icon.md`, `texture.md`, `font.md` | one per tab |
 | `privacy.md` | the privacy policy page |
 
 Each line starts with a key in backticks, then the words; change the words,
@@ -100,16 +104,13 @@ runs, saving a text file reloads the page.
 
 ## Sheets of drawings
 
-Tick **Several drawings on this sheet** (Scan panel) for a page of icons or of
-logo iterations. Every separate drawing is found and numbered row by row;
-ink closer than the chosen distance counts as one drawing, and a mark inside
-another drawing (a dot in a ring) always stays with it. A strip of numbered
-thumbnails above the scan picks the drawing every output works on.
+Tick **Several drawings on this sheet** (Icon or Texture, in Adjust image)
+for a page of drawings. Every separate drawing is found and numbered row by
+row; ink closer than the chosen distance counts as one drawing, and a mark
+inside another drawing (a dot in a ring) always stays with it. A strip of
+numbered thumbnails under the image picks the drawing the tab works on.
 
-- **Logo:** *Download all SVGs* traces every drawing with the current settings
-  into one zip, for comparing iterations.
-- **Icon:** the same tick is in the Icon tab's own *Drawings on this sheet*;
-  the *Icon set* panel builds every drawing in the current icon style; *Download icon set* gives one sprite with all of them (hand-icons
+- **Icon:** the *Icon set* panel builds every drawing in the current icon style; *Download icon set* gives one sprite with all of them (hand-icons
   symbol names, numbered manifest), an SVG per icon, variant and direction,
   and the style. Clicking an icon picks it for the detailed previews.
 
@@ -281,9 +282,7 @@ Quickhand typewriter font, made with Hand Drawn. The preset variations' save,
 delete, export, import and reset sit at the bottom with the export. A preset
 shows in yellow while it holds, and in a light green-grey once a setting
 below is changed. *Try a sample* opens both pages of the alphabet as
-Kevin traced them, to try it without drawing (from Scan, alongside the sample
-drawing; the font is built in the background, ready when the Font tab is
-opened). Tick **with letters to trace** before
+Kevin traced them, to try it without drawing. Tick **with letters to trace** before
 printing to get light Helvetica letters in every box (wide capitals are
 narrowed to fit): trace them with a marker to test the whole font pipeline.
 The light print drops out when the photo is read. A ready-made copy of all three
@@ -292,15 +291,15 @@ pages is in `guides/letter-sheet-trace.pdf`.
 
 ## Freehand letters
 
-Letters can also be drawn on any paper, without the sheet. Open the page in
-Scan with **Several drawings on this sheet** ticked; in Font, the drawings
-appear under **Freehand letters**, below the glyphs (only then; template
-sheets map themselves), in reading order (rows from the top, each
+Letters can also be drawn on any paper, without the sheet. Upload a photo of
+the page in Font: a photo that isn't a letter sheet (its corner squares
+aren't found) is split into drawings, which appear under **Freehand
+letters**, below the glyphs (only then; template sheets map themselves), in reading order (rows from the top, each
 left to right). Drag each onto its letter, or tap a drawing and then its
 letter, or type the letters in the order they were drawn and **Fill in
 order**. A placed letter dragged onto another swaps with it; dragged back to
-the drawings, it comes out. Placed letters stay when Scan moves on to another
-photo, so a font can be gathered from several pages, and a letter placed
+the drawings, it comes out. Placed letters stay when another photo comes
+in, so a font can be gathered from several pages, and a letter placed
 freehand wins over the same letter on a sheet.
 
 With no guide lines, the size comes from the letters themselves: one scale

@@ -105,8 +105,8 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 
 `font.freehand` Freehand letters
 `font.freehand.hint` **Map each glyph to its character.** Drag each drawing onto its letter, or tap a drawing and then its letter; or type the letters in the order they were drawn (rows from the top, left to right) and fill them in. Drag a placed letter onto another to swap them, or back to the drawings to take it out.
-`font.freehand.none` No drawings yet: open a page in Scan with “Several drawings on this sheet” ticked.
-`font.freehand.drawings` Drawings from Scan
+`font.freehand.none` No drawings yet: upload a photo of letters drawn on plain paper.
+`font.freehand.drawings` Drawings on the page
 `font.freehand.slots` Letters
 `font.freehand.order` Letters in drawing order
 `font.freehand.fill` Fill in order

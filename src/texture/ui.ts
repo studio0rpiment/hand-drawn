@@ -1,9 +1,11 @@
-// The Texture view: print the drawing as stamp, riso, halftone or plain ink,
-// lay it out once or as a seamless tile, and export a PNG.
+// The Texture view: upload a photo and adjust the image (its own scan step),
+// then print the drawing as stamp, riso, halftone or plain ink, lay it out
+// once or as a seamless tile, and export a PNG.
 
-import { onScanColours, scanColours } from '../ui/scan-colour'
+import { scanControls } from '../ui/scan-markup'
+import { ScanStep, type Scanned } from '../ui/scan-step'
 import { slug } from '../icon/style'
-import { t, tn } from '../text'
+import { t, tHtml, tn } from '../text'
 import { buildFields, fixed, pct, plain, type FieldGroup } from '../ui/fields'
 import { StyleBook, styleBox } from '../ui/styles'
 import { flash } from '../ui/hand'
@@ -15,6 +17,13 @@ import { BUILT_IN, DOTS, LAYOUTS, LOOKS, MAX_SIDE, readTextureStyle, type Textur
 const px = (v: number) => `${v} px`
 const deg = (v: number) => `${v}°`
 type S = TextureStyle
+
+// The scan step's controls go in first: the rest of the view reads them.
+scanControls('texture', {
+  upload: tHtml('texture.upload'),
+  sheetHint: tHtml('texture.sheet.hint'),
+  colourExtra: `<label class="check"><input id="texture-scan-colours" type="checkbox" checked /> ${tHtml('texture.scan-colours')}</label>`,
+})
 
 const GROUPS: FieldGroup[] = [
   {
@@ -93,10 +102,13 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 
 // Storage keys keep the project's first name, sketch-to-mark, so styles saved before the rename still load.
 const book = new StyleBook<TextureStyle>({ noun: 'texture', key: 'sketch-to-mark.texture-styles', builtIn: BUILT_IN, read: readTextureStyle })
-/** The style as drawn: with the scan's ink and paper when "Colours from the scan" is on. */
+/** The latest from the scan step. */
+let scanned: Scanned | null = null
+
+/** The style as drawn: with the image's ink and paper when "Texture in these colours" is on. */
 function withScan(s: TextureStyle): TextureStyle {
-  if (!$<HTMLInputElement>('texture-scan-colours').checked) return s
-  const { ink, paper } = scanColours()
+  if (!$<HTMLInputElement>('texture-scan-colours').checked || !scanned) return s
+  const { ink, paper } = scanned.colours
   return { ...s, colors: { ...s.colors, ink, paper: paper ?? s.colors.paper, onPaper: paper !== null } }
 }
 let style = withScan(book.current)
@@ -108,8 +120,11 @@ let print: Print | null = null
 let printedFor = ''
 let result: HTMLCanvasElement | null = null
 
-const box = styleBox(book, () => applied())
+const box = styleBox(book, () => applied(), { markBuiltIn: false, actionsApart: true })
 $('texture-style-box').replaceWith(box.element)
+box.title(t('texture.presets'))
+// Saving, sharing and resetting presets sit with the export, at the bottom.
+$('texture-style-actions').replaceWith(box.actions)
 const fillFields = buildFields($('texture-fields'), GROUPS, 'tex', () => book.current, update)
 
 function update(next: TextureStyle) {
@@ -224,6 +239,13 @@ function renderSoon() {
 }
 
 function render() {
+  // No drawing: the print is an empty box with its name.
+  $('texture-print-pane').classList.toggle('empty', !rawArt)
+  if (!rawArt) {
+    $('texture-repeat-pane').hidden = true
+    result = null
+    $('texture-stats').textContent = ''
+  }
   if (!rawArt || $('texture-app').hidden) return
   art ??= resizeArt(rawArt)
   const t0 = performance.now()
@@ -291,11 +313,36 @@ $('texture-css').addEventListener('click', async (e) => {
   flash(btn)
 })
 
-// ---- Wiring to the Logo view ----
+// ---- Upload and adjust image ----
 
-/** Called with each new drawing from the Logo view: the light-evened photo and the ink, cropped alike. */
-export function setArt(next: Art | null, name: string) {
-  // Resized only when the Texture view draws, not on every change made in the Logo view.
+const scan = new ScanStep('texture', (next) => {
+  const coloursChanged = JSON.stringify(next.colours) !== JSON.stringify(scanned?.colours)
+  scanned = next
+  if (next.art?.mask !== rawArt?.mask) setArt(next.art, next.name)
+  if (coloursChanged && $<HTMLInputElement>('texture-scan-colours').checked) applied()
+})
+
+/** A photo opened, dropped or pasted while the Texture view is open. */
+export function openTexturePhoto(blob: Blob, name: string) {
+  return scan.open(blob, name)
+}
+
+/** The sample drawing, the page filling the photo. */
+export async function loadTextureSample() {
+  const res = await fetch('/sample-drawing.jpg')
+  if (!res.ok) return
+  const bitmap = await createImageBitmap(await res.blob())
+  const c = document.createElement('canvas')
+  c.width = bitmap.width
+  c.height = bitmap.height
+  c.getContext('2d', { willReadFrequently: true })!.drawImage(bitmap, 0, 0)
+  bitmap.close()
+  scan.openCanvas(c, 'sample', true)
+}
+
+/** The picked drawing: the light-evened photo and the ink, cropped alike. */
+function setArt(next: Art | null, name: string) {
+  // Resized only when the Texture view draws, not on every change made in the scan step.
   rawArt = next
   art = null
   artName = name
@@ -308,9 +355,6 @@ export function showTexture() {
 }
 
 $('texture-scan-colours').addEventListener('change', applied)
-onScanColours(() => {
-  if ($<HTMLInputElement>('texture-scan-colours').checked) applied()
-})
 
 fillFields(book.current)
 fillSize()

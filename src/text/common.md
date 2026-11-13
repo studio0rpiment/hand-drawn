@@ -1,6 +1,6 @@
 # Every screen
 
-The words every screen shares: the header and tabs, the tab flags, the footer, the privacy card, the style box (Icon, Texture and Font) and a few messages.
+The words every screen shares: the header and tabs, the landing page, the tab flags, the footer, the privacy card, the style box (Icon, Texture and Font) and a few messages.
 
 How to edit: change the words after a key; don't change the key in backticks, which ties the words to their place in the app. A long text may run on over several lines; a blank line ends it. {name} is filled in by the app (a number, a name). **bold**, *emphasis* and [a link](https://…) work. The screens show most words in lower case; write them in sentence case here.
 
@@ -14,33 +14,34 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `common.name` Hand Drawn
 `common.tagline` turn your sketches into SVG icons, logos, textures, and typefaces
 `common.tabs` Tools
-`common.open` Open photo
 `common.sample` Try a sample
 
 ## The tabs
 
-`common.tab.scan` Scan
-`common.tab.logo` Logo
 `common.tab.icon` Icon
 `common.tab.texture` Texture
 `common.tab.font` Font
 
+## The landing page
+
+`home.link` Hand Drawn: back to the start
+`home.title` Hand Drawn
+`home.lead` Create {icon}, {texture} or {font} from your own drawings.
+`home.icon` an icon pack
+`home.texture` a texture
+`home.font` a font
+
 ## Tab flags (open on hover or keyboard focus; about the thing, never "you")
 
-`flag.tab.scan.title` Scan
-`flag.tab.scan` Where every drawing starts. A photo of a drawing on paper is straightened, its light evened out and its ink picked out from the paper, in the ink's own colour. A page of several drawings is split into a numbered tray; the one picked there is what Logo and Texture work on.
-`flag.tab.logo.title` Logo
-`flag.tab.logo` The scanned drawing traced into a vector: an SVG of clean curves that holds at any size. Smoothness and simplify set how closely the curves follow the hand; fine tuning straightens the drawing or thickens its line by a fraction of a pixel. The colours are the scan's, or its own.
 `flag.tab.icon.title` Icon
-`flag.tab.icon` A photo of a drawing made into a family of icons under one style: line, fill and tint versions, turns and mirrors, an optional container, light and dark colours, favicons and a sprite. The photo is straightened and its ink picked out here; a page of drawings becomes a whole set in the same style.
+`flag.tab.icon` A photo of a drawing made into a family of icons under one style: line, fill and tint versions, turns and mirrors, an optional container, light and dark colours, favicons and a sprite, plus the drawing alone as a plain SVG or PNG. The photo is straightened and its ink picked out here; a page of drawings becomes a whole set in the same style.
 `flag.tab.texture.title` Texture
-`flag.tab.texture` The drawing printed with its hand-made quality kept: rubber stamp, risograph, halftone or the ink as drawn. Once on a canvas, or as a seamless repeating tile, at any size up to print at 300 dpi.
+`flag.tab.texture` A photo of a drawing printed with its hand-made quality kept: rubber stamp, risograph, halftone or the ink as drawn. Once on a canvas, or as a seamless repeating tile, at any size up to print at 300 dpi.
 `flag.tab.font.title` Font
 `flag.tab.font` A typeface from drawn letters. Two printed sheets of boxes, and an optional third for signs, are filled in, photographed and read. Spacing, kerning and accented letters are worked out after Hochuli and Cheng, and the font downloads as an OpenType file.
 
 ## Opening a photo
 
-`common.converting` Converting HEIC…
 `common.unreadable` This browser can’t read that image. Try exporting it as JPEG or PNG.
 
 ## Dropping a photo

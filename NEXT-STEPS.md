@@ -8,6 +8,14 @@ Newest decisions first.
 Hand Drawn narrows to three tabs, each a generator with its own scan step,
 the way the Font tab already works.
 
+**Done (2026-11-13, branch `icons-tab`):** Scan and Logo are removed; a
+landing page ("Hand Drawn", and create an icon pack, a texture or a font)
+comes first. Icon and Texture each have the scan step (`src/ui/scan-step.ts`)
+with Scan's globes (not paper colour); Icon has Logo's fine tuning, the Tune
+globe and the plain SVG/PNG downloads; Font reads its own photos and splits a
+page that isn't a letter sheet into freehand drawings. Still to do here: the
+tab names (Icons, Textures, Fonts), the Textures rebuild, layered icons.
+
 | Today | Planned |
 |---|---|
 | Scan | moves into each generator tab as its first step |

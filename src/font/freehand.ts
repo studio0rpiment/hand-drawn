@@ -1,4 +1,4 @@
-// Letters drawn freehand, on any paper: the Scan view splits the page into
+// Letters drawn freehand, on any paper: the Font view splits the page into
 // drawings, each is placed on its letter (dragged there, or filled in from
 // letters typed in drawing order), and here they are sized and set on the
 // baseline. With no guide lines to go by, one scale serves every drawing from

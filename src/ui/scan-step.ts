@@ -11,8 +11,15 @@ import { padBox, splitDrawings } from '../split'
 import { t } from '../text'
 import { cornerHandles, type CornerHandles } from './corners'
 import { reserveHoverWidths } from './hand'
+import { globePair } from './sphere'
 import { baseName, openImage, turned, WORK_SIDE } from './open-image'
-import type { ScanColours } from './scan-colour'
+
+/** The ink and paper colours read from the photo, then adjusted. */
+export interface ScanColours {
+  ink: string
+  /** null: the paper is left out (transparent). */
+  paper: string | null
+}
 
 export interface Scanned {
   /** The photo's name, for naming what is made from it. */
@@ -24,6 +31,8 @@ export interface Scanned {
   /** Several drawings on this sheet is ticked. */
   sheet: boolean
   colours: ScanColours
+  /** The picked drawing with the light-evened photo under it, cropped alike (for textures, which keep the photo's tones). */
+  art: { gray: GrayImage; mask: Mask } | null
   /** Counts the photos opened (and removed), so a new one can be told from new settings. */
   photo: number
 }
@@ -109,6 +118,18 @@ export class ScanStep {
       this.applyTurn()
     })
     this.el('remove').addEventListener('click', () => this.remove())
+    this.el('upload').addEventListener('click', () => this.el('file').click())
+    this.el<HTMLInputElement>('file').addEventListener('change', (e) => {
+      const input = e.target as HTMLInputElement
+      const f = input.files?.[0]
+      input.value = ''
+      if (f) void this.open(f, f.name)
+    })
+    // Related pairs become one globe, rolled to set both (the paper's colour stays as sliders).
+    const arc = this.el('globes')
+    globePair(t('scan.globe-light'), { input: this.sliders.flatten }, { input: this.sliders.level, whole: true }, arc)
+    globePair(t('scan.globe-ink'), { input: this.sliders.weight, whole: true }, { input: this.sliders.speck, whole: true }, arc)
+    globePair(t('scan.globe-ink-colour'), { input: this.sliders['ink-h'], whole: true }, { input: this.sliders['ink-s'], whole: true }, arc)
     this.el('inset-size').addEventListener('click', (e) => {
       const btn = e.currentTarget as HTMLButtonElement
       const big = this.el('inset').classList.toggle('big')
@@ -160,6 +181,7 @@ export class ScanStep {
   remove() {
     this.unturned = this.photo = this.quad = this.flat = this.gray = null
     this.flattened = this.page = this.split = null
+    clearTimeout(this.timer)
     this.measuredFor = null
     this.name = 'drawing'
     this.boxes = []
@@ -274,7 +296,21 @@ export class ScanStep {
   }
 
   private publish() {
-    this.changed({ name: this.name, drawings: this.drawings, pick: this.pick, sheet: this.el<HTMLInputElement>('sheet-on').checked, colours: this.colours(), photo: this.photoCount })
+    const box = this.boxes[this.pick]
+    const page = this.page
+    const art = box && page ? (() => {
+      const b = padBox(box, 2, page.mask.width, page.mask.height)
+      return { gray: cropMask(page.base, b), mask: cropMask(page.mask, b) }
+    })() : null
+    this.changed({
+      name: this.name,
+      drawings: this.drawings,
+      pick: this.pick,
+      sheet: this.el<HTMLInputElement>('sheet-on').checked,
+      colours: this.colours(),
+      art,
+      photo: this.photoCount,
+    })
   }
 
   /** Pick a drawing of the sheet (from the tray, or from the tab's own set of icons). */
