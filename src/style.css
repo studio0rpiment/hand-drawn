@@ -1967,3 +1967,9 @@ label.off {
 .image-pane.empty .globe-arc {
   display: none;
 }
+
+/* Photos being read: the upload waits. */
+.upload[aria-busy='true'] {
+  cursor: progress;
+  opacity: 0.6;
+}

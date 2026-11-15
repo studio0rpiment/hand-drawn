@@ -28,6 +28,7 @@ const pageButton = (page: number) => {
 scanControls('icon', {
   upload: `${tHtml('icon.upload')} <span class="pages-count" id="icon-pages-count"></span>`,
   multiple: true,
+  sheetOn: true,
   setup: `
     <div class="name-row">
       <label class="field inline">${tHtml('icon.set-name')} <input id="icon-set-name" type="text" spellcheck="false" autocomplete="off" /></label>
@@ -173,6 +174,9 @@ nameInput.addEventListener('input', () => {
 const iconName = () => slug(nameInput.value || maskName)
 
 // ---- Tracing and previews ----
+
+/** Let the page draw between two long steps (a photo read, an icon traced), so it never holds still. */
+const breathe = () => new Promise<void>((r) => requestAnimationFrame(() => setTimeout(r, 0)))
 
 let retraceTimer = 0
 let buildRun = 0
@@ -452,11 +456,33 @@ function addCanvas(c: HTMLCanvasElement, name: string, whole = false) {
   showPages()
 }
 
-async function addFiles(files: File[]) {
-  for (const f of files) {
-    const c = await openImage(f, f.name)
-    if (c) addCanvas(c, baseName(f.name))
-  }
+/** Photos are read one at a time; another pick waits until these are in. */
+let reading: Promise<void> = Promise.resolve()
+
+/**
+ * Several photos at once: the set grows to hold them all (up to its most), and
+ * each is read in turn, the page drawn between them, so the count in the
+ * upload button goes up as each comes in.
+ */
+function addFiles(files: File[]) {
+  reading = reading.then(async () => {
+    const max = setSizeIn.options.length
+    const room = Math.min(max, Math.max(setSize(), files.length))
+    if (room !== setSize()) setSizeIn.value = String(room)
+    // More photos than the set can hold: the last ones fill it.
+    const take = files.slice(-room)
+    const upload = $('icon-upload')
+    upload.setAttribute('aria-busy', 'true')
+    try {
+      for (const f of take) {
+        const c = await openImage(f, f.name)
+        if (c) addCanvas(c, baseName(f.name))
+        await breathe()
+      }
+    } finally {
+      upload.removeAttribute('aria-busy')
+    }
+  })
 }
 
 /** Make another image of the set the active one, its drawing `pick` picked. */
@@ -486,18 +512,21 @@ function removePage() {
 
 /** Read every image again (the template was turned on or off), then come back to the active one. */
 function rereadAll() {
-  const back = active
-  for (const page of pages) {
-    active = page
-    scan.openCanvas(page.canvas, page.name, page.whole)
-    scan.flush()
-  }
-  if (back && back !== active) {
-    active = back
-    scan.openCanvas(back.canvas, back.name, back.whole)
-    scan.flush()
-  }
-  showPages()
+  reading = reading.then(async () => {
+    const back = active
+    for (const page of pages) {
+      active = page
+      scan.openCanvas(page.canvas, page.name, page.whole)
+      scan.flush()
+      await breathe()
+    }
+    if (back && back !== active) {
+      active = back
+      scan.openCanvas(back.canvas, back.name, back.whole)
+      scan.flush()
+    }
+    showPages()
+  })
 }
 
 /** The images' count in the upload button, and a button per image to work on it again. */
@@ -731,6 +760,8 @@ async function buildSet() {
   for (let i = 0; i < pieces.length; i++) {
     if (setPaths[i]) continue
     $('icon-set-stats').textContent = t('icon.building', { n: i + 1, total: pieces.length })
+    await breathe()
+    if (run !== setRun || !pieces) return
     const built = await buildIcon(pieces[i].mask, style)
     if (run !== setRun || !pieces) return
     setPaths[i] = built.paths

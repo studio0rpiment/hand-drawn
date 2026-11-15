@@ -19,6 +19,8 @@ export interface ScanMarkup {
   upload: string
   /** Several photos may be chosen at once. */
   multiple?: boolean
+  /** "Several drawings on this sheet" starts on. */
+  sheetOn?: boolean
   /** Above the upload button, in its box: what the tab asks before photos come in. */
   setup?: string
   /** Below the upload button, in its box. */
@@ -67,7 +69,7 @@ export function scanControls(prefix: string, m: ScanMarkup) {
     </fieldset>
     <fieldset>
       <legend>${tHtml('scan.sheet')}</legend>
-      <label class="check accent"><input id="${p}-sheet-on" type="checkbox" /> ${tHtml('scan.sheet-on')}</label>
+      <label class="check accent"><input id="${p}-sheet-on" type="checkbox"${m.sheetOn ? ' checked' : ''} /> ${tHtml('scan.sheet-on')}</label>
       <p class="hint">${m.sheetHint}</p>
       ${slider(p, 'gap', 'scan.gap', 0, 160, 1, 30)}
       <p class="hint" id="${p}-sheet-count" aria-live="polite"></p>
