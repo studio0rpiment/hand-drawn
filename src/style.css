@@ -1853,6 +1853,71 @@ label.off {
   border-radius: var(--radius);
 }
 
+/* What the tab asks before the photos (the icon set's name, how many images,
+   the template), and the images once there, take the box's whole width. */
+.upload-setup,
+.upload-after {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+/* Narrow: the setup's words wrap and its boxes shrink, rather than widening the box. */
+.upload-setup .fold-toggle,
+.upload-setup .field.inline {
+  min-width: 0 !important;
+  white-space: normal;
+}
+
+.upload-setup .field.inline input {
+  min-width: 0;
+}
+
+/* The template toggle with its "drawn on it" choice beside it, wrapping under when narrow. */
+.template-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+}
+
+.template-row .fold-toggle {
+  flex: 1 1 auto;
+}
+
+/* The Font view's named areas don't apply here (an unknown area adds a column). */
+.upload-setup .sheet-body {
+  grid-area: auto;
+}
+
+.upload-setup .sheet-pages {
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+}
+
+/* A long page name wraps inside its button rather than running into the next. */
+.upload-setup .sheet-print {
+  min-width: 0 !important;
+  white-space: normal;
+  text-align: left;
+}
+
+/* One button per image of the set; the one being adjusted in yellow. */
+.set-pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.set-pages[hidden] {
+  display: none;
+}
+
+.set-page[aria-selected='true'] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 /* The upload fills the box; it already has the room its letters spread into. */
 .upload-bar .upload {
   min-width: 0 !important;

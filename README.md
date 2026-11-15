@@ -114,6 +114,24 @@ numbered thumbnails under the image picks the drawing the tab works on.
   symbol names, numbered manifest), an SVG per icon, variant and direction,
   and the style. Clicking an icon picks it for the detailed previews.
 
+## Icon sets from several images
+
+An icon set can come from several photos. In the Icon tab's upload box, name
+the set (it names the files: `kevin-hand-icons-01`, and the zip) and choose
+how many **images** it takes (1–12). **Upload drawings (photos)** takes several
+at once and counts them in the button (`1-3`, in Kevin's hand). Each photo is
+an image of the set, with a button of its own under the upload; the image
+being adjusted is the one the controls work on, the others keep their
+drawings as last adjusted. With the set full, a new photo takes the place of
+the image being adjusted; **Remove photo** takes that image out.
+
+**Icon template sheet to print** folds open to four A4 pages of named, empty
+boxes for the 169 common icons of hand-icons (its trace sheets without the
+guide drawings: `src/icon/template.ts`). Tick **Drawn on the icon template**
+and a photo of a page is placed by its corner squares, its page told by the
+squares along its top (none, one, two, three), and every box with ink read as
+the icon named on it. Empty boxes are left out. Up to four images then.
+
 ## Icon styles
 
 A style is every choice that makes a set of icons one family, kept as plain

@@ -17,7 +17,24 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 
 ## Upload
 
-`icon.upload` Upload a drawing (photo)
+`icon.upload` Upload drawings (photos)
+`icon.set-name` Set name
+`icon.set-size` Images in this set
+`icon.pages-count` {n}-{total}
+`icon.pages` Images in this set
+`icon.page-chip` {n} · {name}
+
+## Icon template
+
+`icon.template` Icon template sheet to print
+`icon.template-on` Drawn on the icon template
+`icon.template.hint` Draw each icon in its named box, photograph each page flat with all four corner squares in view. Boxes left empty are left out of the set.
+`icon.template-page` Pg {page}: {category}
+`icon.template-print` Print page {page}: {categories}
+`icon.template-dl` Download all pages
+`icon.template-read` Template page {page}: {n} icons drawn
+`icon.template-heading` Common icons — {categories}
+`icon.template-note` Hand Drawn · icon template {page} of {pages} · draw each icon in its box; the dashed square is the set's clear space (12%)
 
 ## Adjust image
 

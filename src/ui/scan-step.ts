@@ -8,6 +8,8 @@ import { hexRgb, hslHex, measureColours, rgbHsl, type RGB } from '../colour'
 import { otsu, toGray, type GrayImage, type Mask, type Quad, type RGBAImage } from '../image'
 import { findPaper, findPaperInColour, fullFrame, quadSize, warp } from '../paper'
 import { padBox, splitDrawings } from '../split'
+import { findSheetMarkers } from '../font/read'
+import { FLAG, GRID, MARKER, PAGE, READ_BOX, TEMPLATE_PAGES, boxOrigin, pageFromFlags } from '../icon/template'
 import { t } from '../text'
 import { cornerHandles, type CornerHandles } from './corners'
 import { reserveHoverWidths } from './hand'
@@ -35,6 +37,17 @@ export interface Scanned {
   art: { gray: GrayImage; mask: Mask } | null
   /** Counts the photos opened (and removed), so a new one can be told from new settings. */
   photo: number
+  /** A page of the icon template: which page, and each drawing's icon name (in `drawings` order). */
+  template: { page: number; names: string[] } | null
+}
+
+export interface ScanStepOptions {
+  /** Photos are pages of the icon template: placed by their corner squares, read box by box. */
+  template?: () => boolean
+  /** Several photos chosen at once; without this, the first one opens. */
+  files?: (files: File[]) => void
+  /** Remove photo, when the tab keeps several (it decides what shows next); without this, the photo goes. */
+  remove?: () => void
 }
 
 const SLIDERS = ['turn', 'flatten', 'level', 'weight', 'speck', 'trim', 'gap', 'ink-h', 'ink-s', 'ink-l', 'paper-h', 'paper-s', 'paper-l'] as const
@@ -85,12 +98,18 @@ export class ScanStep {
   private drawings: Mask[] = []
   private timer = 0
   private turnTimer = 0
+  /** The page was placed by the template's corner squares (so its boxes can be read). */
+  private onMarkers = false
+  private templateRead: { page: number; names: string[] } | null = null
+  private readonly options: ScanStepOptions
 
   constructor(
     readonly prefix: string,
     changed: (s: Scanned) => void,
+    options: ScanStepOptions = {},
   ) {
     this.changed = changed
+    this.options = options
     this.el = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(`${prefix}-${id}`) as T
     this.sliders = Object.fromEntries(SLIDERS.map((k) => [k, this.el<HTMLInputElement>(k)])) as Record<Slider, HTMLInputElement>
     this.photoCanvas = this.el<HTMLCanvasElement>('photo')
@@ -117,13 +136,14 @@ export class ScanStep {
       this.quarters = (this.quarters + 1) % 4
       this.applyTurn()
     })
-    this.el('remove').addEventListener('click', () => this.remove())
+    this.el('remove').addEventListener('click', () => (this.options.remove ? this.options.remove() : this.remove()))
     this.el('upload').addEventListener('click', () => this.el('file').click())
     this.el<HTMLInputElement>('file').addEventListener('change', (e) => {
       const input = e.target as HTMLInputElement
-      const f = input.files?.[0]
+      const files = [...(input.files ?? [])]
       input.value = ''
-      if (f) void this.open(f, f.name)
+      if (this.options.files) this.options.files(files)
+      else if (files[0]) void this.open(files[0], files[0].name)
     })
     // Related pairs become one globe, rolled to set both (the paper's colour stays as sliders).
     const arc = this.el('globes')
@@ -178,6 +198,17 @@ export class ScanStep {
     else this.findSheet()
   }
 
+  /** Read the photo now rather than once the controls settle (when opening several in a row). */
+  flush() {
+    clearTimeout(this.timer)
+    this.run()
+  }
+
+  /** The template was turned on or off: place the page again. */
+  retemplate() {
+    if (this.photo) this.findSheet()
+  }
+
   remove() {
     this.unturned = this.photo = this.quad = this.flat = this.gray = null
     this.flattened = this.page = this.split = null
@@ -205,14 +236,18 @@ export class ScanStep {
 
   private findSheet() {
     if (!this.photo) return
-    // By colour first (paper is grey, tables are not), then by brightness, else the whole photo.
-    this.quad = findPaperInColour(this.photo) ?? findPaper(toGray(this.photo)) ?? fullFrame(this.photo.width, this.photo.height)
+    // A template page is placed by its corner squares, exactly.
+    const markers = this.options.template?.() ? findSheetMarkers(toGray(this.photo)) : null
+    this.onMarkers = !!markers
+    // Otherwise by colour first (paper is grey, tables are not), then by brightness, else the whole photo.
+    this.quad = markers ?? findPaperInColour(this.photo) ?? findPaper(toGray(this.photo)) ?? fullFrame(this.photo.width, this.photo.height)
     this.handles.draw()
     this.soon(true)
   }
 
   private wholePhoto() {
     if (!this.photo) return
+    this.onMarkers = false
     this.quad = fullFrame(this.photo.width, this.photo.height)
     this.handles.draw()
     this.soon(true)
@@ -272,7 +307,13 @@ export class ScanStep {
       this.page = { base, key, mask: m }
     }
     const mask = this.page.mask
-    if (this.el<HTMLInputElement>('sheet-on').checked) {
+    this.templateRead = null
+    if (this.onMarkers && this.options.template?.()) {
+      // A template page: one drawing per box that has ink in it, named as printed.
+      const read = this.readTemplate(base, mask)
+      this.boxes = read.boxes
+      this.templateRead = { page: read.page, names: read.names }
+    } else if (this.el<HTMLInputElement>('sheet-on').checked) {
       // A sheet of drawings: find each one; the one picked in the tray is what the tab works on.
       const gap = v('gap')
       if (this.split?.mask !== mask || this.split.gap !== gap) {
@@ -295,6 +336,52 @@ export class ScanStep {
     this.publish()
   }
 
+  /**
+   * The boxes of a template page in the straightened photo, which spans the
+   * corner squares' centres: which page it is (its top squares), and the ink
+   * in each box below the name, as a box round that ink.
+   */
+  private readTemplate(base: GrayImage, mask: Mask): { page: number; boxes: Box[]; names: string[] } {
+    const span = { w: PAGE.width - 2 * MARKER.inset, h: PAGE.height - 2 * MARKER.inset }
+    const kx = mask.width / span.w
+    const ky = mask.height / span.h
+    const px = (x: number, y: number) => ({
+      x: Math.min(mask.width, Math.max(0, Math.round((x - MARKER.inset) * kx))),
+      y: Math.min(mask.height, Math.max(0, Math.round((y - MARKER.inset) * ky))),
+    })
+    const level = otsu(base)
+    // A top square sits on the line between the top corner squares; half of it is inside the photo.
+    const dark = (fx: number) => {
+      let n = 0
+      let ink = 0
+      const half = FLAG.size * 0.3
+      for (let y = 0.3; y <= half; y += 0.2) {
+        for (let x = -half; x <= half; x += 0.2) {
+          const p = px(fx + x, FLAG.y + y)
+          if (p.x < 0 || p.y < 0 || p.x >= base.width || p.y >= base.height) continue
+          n++
+          if (base.data[p.y * base.width + p.x] <= level) ink++
+        }
+      }
+      return n > 0 && ink / n > 0.5
+    }
+    const page = pageFromFlags(dark)
+    const boxes: Box[] = []
+    const names: string[] = []
+    TEMPLATE_PAGES[page].forEach((icon, i) => {
+      const o = boxOrigin(i)
+      const a = px(o.x + READ_BOX.x, o.y + READ_BOX.y)
+      const b = px(o.x + READ_BOX.x + READ_BOX.width, o.y + READ_BOX.y + READ_BOX.height)
+      const cell = cropMask(mask, { x: a.x, y: a.y, width: Math.max(1, b.x - a.x), height: Math.max(1, b.y - a.y) })
+      const ink = inkBox(cell, 0)
+      // Too little ink to be a drawing: an empty box (a stray mark, or the box's own print).
+      if (!ink || ink.width * ink.height < (GRID.cell * kx * 0.06) ** 2) return
+      boxes.push({ x: a.x + ink.x, y: a.y + ink.y, width: ink.width, height: ink.height })
+      names.push(icon.name)
+    })
+    return { page, boxes, names }
+  }
+
   private publish() {
     const box = this.boxes[this.pick]
     const page = this.page
@@ -306,10 +393,11 @@ export class ScanStep {
       name: this.name,
       drawings: this.drawings,
       pick: this.pick,
-      sheet: this.el<HTMLInputElement>('sheet-on').checked,
+      sheet: this.el<HTMLInputElement>('sheet-on').checked || !!this.templateRead,
       colours: this.colours(),
       art,
       photo: this.photoCount,
+      template: this.templateRead,
     })
   }
 
@@ -367,7 +455,9 @@ export class ScanStep {
     for (const k of ['paper-h', 'paper-s', 'paper-l'] as const) this.sliders[k].closest('label')!.classList.toggle('off', !paperOn)
     const sheet = this.el<HTMLInputElement>('sheet-on').checked
     const n = this.boxes.length
-    this.el('sheet-count').textContent = !sheet || !this.photo ? '' : n === 0 ? t('scan.found-none') : n === 1 ? t('scan.found-one') : t('scan.found', { n, pick: this.pick + 1 })
+    this.el('sheet-count').textContent = this.templateRead
+      ? t('icon.template-read', { page: this.templateRead.page + 1, n })
+      : !sheet || !this.photo ? '' : n === 0 ? t('scan.found-none') : n === 1 ? t('scan.found-one') : t('scan.found', { n, pick: this.pick + 1 })
   }
 
   /** The straightened page's ink, in the ink colour on the paper (or on the checks), the picked drawing outlined. */
@@ -408,7 +498,7 @@ export class ScanStep {
   /** The numbered drawings of a sheet, to pick from. */
   private showTray() {
     const tray = this.el('pieces')
-    const sheet = this.el<HTMLInputElement>('sheet-on').checked
+    const sheet = this.el<HTMLInputElement>('sheet-on').checked || !!this.templateRead
     tray.hidden = !sheet || !this.drawings.length
     if (tray.hidden) return tray.replaceChildren()
     const [r, g, b] = hexRgb(this.colours().ink)
@@ -419,7 +509,7 @@ export class ScanStep {
         btn.className = 'piece'
         btn.setAttribute('role', 'option')
         btn.setAttribute('aria-selected', String(i === this.pick))
-        btn.setAttribute('aria-label', t('scan.drawing', { n: i + 1 }))
+        btn.setAttribute('aria-label', this.templateRead?.names[i] ?? t('scan.drawing', { n: i + 1 }))
         const img = new ImageData(full.width, full.height)
         for (let p = 0, j = 0; p < full.data.length; p++, j += 4) {
           if (!full.data[p]) continue

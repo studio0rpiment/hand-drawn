@@ -17,6 +17,12 @@ export interface ScanMarkup {
   sheetHint: string
   /** The upload button's words. */
   upload: string
+  /** Several photos may be chosen at once. */
+  multiple?: boolean
+  /** Above the upload button, in its box: what the tab asks before photos come in. */
+  setup?: string
+  /** Below the upload button, in its box. */
+  after?: string
 }
 
 /** Replace the element with id `${prefix}-scan-controls` with the fieldsets of the scan step. */
@@ -69,9 +75,11 @@ export function scanControls(prefix: string, m: ScanMarkup) {
 
   document.getElementById(`${p}-scan-image`)!.outerHTML = `
     <div class="upload-bar">
+      ${m.setup ? `<div class="upload-setup">${m.setup}</div>` : ''}
       <button id="${p}-upload" class="button primary small upload" type="button" data-icon="arrow-bar-fill-r270">${m.upload}</button>
-      <input id="${p}-file" type="file" accept="image/*,.heic,.heif" hidden />
+      <input id="${p}-file" type="file" accept="image/*,.heic,.heif"${m.multiple ? ' multiple' : ''} hidden />
       <button id="${p}-remove" class="button small remove" type="button" data-icon="big-x-fill" hidden>${tHtml('scan.remove')}</button>
+      ${m.after ? `<div class="upload-after">${m.after}</div>` : ''}
     </div>
     <div class="pane image-pane empty" id="${p}-image-pane">
       <div class="pane-head">

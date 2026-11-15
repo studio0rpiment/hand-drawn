@@ -17,10 +17,34 @@ import { buildIcon, faviconVariant, headSnippet, packZip, rasterize, shapeKey } 
 import { BUILT_IN, CONTAINERS, DIRECTIONS, DIRECTION_GROUPS, VARIANTS, readStyle, slug, type IconStyle } from './style'
 import { zip, type ZipFile } from './files'
 import { sprite, spriteSet, standaloneSvg, type IconPaths } from './svg'
+import { TEMPLATE_PAGES, iconSheetSvg } from './template'
+import { baseName, openImage } from '../ui/open-image'
 
 // The scan step's controls go in first: the rest of the view reads them.
+const pageButton = (page: number) => {
+  const cats = [...new Set(TEMPLATE_PAGES[page].map((i) => i.category))]
+  return `<button id="icon-print-${page + 1}" class="button small sheet-print" type="button" title="${tHtml('icon.template-print', { page: page + 1, categories: cats.join(' · ') })}" data-icon="strokes-fill" data-icon-after="printer-fill">${tHtml('icon.template-page', { page: page + 1, category: cats[0] })}</button>`
+}
 scanControls('icon', {
-  upload: tHtml('icon.upload'),
+  upload: `${tHtml('icon.upload')} <span class="pages-count" id="icon-pages-count"></span>`,
+  multiple: true,
+  setup: `
+    <div class="name-row">
+      <label class="field inline">${tHtml('icon.set-name')} <input id="icon-set-name" type="text" spellcheck="false" autocomplete="off" /></label>
+      <label class="field inline">${tHtml('icon.set-size')} <select id="icon-set-size"></select></label>
+    </div>
+    <div class="template-row">
+      <button id="icon-template-toggle" class="button small fold-toggle" type="button" aria-expanded="false" aria-controls="icon-template-body">${tHtml('icon.template')}</button>
+      <label class="check trace-check"><input id="icon-template-on" type="checkbox" /> ${tHtml('icon.template-on')}</label>
+    </div>
+    <div class="sheet-body" id="icon-template-body" hidden>
+      <p class="hint">${tHtml('icon.template.hint')}</p>
+      <div class="sheet-pages">
+        ${TEMPLATE_PAGES.map((_, p) => pageButton(p)).join('')}
+        <button id="icon-template-svg" class="button small sheet-print" type="button" data-icon="arrow-bar-fill-r90">${tHtml('icon.template-dl')}</button>
+      </div>
+    </div>`,
+  after: `<div class="set-pages" id="icon-pages" role="listbox" aria-label="${tHtml('icon.pages')}" hidden></div>`,
   sheetHint: tHtml('icon.sheet.hint'),
   colourExtra: `<label class="check"><input id="icon-scan-colours" type="checkbox" checked /> ${tHtml('icon.scan-colours')}</label>`,
 })
@@ -90,7 +114,7 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 // Storage keys keep the project's first name, sketch-to-mark, so styles saved before the rename still load.
 const book = new StyleBook<IconStyle>({ noun: 'icon', key: 'sketch-to-mark.styles', builtIn: BUILT_IN, read: readStyle })
 /** The latest from the scan step: the drawings on the photo and its colours. */
-let scanned: Scanned = { name: 'drawing', drawings: [], pick: 0, sheet: false, colours: { ink: '#1d1a24', paper: null }, art: null, photo: 0 }
+let scanned: Scanned = { name: 'drawing', drawings: [], pick: 0, sheet: false, colours: { ink: '#1d1a24', paper: null }, art: null, photo: 0, template: null }
 
 /**
  * The style as drawn: the edited one, with the image's colours when "Icons
@@ -367,19 +391,176 @@ $('icon-dl-png').addEventListener('click', () => {
 
 // ---- Upload and adjust image ----
 
-const scan = new ScanStep('icon', (next) => {
-  const newPhoto = next.photo !== scanned.photo
-  const coloursChanged = JSON.stringify(next.colours) !== JSON.stringify(scanned.colours)
-  scanned = next
-  if (newPhoto) tunes.clear()
-  showTune()
-  useDrawings()
-  if (coloursChanged && $<HTMLInputElement>('icon-scan-colours').checked) applied()
+// ---- The set's images ----
+
+/**
+ * One image of the set: its photo and the drawings read from it, as last
+ * adjusted. The scan step works on one image at a time (the active one); the
+ * others keep their drawings until they are picked again.
+ */
+interface SetPage {
+  id: number
+  name: string
+  canvas: HTMLCanvasElement
+  /** The photo uses all of its frame (the sample): no sheet to find. */
+  whole: boolean
+  drawings: { mask: Mask; name: string | null }[]
+}
+let pages: SetPage[] = []
+let active: SetPage | null = null
+let pageIds = 0
+
+const templateOn = $<HTMLInputElement>('icon-template-on')
+const setSizeIn = $<HTMLSelectElement>('icon-set-size')
+const setNameIn = $<HTMLInputElement>('icon-set-name')
+const MAX_IMAGES = 12
+/** How many images the set takes: up to the template's four pages when drawn on it. */
+function fillSetSizes() {
+  const max = templateOn.checked ? TEMPLATE_PAGES.length : MAX_IMAGES
+  const was = Number(setSizeIn.value) || 1
+  setSizeIn.replaceChildren(...Array.from({ length: max }, (_, i) => new Option(String(i + 1), String(i + 1))))
+  setSizeIn.value = String(Math.min(was, max))
+}
+fillSetSizes()
+const setSize = () => Number(setSizeIn.value) || 1
+
+const scan = new ScanStep(
+  'icon',
+  (next) => {
+    const coloursChanged = JSON.stringify(next.colours) !== JSON.stringify(scanned.colours)
+    scanned = next
+    showTune()
+    useDrawings()
+    if (coloursChanged && $<HTMLInputElement>('icon-scan-colours').checked) applied()
+  },
+  { template: () => templateOn.checked, files: (files) => void addFiles(files), remove: () => removePage() },
+)
+
+/** Open a photo as an image of the set: a new one while the set has room, else in place of the active one. */
+function addCanvas(c: HTMLCanvasElement, name: string, whole = false) {
+  let page = active
+  if (!page || pages.length < setSize()) {
+    page = { id: ++pageIds, name, canvas: c, whole, drawings: [] }
+    pages.push(page)
+  } else {
+    Object.assign(page, { name, canvas: c, whole, drawings: [] })
+    for (const k of [...tunes.keys()]) if (k.startsWith(`${page.id}:`)) tunes.delete(k)
+  }
+  active = page
+  scan.openCanvas(c, name, whole)
+  scan.flush()
+  showPages()
+}
+
+async function addFiles(files: File[]) {
+  for (const f of files) {
+    const c = await openImage(f, f.name)
+    if (c) addCanvas(c, baseName(f.name))
+  }
+}
+
+/** Make another image of the set the active one, its drawing `pick` picked. */
+function switchTo(page: SetPage, pick = 0) {
+  if (page !== active) {
+    active = page
+    scan.openCanvas(page.canvas, page.name, page.whole)
+    scan.flush()
+    showPages()
+  }
+  scan.choose(pick)
+}
+
+/** Remove photo: the active image leaves the set. */
+function removePage() {
+  if (!active) return scan.remove()
+  for (const k of [...tunes.keys()]) if (k.startsWith(`${active.id}:`)) tunes.delete(k)
+  pages = pages.filter((p) => p !== active)
+  active = null
+  const last = pages.at(-1)
+  if (last) switchTo(last)
+  else {
+    scan.remove()
+    showPages()
+  }
+}
+
+/** Read every image again (the template was turned on or off), then come back to the active one. */
+function rereadAll() {
+  const back = active
+  for (const page of pages) {
+    active = page
+    scan.openCanvas(page.canvas, page.name, page.whole)
+    scan.flush()
+  }
+  if (back && back !== active) {
+    active = back
+    scan.openCanvas(back.canvas, back.name, back.whole)
+    scan.flush()
+  }
+  showPages()
+}
+
+/** The images' count in the upload button, and a button per image to work on it again. */
+function showPages() {
+  $('icon-pages-count').textContent = t('icon.pages-count', { n: pages.length, total: setSize() })
+  const list = $('icon-pages')
+  list.hidden = pages.length < 2
+  list.replaceChildren(
+    ...pages.map((page, i) => {
+      const btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'button small set-page'
+      btn.setAttribute('role', 'option')
+      btn.setAttribute('aria-selected', String(page === active))
+      btn.textContent = t('icon.page-chip', { n: i + 1, name: page.name })
+      btn.addEventListener('click', () => switchTo(page))
+      return btn
+    }),
+  )
+}
+
+setSizeIn.addEventListener('change', showPages)
+templateOn.addEventListener('change', () => {
+  fillSetSizes()
+  // Images past the template's four pages leave the set.
+  if (pages.length > setSize()) pages = pages.slice(0, setSize())
+  if (active && !pages.includes(active)) active = pages.at(-1) ?? null
+  rereadAll()
+})
+setNameIn.addEventListener('input', () => {
+  nameTouched = false
+  setPieces()
 })
 
+$('icon-template-toggle').addEventListener('click', (e) => {
+  const btn = e.currentTarget as HTMLButtonElement
+  const open = btn.getAttribute('aria-expanded') !== 'true'
+  btn.setAttribute('aria-expanded', String(open))
+  $('icon-template-body').hidden = !open
+})
+function printTemplate(page: number) {
+  // A hidden frame at true A4 size; the SVG is in millimetres.
+  const frame = document.createElement('iframe')
+  frame.style.cssText = 'position:fixed;width:0;height:0;border:0'
+  frame.srcdoc = `<!doctype html><style>@page{size:A4;margin:0}html,body{margin:0}svg{display:block}</style>${iconSheetSvg(page)}`
+  frame.onload = () => {
+    frame.contentWindow?.print()
+    setTimeout(() => frame.remove(), 1000)
+  }
+  document.body.append(frame)
+}
+TEMPLATE_PAGES.forEach((_, page) => $(`icon-print-${page + 1}`).addEventListener('click', () => printTemplate(page)))
+$('icon-template-svg').addEventListener('click', () => {
+  TEMPLATE_PAGES.forEach((_, page) =>
+    setTimeout(() => download(new Blob([iconSheetSvg(page)], { type: 'image/svg+xml' }), `icon-template-${page + 1}.svg`), page * 300),
+  )
+})
+showPages()
+
 /** A photo opened, dropped or pasted while the Icon view is open. */
-export function openIconPhoto(blob: Blob, name: string) {
-  return scan.open(blob, name)
+export async function openIconPhoto(blob: Blob, name: string) {
+  const c = await openImage(blob, name)
+  if (c) addCanvas(c, baseName(name))
 }
 
 /** The sample: one of Kevin's own drawings, photographed in a sketchbook, the page filling the photo. */
@@ -392,7 +573,7 @@ export async function loadIconSample() {
   c.height = bitmap.height
   c.getContext('2d', { willReadFrequently: true })!.drawImage(bitmap, 0, 0)
   bitmap.close()
-  scan.openCanvas(c, 'sample', true)
+  addCanvas(c, 'sample', true)
 }
 
 // ---- Adjust drawing ----
@@ -406,14 +587,16 @@ interface Tune {
   spread: number
 }
 const NO_TUNE: Tune = { rotate: 0, spread: 0 }
-const tunes = new Map<number, Tune>()
+/** By image and drawing: `${image id}:${drawing}`. */
+const tunes = new Map<string, Tune>()
 const tuneIn = { rotate: $<HTMLInputElement>('icon-rotate'), spread: $<HTMLInputElement>('icon-spread') }
 const square = $<HTMLInputElement>('icon-square')
 const tuneFormats: Record<keyof Tune, (v: number) => string> = {
   rotate: (v) => `${v > 0 ? '+' : ''}${v.toFixed(1)}°`,
   spread: (v) => `${v > 0 ? '+' : ''}${v.toFixed(2)} px`,
 }
-const tuneOf = (i: number) => tunes.get(i) ?? NO_TUNE
+const tuneKey = (i: number) => `${active?.id ?? 0}:${i}`
+const tuneOf = (i: number) => tunes.get(tuneKey(i)) ?? NO_TUNE
 
 /** The fine tuning sliders show the picked drawing's own. */
 function showTune() {
@@ -426,7 +609,7 @@ function showTune() {
 
 for (const k of Object.keys(tuneIn) as (keyof Tune)[]) {
   tuneIn[k].addEventListener('input', () => {
-    tunes.set(scanned.pick, { ...tuneOf(scanned.pick), [k]: Number(tuneIn[k].value) })
+    tunes.set(tuneKey(scanned.pick), { ...tuneOf(scanned.pick), [k]: Number(tuneIn[k].value) })
     showTune()
     useDrawings()
   })
@@ -452,22 +635,44 @@ function tuned(i: number, extra: Partial<FineTune> = {}): Mask {
 
 const two = (n: number) => String(n).padStart(2, '0')
 
-/** Hand the picked drawing to the previews and every drawing of a sheet to the set. */
+/** Hand the picked drawing to the previews, and the active image's drawings to the set. */
 function useDrawings() {
-  const { drawings, pick, sheet, name } = scanned
-  const several = sheet && drawings.length > 1
+  const { drawings, pick, template } = scanned
+  if (active) active.drawings = drawings.map((_, i) => ({ mask: tuned(i), name: template?.names[i] ?? null }))
   const next = drawings.length ? tuned(pick) : null
-  const nextName = several ? `${name}-${two(pick + 1)}` : name
-  if (!nameTouched) nameInput.value = nextName
   if (next !== mask) {
     mask = next
-    maskName = nextName
     builtFor = ''
     dirty = true
     if (!mask) clearPreviews()
     else if (!$('icon-app').hidden) retraceSoon()
   }
-  setSheet(sheet && drawings.length ? drawings.map((_, i) => ({ mask: tuned(i), name: `${name}-${two(i + 1)}` })) : null, pick)
+  setPieces()
+}
+
+/**
+ * Every drawing of every image, named: as printed on the template, else the
+ * set's name (or the photo's) numbered through the set; two of a name are told
+ * apart by a number.
+ */
+function setPieces() {
+  // slug() gives a stand-in name for an empty one, so the set's name is checked before it.
+  const base = slug(setNameIn.value.trim() || active?.name || scanned.name)
+  const all = pages.flatMap((page) => page.drawings.map((d) => ({ ...d, page })))
+  let k = 0
+  const seen = new Map<string, number>()
+  const named = all.map((d) => {
+    let name = d.name ?? (all.length > 1 ? `${base}-${two(++k)}` : base)
+    const n = (seen.get(name) ?? 0) + 1
+    seen.set(name, n)
+    if (n > 1) name = `${name}-${n}`
+    return { mask: d.mask, name, page: d.page }
+  })
+  const current = named.findIndex((d) => d.page === active) + scanned.pick
+  const here = named[current]
+  maskName = here?.name ?? base
+  if (!nameTouched) nameInput.value = maskName
+  setSheet(named.length > 1 ? named : null, Math.max(0, current))
 }
 
 /** No drawing: the result panes go back to empty boxes. */
@@ -491,7 +696,7 @@ export function showIcon() {
 
 // ---- A whole sheet of icons ----
 
-let pieces: { mask: Mask; name: string }[] | null = null
+let pieces: { mask: Mask; name: string; page: SetPage }[] | null = null
 let picked = 0
 /** Built paths per piece, for the shape settings they were built with. */
 let setPaths: (IconPaths | null)[] = []
@@ -499,7 +704,7 @@ let setBuiltFor = ''
 let setRun = 0
 
 /** Every drawing of a sheet (or null when the photo is one drawing); a drawing that changed is built again. */
-function setSheet(next: { mask: Mask; name: string }[] | null, current: number) {
+function setSheet(next: { mask: Mask; name: string; page: SetPage }[] | null, current: number) {
   setPaths = (next ?? []).map((p, i) => (pieces?.[i]?.mask === p.mask ? (setPaths[i] ?? null) : null))
   pieces = next
   picked = current
@@ -555,7 +760,8 @@ function drawSet() {
       num.className = 'set-num'
       num.textContent = String(i + 1)
       btn.append(num)
-      btn.addEventListener('click', () => scan.choose(i))
+      // A drawing of another image makes that image the active one.
+      btn.addEventListener('click', () => switchTo(p.page, i - pieces!.findIndex((q) => q.page === p.page)))
       return btn
     }),
   )
@@ -577,7 +783,7 @@ $('dl-set').addEventListener('click', async (e) => {
       setPaths[i] ??= (await buildIcon(pieces[i].mask, style)).paths
     }
     const icons = pieces.map((p, i) => ({ name: slug(p.name), paths: setPaths[i]! }))
-    const root = `${slug(scanned.name)}-icon-set`
+    const root = setNameIn.value.trim() ? slug(setNameIn.value) : `${slug(scanned.name)}-icon-set`
     const files: ZipFile[] = []
     const set = spriteSet(icons, style)
     files.push({ path: `${root}/sprite/${root}.svg`, data: set.svg })
