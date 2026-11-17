@@ -86,15 +86,56 @@ export function distance2(mask: Mask, site: 0 | 1): Float64Array {
   return d
 }
 
-/** Morphological closing with a disc of the given diameter: bridges gaps up to about that wide. */
+/**
+ * Morphological closing with a disc of the given diameter: bridges gaps up to
+ * about that wide. Only the ink's surroundings can change, so the work is done
+ * on the ink's bounding box with room for the disc round it: on an icon's
+ * canvas, about half the pixels.
+ */
 export function close(mask: Mask, diameter: number): Mask {
   const r = diameter / 2
   if (r < 0.5) return mask
-  const r2 = r * r
+  const { width: w, height: h, data } = mask
+  let x0 = w
+  let y0 = h
+  let x1 = -1
+  let y1 = -1
+  for (let y = 0; y < h; y++) {
+    const row = y * w
+    for (let x = 0; x < w; x++) {
+      if (!data[row + x]) continue
+      if (x < x0) x0 = x
+      if (x > x1) x1 = x
+      if (y < y0) y0 = y
+      y1 = y
+    }
+  }
+  if (x1 < 0) return mask
+  // Past r from the ink nothing grows, so a margin of r + 1 holds all that can change.
+  const m = Math.ceil(r) + 1
+  x0 = Math.max(0, x0 - m)
+  y0 = Math.max(0, y0 - m)
+  x1 = Math.min(w - 1, x1 + m)
+  y1 = Math.min(h - 1, y1 + m)
+  const cw = x1 - x0 + 1
+  const ch = y1 - y0 + 1
+  const crop = new Uint8Array(cw * ch)
+  for (let y = 0; y < ch; y++) crop.set(data.subarray((y + y0) * w + x0, (y + y0) * w + x0 + cw), y * cw)
+  const closed = closeWhole({ width: cw, height: ch, data: crop }, r * r)
+  const out = new Uint8Array(w * h)
+  for (let y = 0; y < ch; y++) out.set(closed.subarray(y * cw, (y + 1) * cw), (y + y0) * w + x0)
+  return { ...mask, data: out }
+}
+
+/** Closing over the whole mask: grow by r (squared: `r2`), then shrink by it. */
+function closeWhole(mask: Mask, r2: number): Uint8Array {
   const toInk = distance2(mask, 1)
-  const grown: Mask = { ...mask, data: Uint8Array.from(toInk, (d) => (d <= r2 ? 1 : 0)) }
-  const toPaper = distance2(grown, 0)
-  return { ...mask, data: Uint8Array.from(toPaper, (d) => (d > r2 ? 1 : 0)) }
+  const grown = new Uint8Array(toInk.length)
+  for (let i = 0; i < grown.length; i++) grown[i] = toInk[i] <= r2 ? 1 : 0
+  const toPaper = distance2({ ...mask, data: grown }, 0)
+  const out = new Uint8Array(toPaper.length)
+  for (let i = 0; i < out.length; i++) out[i] = toPaper[i] > r2 ? 1 : 0
+  return out
 }
 
 /**

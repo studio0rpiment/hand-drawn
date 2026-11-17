@@ -5,7 +5,7 @@
 
 import { cropMask, despeckle, flattenLight, inkBox, lineWeight, threshold, trimEdges, type Box } from '../clean'
 import { hexRgb, hslHex, measureColours, rgbHsl, type RGB } from '../colour'
-import { otsu, toGray, type GrayImage, type Mask, type Quad, type RGBAImage } from '../image'
+import { otsu, shrinkGray, toGray, type GrayImage, type Mask, type Quad, type RGBAImage } from '../image'
 import { findPaper, findPaperInColour, fullFrame, quadSize, warp } from '../paper'
 import { padBox, splitDrawings } from '../split'
 import { findSheetMarkers } from '../font/read'
@@ -50,6 +50,10 @@ export interface ScanStepOptions {
   remove?: () => void
 }
 
+/** While a globe rolls or a slider is dragged, the image is worked out this many times smaller. */
+const PREVIEW = 2
+const rolling = () => document.documentElement.dataset.rolling === '1'
+
 const SLIDERS = ['turn', 'flatten', 'level', 'weight', 'speck', 'trim', 'gap', 'ink-h', 'ink-s', 'ink-l', 'paper-h', 'paper-s', 'paper-l'] as const
 type Slider = (typeof SLIDERS)[number]
 
@@ -89,6 +93,10 @@ export class ScanStep {
   private flat: RGBAImage | null = null
   private gray: GrayImage | null = null
   private flattened: { strength: number; image: GrayImage } | null = null
+  /** The half-size copy for rolling, and its light evened out. */
+  private small: { gray: GrayImage; strength: number; image: GrayImage | null } | null = null
+  /** The last run was the quick half-size one: a full one follows when the globe or slider rests. */
+  private previewed = false
   private page: { base: GrayImage; key: string; mask: Mask } | null = null
   private split: { mask: Mask; gap: number; boxes: Box[] } | null = null
   /** The straightened photo the colours were last read from; a new one is read again. */
@@ -150,6 +158,24 @@ export class ScanStep {
     globePair(t('scan.globe-light'), { input: this.sliders.flatten }, { input: this.sliders.level, whole: true }, arc)
     globePair(t('scan.globe-ink'), { input: this.sliders.weight, whole: true }, { input: this.sliders.speck, whole: true }, arc)
     globePair(t('scan.globe-ink-colour'), { input: this.sliders['ink-h'], whole: true }, { input: this.sliders['ink-s'], whole: true }, arc)
+    // A globe came to rest, or a slider was let go: the full-size pass, after the quick ones.
+    addEventListener('globe-rest', () => {
+      if (this.previewed) this.soon()
+    })
+    // Sliders work like the globes: the quick preview while dragged, the full pass when let go.
+    let sliding = false
+    document.addEventListener('pointerdown', (e) => {
+      const target = e.target as HTMLElement
+      if (!(target instanceof HTMLInputElement) || target.type !== 'range' || !target.closest(`#${this.prefix}-app`)) return
+      sliding = true
+      document.documentElement.dataset.rolling = '1'
+    })
+    addEventListener('pointerup', () => {
+      if (!sliding) return
+      sliding = false
+      delete document.documentElement.dataset.rolling
+      dispatchEvent(new Event('globe-rest'))
+    })
     this.el('inset-size').addEventListener('click', (e) => {
       const btn = e.currentTarget as HTMLButtonElement
       const big = this.el('inset').classList.toggle('big')
@@ -211,7 +237,8 @@ export class ScanStep {
 
   remove() {
     this.unturned = this.photo = this.quad = this.flat = this.gray = null
-    this.flattened = this.page = this.split = null
+    this.flattened = this.page = this.split = this.small = null
+    this.previewed = false
     clearTimeout(this.timer)
     this.measuredFor = null
     this.name = 'drawing'
@@ -290,8 +317,10 @@ export class ScanStep {
     }
     if (!this.gray) {
       this.gray = toGray(this.flat)
-      this.flattened = null
+      this.flattened = this.small = null
     }
+    if (rolling()) return this.preview()
+    this.previewed = false
     const strength = Number(this.sliders.flatten.value)
     if (this.flattened?.strength !== strength) this.flattened = { strength, image: flattenLight(this.gray, strength) }
     const base = this.flattened.image
@@ -334,6 +363,32 @@ export class ScanStep {
     this.drawInk()
     this.showTray()
     this.publish()
+  }
+
+  /**
+   * The quick pass while a globe rolls or a slider is dragged: the ink on a
+   * half-size copy, shown in the image only. The drawings and what is made
+   * from them wait for the full pass, when it rests.
+   */
+  private preview() {
+    this.previewed = true
+    const k = PREVIEW
+    this.small ??= { gray: shrinkGray(this.gray!, k), strength: -1, image: null }
+    const strength = Number(this.sliders.flatten.value)
+    if (this.small.strength !== strength || !this.small.image) {
+      this.small.image = flattenLight(this.small.gray, strength)
+      this.small.strength = strength
+    }
+    const base = this.small.image
+    if (this.el<HTMLInputElement>('level-auto').checked) this.sliders.level.value = String(otsu(base))
+    const v = (key: Slider) => Number(this.sliders[key].value)
+    // Pixel settings shrink with the copy.
+    let m = threshold(base, v('level'))
+    m = trimEdges(m, v('trim'))
+    m = despeckle(m, v('speck') / (k * k))
+    m = lineWeight(m, Math.round(v('weight') / k))
+    this.showValues()
+    this.drawInk(m)
   }
 
   /**
@@ -460,9 +515,12 @@ export class ScanStep {
       : !sheet || !this.photo ? '' : n === 0 ? t('scan.found-none') : n === 1 ? t('scan.found-one') : t('scan.found', { n, pick: this.pick + 1 })
   }
 
-  /** The straightened page's ink, in the ink colour on the paper (or on the checks), the picked drawing outlined. */
-  private drawInk() {
-    const m = this.page?.mask
+  /**
+   * The straightened page's ink, in the ink colour on the paper (or on the
+   * checks), the picked drawing outlined; or `quick`, the half-size preview's.
+   */
+  private drawInk(quick?: Mask) {
+    const m = quick ?? this.page?.mask
     if (!m) return
     const { ink, paper } = this.colours()
     const img = new ImageData(m.width, m.height)
@@ -486,7 +544,7 @@ export class ScanStep {
     const ctx = this.inkCanvas.getContext('2d')!
     ctx.putImageData(img, 0, 0)
     const box = this.boxes[this.pick]
-    if (box && this.boxes.length > 1) {
+    if (box && this.boxes.length > 1 && !quick) {
       const w = Math.max(2, Math.round(m.width / 400))
       ctx.setLineDash([w * 4, w * 3])
       ctx.lineWidth = w

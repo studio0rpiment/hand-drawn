@@ -324,8 +324,16 @@ export function globePair(title: string, x: GlobeAxis, y: GlobeAxis, into: HTMLE
   }
 
   // While rolling, the page may work on quicker previews (see main.ts); say when it stops.
-  const rolling = () => (document.documentElement.dataset.rolling = '1')
+  // Only the globe that started a roll ends it: another globe easing to a value
+  // set by code (the automatic cut-off) must not end this one's roll.
+  let rolledHere = false
+  const rolling = () => {
+    rolledHere = true
+    document.documentElement.dataset.rolling = '1'
+  }
   const rest = () => {
+    if (!rolledHere) return
+    rolledHere = false
     if (document.documentElement.dataset.rolling !== '1') return
     delete document.documentElement.dataset.rolling
     dispatchEvent(new Event('globe-rest'))

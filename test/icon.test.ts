@@ -95,6 +95,42 @@ describe('shape', () => {
     expect(filled(12, 5)).toBeLessThan(disc * 0.5)
   })
 
+  it('closes exactly as a disc grown and shrunk over the whole mask would', () => {
+    // Brute force: grow by the disc, then keep what the disc fits inside.
+    const brute = (m: ReturnType<typeof draw>, d: number) => {
+      const r2 = (d / 2) ** 2
+      const R = Math.ceil(d / 2)
+      const { width: w, height: h } = m
+      const at = (src: Uint8Array, x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h && src[y * w + x] === 1
+      const grown = new Uint8Array(w * h)
+      for (let y = 0; y < h; y++)
+        for (let x = 0; x < w; x++)
+          for (let dy = -R; dy <= R && !grown[y * w + x]; dy++)
+            for (let dx = -R; dx <= R; dx++) if (dx * dx + dy * dy <= r2 && at(m.data, x + dx, y + dy)) (grown[y * w + x] = 1)
+      const out = new Uint8Array(w * h)
+      for (let y = 0; y < h; y++)
+        for (let x = 0; x < w; x++) {
+          let keep = 1
+          for (let dy = -R; dy <= R && keep; dy++)
+            for (let dx = -R; dx <= R; dx++) {
+              const nx = x + dx
+              const ny = y + dy
+              if (dx * dx + dy * dy > r2 || nx < 0 || ny < 0 || nx >= w || ny >= h) continue
+              if (!grown[ny * w + nx]) (keep = 0)
+            }
+          out[y * w + x] = keep
+        }
+      return out
+    }
+    let seed = 7
+    const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647)
+    for (const [w, h, d] of [[60, 40, 7], [50, 50, 13], [40, 64, 5]]) {
+      // Strokes away from the edges, and one touching an edge.
+      const m = draw(w, h, (x, y) => (Math.abs(x - 20) < 2 && y > 8 && y < 30) || (y === 12 && x > 26 && x < 38) || (x === 0 && y > 30) || rand() < 0.01)
+      expect([...close(m, d).data]).toEqual([...brute(m, d)])
+    }
+  })
+
   it('fills closed shapes only in the solid mask, and leaves the outside alone', () => {
     const { ink, solid } = iconMasks(ring(200, 60, 8, 0), { pinholes: 150, fillClosed: true, bridge: 41 })
     expect(count(solid)).toBeGreaterThan(count(ink) * 3)
