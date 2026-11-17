@@ -13,8 +13,31 @@ landing page ("Hand Drawn", and create an icon pack, a texture or a font)
 comes first. Icon and Texture each have the scan step (`src/ui/scan-step.ts`)
 with Scan's globes (not paper colour); Icon has Logo's fine tuning, the Tune
 globe and the plain SVG/PNG downloads; Font reads its own photos and splits a
-page that isn't a letter sheet into freehand drawings. Still to do here: the
-tab names (Icons, Textures, Fonts), the Textures rebuild, layered icons.
+page that isn't a letter sheet into freehand drawings.
+
+**Since then (2026-11-13 to 2026-11-16):**
+
+- The three speck controls are one ("ignore spots under a size").
+- Icon sets come from several images: set name, how many images, a button
+  for each image, and the icon template (four pages of named empty boxes),
+  read box by box. Photos load one at a time and the set builds icon by icon,
+  so the page never freezes. "Several drawings on this sheet" starts on.
+- The globes keep up on the Icon and Texture tabs: a half-size preview while
+  a globe rolls, quicker closing of shapes, and one globe can no longer end
+  another's roll.
+- Deployed to handdrawn.orpiment.studio on 2026-11-16. Pull request
+  studio0rpiment/hand-drawn#1 (the globe fix, `icons-tab` → `main`) is open;
+  merging it only brings GitHub's `main` up to date with the deployed code.
+
+**Still to do here:**
+
+1. Rename the tabs Icons, Textures, Fonts (the words are in `src/text/common.md`).
+2. Click through the landing page, the Texture tab and the Font tab on the
+   live site; most testing so far was on the Icon tab.
+3. Rebuild Textures (below).
+4. Layered icons (section 2).
+5. Decide which Logo controls stay. Kept so far: rotate, line spread,
+   ignore spots, square artboard. Paper colour/hue was left out on purpose.
 
 | Today | Planned |
 |---|---|
