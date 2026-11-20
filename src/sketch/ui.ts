@@ -16,6 +16,9 @@ import { ScanStep, type Scanned } from '../ui/scan-step'
 import { DPI, PRESETS } from '../ui/size-presets'
 import { globePair } from '../ui/sphere'
 import { StyleBook, styleBox } from '../ui/styles'
+import { onStorageChange, storageAllowed } from '../ui/consent'
+import { privacySettings } from '../ui/privacy'
+import { forget, keep, keepingOn, keptCollections, setKeeping, type KeptSketch } from './store'
 import { distinct, moved, ordered, ORDERS, readCollectionJson, unzip, type CollectionJson, type Order } from './collection'
 import { leftOutMarks, lineUpWith, markAt, moments, NO_DRAWING_TUNE, place, prepare, shrink, type DrawingTune, type Prepared } from './drawing'
 import { frameFor, pathCount, sketchSvg, type Drawn } from './make'
@@ -41,7 +44,7 @@ scanControls('sketch', {
       <input id="sketch-open-file" type="file" accept=".zip,application/zip" hidden />
       <button id="sketch-delete" class="button small" type="button" data-icon="big-x-fill" hidden>${tHtml('sketch.delete')}</button>
     </div>
-    <label class="check trace-check"><input id="sketch-keep" type="checkbox" /> ${tHtml('sketch.keep')}</label>
+    <label class="check"><input id="sketch-keep" type="checkbox" /> ${tHtml('sketch.keep')}</label>
     <p class="hint" id="sketch-keep-hint">${tHtml('sketch.keep.hint')}</p>`,
   after: `<div class="set-pages" id="sketch-chips" role="listbox" aria-label="${tHtml('sketch.chips')}" hidden></div>`,
   sheetHint: tHtml('sketch.sheet.hint'),
@@ -123,6 +126,8 @@ interface Sketch {
   /** The latest from the scan step for this sketch. */
   art: Scanned['art']
   flat: RGBAImage | null
+  /** The flattened photo as kept in this browser (a collection kept between visits). */
+  kept: Blob | null
 }
 
 interface Collection {
@@ -135,6 +140,8 @@ interface Collection {
   active: Sketch | null
   added: number
   style: SketchStyle | null
+  /** Sketches kept in this browser, not yet opened (a collection opens when picked). */
+  pending: KeptSketch[] | null
 }
 
 let ids = 0
@@ -143,7 +150,7 @@ let col: Collection = newCollection()
 collections.push(col)
 
 function newCollection(): Collection {
-  return { id: ++ids, name: t('sketch.collection-default', { n: collections.length + 1 }), named: false, order: 'uploaded', sketches: [], active: null, added: 0, style: null }
+  return { id: ++ids, name: t('sketch.collection-default', { n: collections.length + 1 }), named: false, order: 'uploaded', sketches: [], active: null, added: 0, style: null, pending: null }
 }
 
 const book = new StyleBook<SketchStyle>({ noun: 'sketch', key: 'hand-drawn.sketch-styles', builtIn: BUILT_IN, read: readSketchStyle })
@@ -262,8 +269,22 @@ function fillFormats() {
 
 // ---- The scan step and the collection's photos ----
 
-/** Let the page draw between two long steps (a photo read, a sketch drawn), so it never holds still. */
-const breathe = () => new Promise<void>((r) => requestAnimationFrame(() => setTimeout(r, 0)))
+/**
+ * Let the page draw between two long steps (a photo read, a sketch drawn), so
+ * it never holds still. A page out of sight draws no frames, so a short wait
+ * stands in for the frame there, and the photos still come in.
+ */
+const breathe = () =>
+  new Promise<void>((r) => {
+    let done = false
+    const go = () => {
+      if (done) return
+      done = true
+      setTimeout(r, 0)
+    }
+    requestAnimationFrame(go)
+    setTimeout(go, 50)
+  })
 
 const scan = new ScanStep(
   'sketch',
@@ -299,6 +320,7 @@ function addCanvas(c: HTMLCanvasElement, name: string, whole = false, date: numb
     lineUp: null,
     art: null,
     flat: null,
+    kept: null,
   }
   col.sketches.push(s)
   // The first photo names the collection, until a name is typed.
@@ -403,9 +425,9 @@ function showCollection() {
     }),
   )
   if (document.activeElement !== nameIn) nameIn.value = col.name
-  collectionPick.replaceChildren(...collections.map((c) => new Option(t('sketch.collection-option', { name: c.name, n: c.sketches.length }), String(c.id))))
+  collectionPick.replaceChildren(...collections.map((c) => new Option(t('sketch.collection-option', { name: c.name, n: c.sketches.length + (c.pending?.length ?? 0) }), String(c.id))))
   collectionPick.value = String(col.id)
-  $('sketch-delete').hidden = !keeping() || collections.length < 1 || !col.sketches.length
+  $('sketch-delete').hidden = !keeping() || !col.sketches.length
   fillLineUp()
   showTune()
 }
@@ -434,6 +456,7 @@ function switchCollection(next: Collection) {
   }
   showCollection()
   applied()
+  if (col.pending) void openKept(col)
 }
 
 collectionPick.addEventListener('change', () => {
@@ -1275,9 +1298,165 @@ async function openCollectionZip(f: File) {
 
 // ---- Keeping collections in this browser ----
 
-/** Collections are kept between visits: set in step 4 (store.ts). */
-let keeping = () => false
-let saveSoon = () => {}
+const keepIn = $<HTMLInputElement>('sketch-keep')
+const keeping = () => keepingOn()
+/** Keeping was asked for before this browser allowed storage: it starts once allowed. */
+let wantKeep = false
+/** Kept collections are being opened: nothing is kept again until they are in. */
+let restoring = false
+
+function showKeep() {
+  keepIn.checked = keepingOn()
+  $('sketch-keep-hint').textContent = wantKeep && !storageAllowed() ? t('sketch.keep.ask') : t('sketch.keep.hint')
+  $('sketch-delete').hidden = !keepingOn() || !col.sketches.length
+}
+
+keepIn.addEventListener('change', async () => {
+  if (keepIn.checked) {
+    // Nothing is stored without consent: the privacy card asks first.
+    if (!storageAllowed()) {
+      keepIn.checked = false
+      wantKeep = true
+      showKeep()
+      privacySettings()
+      return
+    }
+    await setKeeping(true)
+    keepAll()
+  } else {
+    if (!confirm(t('sketch.keep-off-ask'))) {
+      keepIn.checked = true
+      return
+    }
+    await setKeeping(false)
+  }
+  showKeep()
+})
+
+onStorageChange(async (allowed) => {
+  if (allowed && wantKeep) {
+    wantKeep = false
+    await setKeeping(true)
+    keepAll()
+  }
+  if (!allowed) wantKeep = false
+  showKeep()
+})
+
+/** The flattened photo as JPEG: the kept one for a kept sketch, else made from the straightened photo (once per photo). */
+const photoBlobs = new WeakMap<object, Blob>()
+async function photoOf(s: Sketch): Promise<Blob | null> {
+  if (s.kept && s.whole) return s.kept
+  const flat = s.flat
+  if (!flat) return s.kept
+  const made = photoBlobs.get(flat)
+  if (made) return made
+  const c = document.createElement('canvas')
+  c.width = flat.width
+  c.height = flat.height
+  c.getContext('2d')!.putImageData(new ImageData(flat.data, flat.width, flat.height), 0, 0)
+  const blob = await canvasBlob(c, 'image/jpeg', 0.9)
+  photoBlobs.set(flat, blob)
+  return blob
+}
+
+let saveTimer = 0
+function saveSoon() {
+  if (!keepingOn() || restoring) return
+  clearTimeout(saveTimer)
+  const c = col
+  saveTimer = window.setTimeout(() => void keepCollection(c), 800)
+}
+
+/** Keep one collection as it is now; an empty one is not kept. */
+async function keepCollection(c: Collection) {
+  if (!keepingOn() || c.pending) return
+  const sketches: KeptSketch[] = []
+  for (const s of c.sketches) {
+    const photo = await photoOf(s)
+    if (!photo) continue
+    const { id, name, named, photoName, pick, added, place, favourite, date, tune, lineUp } = s
+    sketches.push({ id, name, named, photoName, pick, added, place, favourite, date, tune, lineUp, photo })
+  }
+  try {
+    if (!sketches.length) return await forget(c.id)
+    await keep({ id: c.id, name: c.name, named: c.named, order: c.order, added: c.added, style: c.style, active: c.active?.id ?? null, saved: Date.now(), sketches })
+  } catch {
+    // Storage full or blocked: the collection still works for this visit.
+  }
+}
+
+function keepAll() {
+  for (const c of collections) void keepCollection(c)
+}
+
+/** The collections kept in this browser, on arrival: the latest opens, the others when picked. */
+async function restore() {
+  const kept = await keptCollections()
+  if (!kept.length) return
+  // Kept ids stay; new ones count on from the highest.
+  ids = Math.max(ids, ...kept.flatMap((k) => [k.id, ...k.sketches.map((s) => s.id)]))
+  const back: Collection[] = kept.map((k) => ({
+    id: k.id,
+    name: k.name,
+    named: k.named,
+    order: k.order,
+    sketches: [],
+    active: null,
+    added: k.added,
+    style: k.style ? readSketchStyle(k.style) : null,
+    pending: k.sketches,
+  }))
+  const activeOf = new Map(kept.map((k) => [k.id, k.active]))
+  // The empty collection the page started with makes way, unless photos went into it already.
+  if (!col.sketches.length) collections = collections.filter((c) => c !== col)
+  collections.push(...back)
+  for (const c of back) c.active = null
+  pendingActive = activeOf
+  if (!col.sketches.length) switchCollection(back[0])
+  else showCollection()
+}
+let pendingActive = new Map<number, number | null>()
+
+/** Open a kept collection's sketches: each photo read through the scan step in turn, then its active sketch again. */
+function openKept(c: Collection) {
+  const list = c.pending ?? []
+  c.pending = null
+  restoring = true
+  reading = reading.then(async () => {
+    try {
+      for (let i = 0; i < list.length; i++) {
+        // Another collection was picked meanwhile: the rest wait until this one is picked again.
+        if (col !== c) {
+          c.pending = list.slice(i)
+          break
+        }
+        const k = list[i]
+        const canvas = await openImage(k.photo, `${k.photoName}.jpg`)
+        if (!canvas) continue
+        const s: Sketch = { ...k, canvas, whole: true, art: null, flat: null, kept: k.photo }
+        c.sketches.push(s)
+        open(s)
+        await breathe()
+      }
+      const a = c.sketches.find((s) => s.id === pendingActive.get(c.id))
+      if (a && col === c && a !== c.active) open(a)
+    } finally {
+      restoring = false
+      showCollection()
+      drawingChanged()
+    }
+  })
+}
+
+$('sketch-delete').addEventListener('click', async () => {
+  if (!confirm(t('sketch.delete-ask', { name: col.name, n: col.sketches.length }))) return
+  await forget(col.id)
+  collections = collections.filter((c) => c !== col)
+  if (!collections.length) collections.push(newCollection())
+  switchCollection(collections[0])
+  showKeep()
+})
 
 // ---- Showing the view ----
 
@@ -1297,3 +1476,5 @@ tonesIn.addEventListener('change', () => {
 fillFields(book.current)
 applied()
 showCollection()
+showKeep()
+void restore()

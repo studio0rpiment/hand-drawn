@@ -80,12 +80,12 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 ## Privacy card
 
 `common.privacy` Privacy
-`common.privacy-kept` **Your saved settings are kept in this browser.** {n} items in its local storage, nothing anywhere else. No cookies, no tracking.
-`common.privacy-kept.one` **Your saved settings are kept in this browser.** 1 item in its local storage, nothing anywhere else. No cookies, no tracking.
+`common.privacy-kept` **Your saved settings are kept in this browser.** {n} items in its storage, nothing anywhere else. No cookies, no tracking.
+`common.privacy-kept.one` **Your saved settings are kept in this browser.** 1 item in its storage, nothing anywhere else. No cookies, no tracking.
 `common.privacy-forget` Stop and delete them
 `common.privacy-close` Close
-`common.privacy-notice` **Hand Drawn sets no cookies and tracks nothing.** Your photos are yours and are never stored.
-`common.privacy-ask` It can remember the conversion settings you choose if you save them. If you don’t save them, it will just ask each time you use it.
+`common.privacy-notice` **Hand Drawn sets no cookies and tracks nothing.** Your photos are yours and never leave this browser; they are kept in it only if sketch collections are kept.
+`common.privacy-ask` It can remember the conversion settings you choose if you save them, and keep sketch collections if that is ticked on the Sketches tab. If you don’t save them, it will just ask each time you use it.
 `common.privacy-allow` Remember my settings
 `common.privacy-decline` Keep nothing
 

@@ -30,7 +30,7 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `sketch.keep` Keep collections in this browser
 `sketch.keep.hint` Off: a collection lasts until the page closes. On: collections, their flattened photos, names, order, favourites and style stay in this browser between visits, and nothing leaves it.
 `sketch.keep.ask` Keeping collections needs saved settings allowed first, under Privacy settings.
-`sketch.kept` Kept in this browser.
+`sketch.keep-off-ask` Stop keeping collections? Every collection kept in this browser is deleted from it; the ones open now stay until the page closes.
 `sketch.upload` Upload sketches (photos)
 `sketch.count` {n}
 `sketch.chips` Sketches in this collection

@@ -68,7 +68,7 @@ describe('the text files', () => {
       ...['as-drawn', 'line', 'schematic', 'tones'].flatMap((k) => [`sketch.kind.${k}`, `sketch.kind.${k}.hint`]),
       ...['outlines', 'centre', '0', '15', '45', '90', 'none', 'paper', 'colour', 'uploaded', 'name', 'favourites', 'date', 'own'].map((o) => `sketch.o.${o}`),
       ...['svg', 'png', 'pdf'].map((f) => `sketch.format-${f}`),
-      ...['consent', 'icon', 'icon-current', 'texture', 'texture-current', 'font', 'font-current'].map((s) => `privacy.store-${s}`),
+      ...['consent', 'icon', 'icon-current', 'texture', 'texture-current', 'font', 'font-current', 'sketch', 'sketch-current', 'sketch-keep', 'sketch-db'].map((s) => `privacy.store-${s}`),
     ]
     for (const key of want) expect(TEXT[key], key).toBeDefined()
   })

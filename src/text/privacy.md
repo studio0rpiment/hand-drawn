@@ -9,20 +9,20 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `privacy.title` Privacy · Hand Drawn
 `privacy.description` Hand Drawn's privacy policy: no cookies, no tracking, nothing stored unless you ask.
 `privacy.tagline` privacy policy
-`privacy.updated` Last updated 22 October 2026
+`privacy.updated` Last updated 20 November 2026
 `privacy.short` In short
 `privacy.short-1` Hand Drawn sets **no cookies** and uses **no analytics or tracking** of any kind.
 `privacy.short-2` Your photos and drawings are processed **in your browser**. They are never uploaded, sent or kept anywhere else.
-`privacy.short-3` Nothing is stored in your browser either, **unless you allow it**. The only thing Hand Drawn can keep is the conversion settings you save.
+`privacy.short-3` Nothing is stored in your browser either, **unless you allow it**. Then Hand Drawn keeps the conversion settings you save and, only if *Keep collections in this browser* is also ticked on the Sketches tab, sketch collections with their flattened photos.
 `privacy.short-4` It loads nothing from other companies: the app, its fonts and its icons all come from the same place as this page.
 `privacy.who` Who is responsible
 `privacy.who-text` Kevin Patton, Studio Orpiment. Contact: [support@orpiment.studio](mailto:support@orpiment.studio)
 `privacy.photos` Your photos and drawings
-`privacy.photos-text` When you open, drop or paste a photo, it is read and processed by code running in your browser. It stays in the page's memory while the page is open and is gone when you close or reload it. Files you download (SVGs, PNGs, icon packs, fonts) are saved on your device by your browser; Hand Drawn keeps no copy.
+`privacy.photos-text` When you open, drop or paste a photo, it is read and processed by code running in your browser. It stays in the page's memory while the page is open and is gone when you close or reload it. Files you download (SVGs, PNGs, PDFs, icon packs, sketch collections, fonts) are saved on your device by your browser; Hand Drawn keeps no copy. The one exception is the Sketches tab: with storage allowed and *Keep collections in this browser* ticked, its collections, flattened photos included, are kept in this browser's IndexedDB, on this device only, until deleted.
 `privacy.cookies` Cookies
 `privacy.cookies-text` None. Hand Drawn sets no cookies, and nothing on this site does.
 `privacy.storage` What can be stored in your browser
-`privacy.storage-text` Only if you choose *Remember my settings* does Hand Drawn use your browser's local storage, which stays on your device and is never sent anywhere. If you say no, not even that answer is stored, so you will be asked again on your next visit. These are all the entries it can create:
+`privacy.storage-text` Only if you choose *Remember my settings* does Hand Drawn use your browser's storage (local storage, and IndexedDB for kept sketch collections), which stays on your device and is never sent anywhere. If you say no, not even that answer is stored, so you will be asked again on your next visit. These are all the entries it can create:
 `privacy.col-name` Name
 `privacy.col-what` What it holds
 `privacy.col-how-long` How long
@@ -44,3 +44,7 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `privacy.store-texture-current` The texture style you were last editing.
 `privacy.store-font` Font styles you saved.
 `privacy.store-font-current` The font style you were last editing.
+`privacy.store-sketch` Sketch styles you saved.
+`privacy.store-sketch-current` The sketch style you were last editing.
+`privacy.store-sketch-keep` That sketch collections are to be kept in this browser.
+`privacy.store-sketch-db` An IndexedDB database of the sketch collections kept: their names, order, favourites, tuning, style and flattened photos. Only while *Keep collections in this browser* is ticked.
