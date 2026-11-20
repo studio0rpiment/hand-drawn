@@ -157,25 +157,46 @@ export function baseColour(s: Surface, o: MapOptions, inkHex: string, paperHex: 
   return out
 }
 
-/** Every map for the surface, tiled first when the tile is to be seamless. */
-export async function makeMaps(src: Surface, o: MapOptions, tile: TileOptions, colours: { ink: string; paper: string }): Promise<Maps> {
+/** The steps of making the maps, in order: the seamless tile, then each map. */
+export const MAP_STEPS = ['tile', 'height', 'base', 'normal', 'roughness', 'ao'] as const
+export type MapStep = (typeof MAP_STEPS)[number]
+
+/** Every map for the surface, tiled first when the tile is to be seamless. `done` hears each step as it finishes. */
+export async function makeMaps(
+  src: Surface,
+  o: MapOptions,
+  tile: TileOptions,
+  colours: { ink: string; paper: string },
+  done: (step: MapStep) => void = () => {},
+): Promise<Maps> {
   const wrap = tile.seamless
   const s = wrap ? seamless(src, { width: tile.seam, ragged: tile.ragged, seed: tile.seed }) : src
+  done('tile')
   const { width: w, height: h } = s
   const side = Math.min(w, h)
   const heights = await heightSource(o.height).estimate(s, { darkHigh: o.darkHigh, soften: o.soften * side, detail: o.detail, wrap })
+  const height = greyImage(heights)
+  done('height')
+  const base = baseColour(s, o, colours.ink, colours.paper, wrap)
+  done('base')
   // Steepness grows with the size, so a bump looks the same at every resolution.
-  const strength = o.depth * side * 0.06
-  return {
-    width: w,
-    height: h,
-    heights,
-    images: {
-      base: baseColour(s, o, colours.ink, colours.paper, wrap),
-      height: greyImage(heights),
-      normal: normalMap(heights, w, h, strength, o.normalY, wrap),
-      roughness: greyImage(roughnessMap(s.gray, o.roughness, o.roughVary, wrap, w, h)),
-      ao: greyImage(aoMap(heights, w, h, Math.max(1, o.aoReach * side), o.ao, wrap)),
-    },
+  const normal = normalMap(heights, w, h, o.depth * side * 0.06, o.normalY, wrap)
+  done('normal')
+  const roughness = greyImage(roughnessMap(s.gray, o.roughness, o.roughVary, wrap, w, h))
+  done('roughness')
+  const ao = greyImage(aoMap(heights, w, h, Math.max(1, o.aoReach * side), o.ao, wrap))
+  done('ao')
+  return { width: w, height: h, heights, images: { base, height, normal, roughness, ao } }
+}
+
+/** The sizes the files can be had at: the chosen size, then halves of it, down to `smallest` on the longer side. */
+export function mapSizes(width: number, height: number, smallest = 256): { width: number; height: number }[] {
+  const out = [{ width, height }]
+  for (let d = 2; ; d *= 2) {
+    const w = Math.round(width / d)
+    const h = Math.round(height / d)
+    if (Math.max(w, h) < smallest || Math.min(w, h) < 16) break
+    out.push({ width: w, height: h })
   }
+  return out
 }

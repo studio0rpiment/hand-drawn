@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { addHeightSource, heightSource, heightSourceIds } from '../src/texture/height'
 import { litSphere } from '../src/texture/lit'
-import { aoMap, makeMaps, normalMap, type MapOptions } from '../src/texture/pbr'
+import { aoMap, makeMaps, mapSizes, normalMap, type MapOptions } from '../src/texture/pbr'
 import { blur, cropRect, seamless, type Surface } from '../src/texture/surface'
 import { BUILT_IN, STAMP, readTextureStyle } from '../src/texture/style'
 
@@ -119,5 +119,20 @@ describe('texture style with maps', () => {
     const old = readTextureStyle({ name: 'Old', look: 'riso' })
     expect(old.make).toBe('print')
     expect(readTextureStyle({ file: { width: 99999, format: 'gif' }, maps: { height: 'nope' } }).file).toEqual({ ...STAMP.file, width: 4096 })
+  })
+})
+
+describe('mapSizes', () => {
+  it('halves the chosen size down to 256 on the longer side', () => {
+    expect(mapSizes(4096, 4096).map((z) => z.width)).toEqual([4096, 2048, 1024, 512, 256])
+    expect(mapSizes(2048, 1024)).toEqual([
+      { width: 2048, height: 1024 },
+      { width: 1024, height: 512 },
+      { width: 512, height: 256 },
+      { width: 256, height: 128 },
+    ])
+  })
+  it('keeps a small size as it is', () => {
+    expect(mapSizes(200, 100)).toEqual([{ width: 200, height: 100 }])
   })
 })

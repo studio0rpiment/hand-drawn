@@ -2023,3 +2023,95 @@ label.off {
 .map-downloads {
   flex-wrap: wrap;
 }
+
+/* While maps are made: a line draws itself over the maps, in the accent
+   yellow, with each map ticked off as it is done. */
+#texture-maps-pane {
+  position: relative;
+}
+
+#texture-maps-pane.making .map-grid {
+  opacity: 0.25;
+}
+
+.map-making {
+  position: absolute;
+  inset: 2.2rem 0 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.6rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.map-making p {
+  margin: 0;
+  color: var(--text);
+}
+
+.making-line {
+  width: min(16rem, 80%);
+  overflow: visible;
+}
+
+.making-line path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: making-draw 2.4s ease-in-out infinite;
+}
+
+@keyframes making-draw {
+  0% { stroke-dashoffset: 1; }
+  55% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -1; }
+}
+
+.making-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+}
+
+.making-steps li {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--quiet);
+}
+
+.making-steps li.now {
+  border-color: var(--accent);
+  color: var(--text);
+  animation: making-now 1.2s ease-in-out infinite alternate;
+}
+
+.making-steps li.done {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--bg);
+  animation: none;
+}
+
+@keyframes making-now {
+  to { border-color: var(--line); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .making-line path,
+  .making-steps li.now {
+    animation: none;
+  }
+  .making-line path {
+    stroke-dashoffset: 0;
+  }
+}

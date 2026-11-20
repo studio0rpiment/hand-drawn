@@ -133,11 +133,17 @@
             <button class="button mini" type="button" data-square="4096">4096</button>
           </div>
           <div id="texture-file-fields"></div>
+          <div class="row" id="map-out-row" hidden>
+            <label class="field">{{texture.out}} <select id="map-out"></select></label>
+          </div>
           <p class="hint" id="map-sizes" aria-live="polite"></p>
-          <div class="row">
+          <div class="row" id="map-make-row" hidden>
+            <button id="map-make" class="button primary small" type="button"></button>
+          </div>
+          <div class="row" hidden>
             <button id="map-zip" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">{{texture.dl-zip}}</button>
           </div>
-          <div class="row map-downloads">
+          <div class="row map-downloads" id="map-downloads" hidden>
             <button class="button small" type="button" data-map-dl="base" data-icon="arrow-bar-fill-r90">{{texture.map.base}}</button>
             <button class="button small" type="button" data-map-dl="height" data-icon="arrow-bar-fill-r90">{{texture.map.height}}</button>
             <button class="button small" type="button" data-map-dl="normal" data-icon="arrow-bar-fill-r90">{{texture.map.normal}}</button>
@@ -167,6 +173,21 @@
             <figure data-map="normal"><div class="stage"><canvas></canvas></div><figcaption>{{texture.map.normal}}</figcaption></figure>
             <figure data-map="roughness"><div class="stage"><canvas></canvas></div><figcaption>{{texture.map.roughness}}</figcaption></figure>
             <figure data-map="ao"><div class="stage"><canvas></canvas></div><figcaption>{{texture.map.ao}}</figcaption></figure>
+          </div>
+          <div class="map-making" id="map-making" role="status" hidden>
+            <svg class="making-line" viewBox="0 0 240 70" aria-hidden="true">
+              <path pathLength="1" d="M6 48 C 22 14, 40 12, 56 38 S 86 62, 104 36 S 132 6, 150 30 S 178 60, 196 34 S 222 14, 234 26" />
+            </svg>
+            <p id="map-making-text"></p>
+            <ol class="making-steps">
+              <li data-step="tile">{{texture.step.tile}}</li>
+              <li data-step="height">{{texture.map.height}}</li>
+              <li data-step="base">{{texture.map.base}}</li>
+              <li data-step="normal">{{texture.map.normal}}</li>
+              <li data-step="roughness">{{texture.map.roughness}}</li>
+              <li data-step="ao">{{texture.map.ao}}</li>
+            </ol>
+            <button id="map-stop" class="button small" type="button">{{texture.stop}}</button>
           </div>
         </div>
         <div class="pane result-pane empty" id="texture-tiled-pane" data-make="maps">

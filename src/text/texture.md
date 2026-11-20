@@ -88,8 +88,17 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `texture.mb` {n} MB
 `texture.sizes` {format}: {sizes} · all {total}
 `texture.sizes-about` {format}, about: {sizes} · all {total}
-`texture.map-stats` Files {width} × {height} px · preview {ms} ms
-`texture.making` Making the {width} × {height} maps…
+`texture.map-stats` Preview {width} × {height} px · {ms} ms
+`texture.out` Files at
+`texture.out.ready` {width} × {height} · ready
+`texture.out.quick` {width} × {height}
+`texture.out.ask` {width} × {height} · made when asked
+`texture.make` Make the {width} × {height} maps
+`texture.making` Making the {width} × {height} maps
+`texture.made` Made the {width} × {height} maps in {s} s
+`texture.step.tile` Seamless tile
+`texture.stop` Stop
+`texture.stopped` Stopped; nothing was made.
 `texture.saved` Saved {name}, {size}
 
 ## Upload and adjust image
