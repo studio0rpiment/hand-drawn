@@ -97,9 +97,14 @@
         <h2 class="step">{{texture.step-image}}</h2>
         <div id="texture-scan-controls"></div>
 
+        <h2 class="step" data-make="maps">{{texture.step-drawing}}</h2>
+        <div id="texture-surface-fields" data-make="maps"></div>
+
         <h2 class="step">{{texture.step-styles}}</h2>
         <div id="texture-style-box"></div>
-        <fieldset>
+        <div id="texture-make-fields"></div>
+        <div id="texture-map-fields" data-make="maps"></div>
+        <fieldset data-make="print">
           <legend>{{texture.size}}</legend>
           <label class="field">{{texture.preset}} <select id="tex-preset"></select></label>
           <div class="row size-row">
@@ -111,27 +116,80 @@
           <label class="check"><input id="tex-fit" type="checkbox" /> {{texture.fit}}</label>
           <p class="hint" id="tex-size-note" aria-live="polite"></p>
         </fieldset>
-        <div id="texture-fields"></div>
+        <div id="texture-fields" data-make="print"></div>
 
         <h2 class="step">{{texture.step-output}}</h2>
-        <fieldset>
+        <fieldset data-make="maps">
+          <legend>{{texture.files}}</legend>
+          <div class="row size-row">
+            <label class="field">{{texture.width}} <input id="map-w" type="number" min="16" max="4096" step="1" inputmode="numeric" /></label>
+            <button id="map-swap" class="button small" type="button" aria-label="{{texture.swap}}" title="{{texture.swap}}">⇄</button>
+            <label class="field">{{texture.height}} <input id="map-h" type="number" min="16" max="4096" step="1" inputmode="numeric" /></label>
+          </div>
+          <div class="row map-squares">
+            <button class="button mini" type="button" data-square="512">512</button>
+            <button class="button mini" type="button" data-square="1024">1024</button>
+            <button class="button mini" type="button" data-square="2048">2048</button>
+            <button class="button mini" type="button" data-square="4096">4096</button>
+          </div>
+          <div id="texture-file-fields"></div>
+          <p class="hint" id="map-sizes" aria-live="polite"></p>
+          <div class="row">
+            <button id="map-zip" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">{{texture.dl-zip}}</button>
+          </div>
+          <div class="row map-downloads">
+            <button class="button small" type="button" data-map-dl="base" data-icon="arrow-bar-fill-r90">{{texture.map.base}}</button>
+            <button class="button small" type="button" data-map-dl="height" data-icon="arrow-bar-fill-r90">{{texture.map.height}}</button>
+            <button class="button small" type="button" data-map-dl="normal" data-icon="arrow-bar-fill-r90">{{texture.map.normal}}</button>
+            <button class="button small" type="button" data-map-dl="roughness" data-icon="arrow-bar-fill-r90">{{texture.map.roughness}}</button>
+            <button class="button small" type="button" data-map-dl="ao" data-icon="arrow-bar-fill-r90">{{texture.map.ao}}</button>
+          </div>
+          <p class="stats" id="map-stats" aria-live="polite"></p>
+        </fieldset>
+        <fieldset data-make="print">
           <legend>{{texture.export}}</legend>
           <div class="row">
             <button id="texture-png" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">{{texture.dl-png}}</button>
             <button id="texture-css" class="button small" type="button" data-icon="equals-fill">{{texture.copy-css}}</button>
           </div>
           <p class="stats" id="texture-stats" aria-live="polite"></p>
-          <div id="texture-style-actions"></div>
         </fieldset>
+        <div id="texture-style-actions"></div>
       </aside>
 
       <section class="icon-preview">
         <div id="texture-scan-image"></div>
-        <div class="pane result-pane empty" id="texture-print-pane">
+        <div class="pane result-pane empty" id="texture-maps-pane" data-make="maps">
+          <h2>{{texture.maps}}</h2>
+          <div class="map-grid" id="map-grid">
+            <figure data-map="base"><div class="stage"><canvas></canvas></div><figcaption>{{texture.map.base}}</figcaption></figure>
+            <figure data-map="height"><div class="stage"><canvas></canvas></div><figcaption>{{texture.map.height}}</figcaption></figure>
+            <figure data-map="normal"><div class="stage"><canvas></canvas></div><figcaption>{{texture.map.normal}}</figcaption></figure>
+            <figure data-map="roughness"><div class="stage"><canvas></canvas></div><figcaption>{{texture.map.roughness}}</figcaption></figure>
+            <figure data-map="ao"><div class="stage"><canvas></canvas></div><figcaption>{{texture.map.ao}}</figcaption></figure>
+          </div>
+        </div>
+        <div class="pane result-pane empty" id="texture-tiled-pane" data-make="maps">
+          <div class="pane-head">
+            <h2>{{texture.tiled}}</h2>
+            <div class="toggle" role="radiogroup" aria-label="{{texture.tiled-show}}">
+              <label><input type="radio" name="tiled-map" value="base" checked /> {{texture.map.base}}</label>
+              <label><input type="radio" name="tiled-map" value="height" /> {{texture.map.height}}</label>
+              <label><input type="radio" name="tiled-map" value="normal" /> {{texture.map.normal}}</label>
+            </div>
+          </div>
+          <div class="stage"><canvas id="texture-tiled"></canvas></div>
+        </div>
+        <div class="pane result-pane empty" id="texture-lit-pane" data-make="maps">
+          <h2>{{texture.lit}}</h2>
+          <p class="hint">{{texture.lit.hint}}</p>
+          <div class="stage lit-stage"><canvas id="texture-lit" width="320" height="320"></canvas></div>
+        </div>
+        <div class="pane result-pane empty" id="texture-print-pane" data-make="print">
           <h2>{{texture.print}}</h2>
           <div class="stage texture-stage"><canvas id="texture-view" class="checker"></canvas></div>
         </div>
-        <div class="pane" id="texture-repeat-pane" hidden>
+        <div class="pane" id="texture-repeat-pane" data-make="print" hidden>
           <h2>{{texture.repeat}}</h2>
           <div class="stage"><canvas id="texture-repeat"></canvas></div>
         </div>

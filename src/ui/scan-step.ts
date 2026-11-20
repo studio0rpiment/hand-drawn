@@ -33,8 +33,8 @@ export interface Scanned {
   /** Several drawings on this sheet is ticked. */
   sheet: boolean
   colours: ScanColours
-  /** The picked drawing with the light-evened photo under it, cropped alike (for textures, which keep the photo's tones). */
-  art: { gray: GrayImage; mask: Mask } | null
+  /** The picked drawing with the light-evened photo under it and the straightened photo in colour, cropped alike (for textures, which keep the photo's tones). */
+  art: { gray: GrayImage; mask: Mask; colour: RGBAImage } | null
   /** Counts the photos opened (and removed), so a new one can be told from new settings. */
   photo: number
   /** A page of the icon template: which page, and each drawing's icon name (in `drawings` order). */
@@ -72,6 +72,16 @@ const FORMATS: Record<Slider, (v: number) => string> = {
   'paper-h': (v) => `${v}°`,
   'paper-s': (v) => `${v}%`,
   'paper-l': (v) => `${v}%`,
+}
+
+/** Part of an RGBA image. */
+function cropRGBA(img: RGBAImage, box: Box): RGBAImage {
+  const data = new Uint8ClampedArray(box.width * box.height * 4)
+  for (let y = 0; y < box.height; y++) {
+    const from = ((box.y + y) * img.width + box.x) * 4
+    data.set(img.data.subarray(from, from + box.width * 4), y * box.width * 4)
+  }
+  return { data, width: box.width, height: box.height }
 }
 
 export class ScanStep {
@@ -442,7 +452,7 @@ export class ScanStep {
     const page = this.page
     const art = box && page ? (() => {
       const b = padBox(box, 2, page.mask.width, page.mask.height)
-      return { gray: cropMask(page.base, b), mask: cropMask(page.mask, b) }
+      return { gray: cropMask(page.base, b), mask: cropMask(page.mask, b), colour: cropRGBA(this.flat!, b) }
     })() : null
     this.changed({
       name: this.name,

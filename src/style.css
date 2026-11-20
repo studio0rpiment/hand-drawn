@@ -1973,3 +1973,53 @@ label.off {
   cursor: progress;
   opacity: 0.6;
 }
+
+/* ---- Texture: PBR maps or a printed look ---- */
+
+/* Controls and panes belong to one of the two; the other's rest hidden. */
+.texture-app[data-make='maps'] [data-make='print'],
+.texture-app[data-make='print'] [data-make='maps'] {
+  display: none !important;
+}
+
+.map-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: 0.6rem;
+}
+
+.map-grid figure {
+  margin: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.map-grid figcaption {
+  font-size: 0.8125rem;
+  color: var(--quiet);
+}
+
+.map-grid .stage canvas,
+#texture-tiled-pane .stage canvas {
+  width: 100%;
+  max-height: none;
+}
+
+#texture-tiled-pane .stage canvas {
+  max-width: 36rem;
+}
+
+.lit-stage {
+  background: #121212;
+}
+
+.lit-stage canvas {
+  width: min(20rem, 100%);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.map-squares,
+.map-downloads {
+  flex-wrap: wrap;
+}

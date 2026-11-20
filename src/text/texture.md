@@ -1,6 +1,6 @@
 # Texture
 
-The words on the Texture tab: colour, size, the style settings, the print and export.
+The words on the Texture tab: PBR maps (the surface, the seamless tile, each map, the files), and the printed looks (colour, size, the style settings, the print and export).
 
 How to edit: change the words after a key; don't change the key in backticks, which ties the words to their place in the app. A long text may run on over several lines; a blank line ends it. {name} is filled in by the app (a number, a name). **bold**, *emphasis* and [a link](https://…) work. The screens show most words in lower case; write them in sentence case here.
 
@@ -11,8 +11,86 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 ## Steps
 
 `texture.step-image` Adjust image
+`texture.step-drawing` Adjust drawing
 `texture.step-styles` Adjust styles
 `texture.step-output` Output and system
+
+## What the tab makes
+
+`texture.g.make` Make
+`texture.g.make.hint` PBR maps are the files a 3D material needs: base colour, height, normal, roughness and ambient occlusion. A printed look prints the drawing as stamp, risograph, halftone or ink.
+`texture.f.make` Make
+`texture.o.maps` PBR maps
+`texture.o.print` A printed look
+
+## Adjust drawing (maps)
+
+`texture.g.surface` Surface
+`texture.g.surface.hint` The maps are cut from the middle of the image, in the files' proportions. An evenly lit patch of surface works best.
+`texture.f.surface-crop` Trim every edge
+`texture.f.surface-seamless` Seamless tile
+`texture.g.seams` Seams
+`texture.g.seams.hint` The image is offset by half its width and height, so its edges meet in the middle; the seams there are covered with the image as it was. Shuffle moves the seams' ragged edge.
+`texture.f.surface-seam` Blend width
+`texture.f.surface-ragged` Ragged edge
+
+## Maps
+
+`texture.g.height` Height
+`texture.g.height.hint` Every other map is worked out from the height. The ink scan suits drawings; brightness suits photos of a surface.
+`texture.f.maps-height` Height from
+`texture.o.ink-scan` the ink scan
+`texture.o.brightness` brightness
+`texture.f.maps-darkHigh` Dark parts stand high (off: they sit low)
+`texture.f.maps-soften` Softness
+`texture.f.maps-detail` Fine detail
+`texture.g.normal` Normal
+`texture.f.maps-depth` Depth
+`texture.f.maps-normalY` Green channel
+`texture.o.gl` up: OpenGL (Blender, Godot, Unity)
+`texture.o.dx` down: DirectX (Unreal)
+`texture.g.roughness` Roughness
+`texture.g.roughness.hint` Worked out from brightness. Ink and graphite are often shinier than paper: move dark parts toward smoother.
+`texture.f.maps-roughness` Roughness
+`texture.f.maps-roughVary` Dark parts rougher (+) or smoother (−)
+`texture.g.ao` Ambient occlusion
+`texture.f.maps-ao` Strength
+`texture.f.maps-aoReach` Reach
+`texture.g.base` Base colour
+`texture.f.maps-colour` Base colour from
+`texture.o.photo` the photo
+`texture.o.ink-on-paper` the ink and paper colours
+`texture.f.maps-evenLight` Even out the light (photo)
+
+## Map names
+
+`texture.maps` Maps
+`texture.map.base` Base colour
+`texture.map.height` Height
+`texture.map.normal` Normal
+`texture.map.roughness` Roughness
+`texture.map.ao` Ambient occlusion
+`texture.tiled` Tiled, 3 × 3
+`texture.tiled-show` Map tiled
+`texture.lit` Lit sphere
+`texture.lit.hint` The light follows the pointer.
+
+## Files (maps)
+
+`texture.files` Files
+`texture.f.file-format` Format
+`texture.f.file-quality` Quality
+`texture.o.png` PNG
+`texture.o.jpg` JPG
+`texture.o.webp` WebP
+`texture.dl-zip` Download all maps (zip)
+`texture.kb` {n} KB
+`texture.mb` {n} MB
+`texture.sizes` {format}: {sizes} · all {total}
+`texture.sizes-about` {format}, about: {sizes} · all {total}
+`texture.map-stats` Files {width} × {height} px · preview {ms} ms
+`texture.making` Making the {width} × {height} maps…
+`texture.saved` Saved {name}, {size}
 
 ## Upload and adjust image
 

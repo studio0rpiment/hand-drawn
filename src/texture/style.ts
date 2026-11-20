@@ -1,5 +1,10 @@
-// A texture style: how the drawing is printed (the look), on what, and how it
-// is laid out. Plain JSON, like icon styles, so looks can be saved and shared.
+// A texture style: what the tab makes (PBR maps, or a printed look), and its
+// settings. For maps: the surface (crop, seamless tile), how each map is
+// worked out, and the files. For a printed look: how the drawing is printed,
+// on what, and how it is laid out. Plain JSON, like icon styles, so styles can
+// be saved and shared.
+
+import { heightSourceIds } from './height'
 
 export const LOOKS = ['ink', 'stamp', 'riso', 'halftone'] as const
 export type Look = (typeof LOOKS)[number]
@@ -9,8 +14,46 @@ export type Layout = (typeof LAYOUTS)[number]
 
 export const DOTS = ['dot', 'line'] as const
 
+/** What the tab makes: PBR maps from the image, or the drawing printed in a look. */
+export const MAKES = ['maps', 'print'] as const
+export const FORMATS = ['png', 'jpg', 'webp'] as const
+export type Format = (typeof FORMATS)[number]
+export const NORMAL_Y = ['gl', 'dx'] as const
+export const BASE_COLOURS = ['photo', 'ink-on-paper'] as const
+
+/** Longest side of a map, in pixels. */
+export const MAX_MAP = 4096
+
 export interface TextureStyle {
   name: string
+  make: (typeof MAKES)[number]
+  /** The part of the image the maps are made from, and whether it repeats. */
+  surface: {
+    /** Trimmed off every edge before anything else, as a share of the side, 0–0.25. */
+    crop: number
+    seamless: boolean
+    /** Blend band either side of the seams, as a share of the side. */
+    seam: number
+    /** How far the blend's edge wanders, 0–1. */
+    ragged: number
+  }
+  maps: {
+    /** A height source's id (height.ts). */
+    height: string
+    darkHigh: boolean
+    soften: number
+    detail: number
+    depth: number
+    normalY: (typeof NORMAL_Y)[number]
+    roughness: number
+    roughVary: number
+    ao: number
+    aoReach: number
+    colour: (typeof BASE_COLOURS)[number]
+    evenLight: number
+  }
+  /** The map files: size in pixels, format and quality (JPG and WebP). */
+  file: { width: number; height: number; format: Format; quality: number }
   look: Look
   /** Seed for every random choice, so a style gives the same print each time. */
   seed: number
@@ -59,8 +102,29 @@ export interface TextureStyle {
   }
 }
 
+const SURFACE: TextureStyle['surface'] = { crop: 0.02, seamless: true, seam: 0.15, ragged: 0.6 }
+const MAPS: TextureStyle['maps'] = {
+  height: 'ink-scan',
+  darkHigh: true,
+  soften: 0.004,
+  detail: 0.3,
+  depth: 0.5,
+  normalY: 'gl',
+  roughness: 0.75,
+  roughVary: -0.4,
+  ao: 0.6,
+  aoReach: 0.03,
+  colour: 'photo',
+  evenLight: 0.6,
+}
+const FILE: TextureStyle['file'] = { width: 1024, height: 1024, format: 'png', quality: 0.9 }
+
 export const STAMP: TextureStyle = {
   name: 'Rubber stamp',
+  make: 'print',
+  surface: SURFACE,
+  maps: MAPS,
+  file: FILE,
   look: 'stamp',
   seed: 7,
   tone: { black: 40, white: 220, gamma: 1 },
@@ -72,7 +136,17 @@ export const STAMP: TextureStyle = {
   layout: { mode: 'single', width: 1024, height: 1024, fit: true, scale: 1, gap: 0.3, jitter: 0, count: 6, margin: 48 },
 }
 
+/** Maps from a drawing: the ink stands up from the paper. */
+export const DRAWN_MAPS: TextureStyle = { ...STAMP, name: 'Maps from a drawing', make: 'maps' }
+
 export const BUILT_IN: TextureStyle[] = [
+  DRAWN_MAPS,
+  {
+    ...DRAWN_MAPS,
+    name: 'Maps from a photo',
+    surface: { ...SURFACE, crop: 0.04 },
+    maps: { ...MAPS, height: 'brightness', darkHigh: false, soften: 0.002, detail: 0.5, depth: 0.35, roughness: 0.7, roughVary: 0.3, ao: 0.5 },
+  },
   STAMP,
   {
     ...STAMP,
@@ -126,9 +200,39 @@ export function readTextureStyle(raw: unknown, base: TextureStyle = STAMP): Text
   const h = obj(r.halftone)
   const c = obj(r.colors)
   const l = obj(r.layout)
+  const su = obj(r.surface)
+  const m = obj(r.maps)
+  const f = obj(r.file)
   const black = int(t.black, base.tone.black, 0, 254)
   return {
     name: typeof r.name === 'string' && r.name.trim() ? r.name.trim().slice(0, 60) : base.name,
+    make: pick(r.make, MAKES, base.make),
+    surface: {
+      crop: num(su.crop, base.surface.crop, 0, 0.25),
+      seamless: bool(su.seamless, base.surface.seamless),
+      seam: num(su.seam, base.surface.seam, 0.02, 1 / 3),
+      ragged: num(su.ragged, base.surface.ragged, 0, 1),
+    },
+    maps: {
+      height: pick(m.height, heightSourceIds(), base.maps.height),
+      darkHigh: bool(m.darkHigh, base.maps.darkHigh),
+      soften: num(m.soften, base.maps.soften, 0, 0.05),
+      detail: num(m.detail, base.maps.detail, 0, 1),
+      depth: num(m.depth, base.maps.depth, 0, 1),
+      normalY: pick(m.normalY, NORMAL_Y, base.maps.normalY),
+      roughness: num(m.roughness, base.maps.roughness, 0, 1),
+      roughVary: num(m.roughVary, base.maps.roughVary, -1, 1),
+      ao: num(m.ao, base.maps.ao, 0, 1),
+      aoReach: num(m.aoReach, base.maps.aoReach, 0.005, 0.15),
+      colour: pick(m.colour, BASE_COLOURS, base.maps.colour),
+      evenLight: num(m.evenLight, base.maps.evenLight, 0, 1),
+    },
+    file: {
+      width: int(f.width, base.file.width, 16, MAX_MAP),
+      height: int(f.height, base.file.height, 16, MAX_MAP),
+      format: pick(f.format, FORMATS, base.file.format),
+      quality: num(f.quality, base.file.quality, 0.3, 1),
+    },
     look: pick(r.look, LOOKS, base.look),
     seed: int(r.seed, base.seed, 0, 999999),
     tone: {

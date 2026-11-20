@@ -1,6 +1,8 @@
 // The Texture view: upload a photo and adjust the image (its own scan step),
-// then print the drawing as stamp, riso, halftone or plain ink, lay it out
-// once or as a seamless tile, and export a PNG.
+// then either make PBR maps from it (maps-view.ts: crop, seamless tile, base
+// colour, height, normal, roughness, ambient occlusion, as files), or print
+// the drawing as stamp, riso, halftone or plain ink, lay it out once or as a
+// seamless tile, and export a PNG.
 
 import { scanControls } from '../ui/scan-markup'
 import { ScanStep, type Scanned } from '../ui/scan-step'
@@ -12,7 +14,9 @@ import { flash } from '../ui/hand'
 import { compose } from './compose'
 import { plan } from './layout'
 import { printArt, printKey, resizeArt, type Art, type Print } from './looks'
-import { BUILT_IN, DOTS, LAYOUTS, LOOKS, MAX_SIDE, readTextureStyle, type TextureStyle } from './style'
+import { BASE_COLOURS, BUILT_IN, DOTS, FORMATS, LAYOUTS, LOOKS, MAKES, MAX_MAP, MAX_SIDE, NORMAL_Y, readTextureStyle, type TextureStyle } from './style'
+import { heightSourceIds } from './height'
+import { renderMaps, setMapArt } from './maps-view'
 
 const px = (v: number) => `${v} px`
 const deg = (v: number) => `${v}°`
@@ -25,9 +29,98 @@ scanControls('texture', {
   colourExtra: `<label class="check"><input id="texture-scan-colours" type="checkbox" checked /> ${tHtml('texture.scan-colours')}</label>`,
 })
 
+const pct1 = (v: number) => `${(v * 100).toFixed(1)}%`
+const signedPct = (v: number) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}%`
+const isPrint = (s: S) => s.make === 'print'
+
+const MAKE_GROUPS: FieldGroup[] = [
+  {
+    legend: t('texture.g.make'),
+    hint: t('texture.g.make.hint'),
+    fields: [{ kind: 'select', path: 'make', label: t('texture.f.make'), options: MAKES }],
+  },
+]
+
+/** Adjust drawing, for maps: the part of the image used, and the seamless tile. */
+const SURFACE_GROUPS: FieldGroup[] = [
+  {
+    legend: t('texture.g.surface'),
+    hint: t('texture.g.surface.hint'),
+    fields: [
+      { kind: 'range', path: 'surface.crop', label: t('texture.f.surface-crop'), min: 0, max: 0.25, step: 0.005, fmt: pct1 },
+      { kind: 'check', path: 'surface.seamless', label: t('texture.f.surface-seamless') },
+    ],
+  },
+  {
+    legend: t('texture.g.seams'),
+    hint: t('texture.g.seams.hint'),
+    when: (s: S) => s.surface.seamless,
+    presets: [{ label: 'Shuffle', path: 'seed', value: () => Math.floor(Math.random() * 1000000), icon: 'scatter-fill' }],
+    fields: [
+      { kind: 'range', path: 'surface.seam', label: t('texture.f.surface-seam'), min: 0.02, max: 0.33, step: 0.01, fmt: pct },
+      { kind: 'range', path: 'surface.ragged', label: t('texture.f.surface-ragged'), min: 0, max: 1, step: 0.05, fmt: pct },
+    ],
+  },
+]
+
+/** Adjust styles, for maps: how each map is worked out. */
+const MAP_GROUPS: FieldGroup[] = [
+  {
+    legend: t('texture.g.height'),
+    hint: t('texture.g.height.hint'),
+    fields: [
+      { kind: 'select', path: 'maps.height', label: t('texture.f.maps-height'), options: heightSourceIds() },
+      { kind: 'check', path: 'maps.darkHigh', label: t('texture.f.maps-darkHigh') },
+      { kind: 'range', path: 'maps.soften', label: t('texture.f.maps-soften'), min: 0, max: 0.03, step: 0.001, fmt: pct1 },
+      { kind: 'range', path: 'maps.detail', label: t('texture.f.maps-detail'), min: 0, max: 1, step: 0.05, fmt: pct },
+    ],
+  },
+  {
+    legend: t('texture.g.normal'),
+    fields: [
+      { kind: 'range', path: 'maps.depth', label: t('texture.f.maps-depth'), min: 0, max: 1, step: 0.01, fmt: pct },
+      { kind: 'select', path: 'maps.normalY', label: t('texture.f.maps-normalY'), options: NORMAL_Y },
+    ],
+  },
+  {
+    legend: t('texture.g.roughness'),
+    hint: t('texture.g.roughness.hint'),
+    fields: [
+      { kind: 'range', path: 'maps.roughness', label: t('texture.f.maps-roughness'), min: 0, max: 1, step: 0.01, fmt: pct },
+      { kind: 'range', path: 'maps.roughVary', label: t('texture.f.maps-roughVary'), min: -1, max: 1, step: 0.05, fmt: signedPct },
+    ],
+  },
+  {
+    legend: t('texture.g.ao'),
+    fields: [
+      { kind: 'range', path: 'maps.ao', label: t('texture.f.maps-ao'), min: 0, max: 1, step: 0.05, fmt: pct },
+      { kind: 'range', path: 'maps.aoReach', label: t('texture.f.maps-aoReach'), min: 0.005, max: 0.15, step: 0.005, fmt: pct1 },
+    ],
+  },
+  {
+    legend: t('texture.g.base'),
+    fields: [
+      { kind: 'select', path: 'maps.colour', label: t('texture.f.maps-colour'), options: BASE_COLOURS },
+      { kind: 'range', path: 'maps.evenLight', label: t('texture.f.maps-evenLight'), min: 0, max: 1, step: 0.05, fmt: pct },
+    ],
+  },
+]
+
+/** Output, for maps: the files' format and quality (their size has its own inputs). */
+const FILE_GROUPS: FieldGroup[] = [
+  {
+    legend: '',
+    fields: [
+      { kind: 'select', path: 'file.format', label: t('texture.f.file-format'), options: FORMATS },
+      { kind: 'range', path: 'file.quality', label: t('texture.f.file-quality'), min: 0.3, max: 1, step: 0.01, fmt: pct },
+    ],
+  },
+]
+
 const GROUPS: FieldGroup[] = [
   {
     legend: t('texture.g.look'),
+    when: isPrint,
     presets: [{ label: 'Shuffle', path: 'seed', value: () => Math.floor(Math.random() * 1000000), icon: 'scatter-fill' }],
     fields: [
       { kind: 'select', path: 'look', label: t('texture.f.look'), options: LOOKS },
@@ -40,7 +133,7 @@ const GROUPS: FieldGroup[] = [
   },
   {
     legend: t('texture.g.stamp'),
-    when: (s: S) => s.look === 'stamp',
+    when: (s: S) => isPrint(s) && s.look === 'stamp',
     fields: [
       { kind: 'range', path: 'stamp.bleed', label: t('texture.f.stamp-bleed'), min: 0, max: 12, step: 0.5, fmt: px },
       { kind: 'range', path: 'stamp.rough', label: t('texture.f.stamp-rough'), min: 0, max: 1, step: 0.05, fmt: pct },
@@ -52,7 +145,7 @@ const GROUPS: FieldGroup[] = [
   },
   {
     legend: t('texture.g.risograph'),
-    when: (s: S) => s.look === 'riso',
+    when: (s: S) => isPrint(s) && s.look === 'riso',
     fields: [
       { kind: 'check', path: 'riso.second', label: t('texture.f.riso-second') },
       { kind: 'range', path: 'riso.offsetX', label: t('texture.f.riso-offsetX'), min: -30, max: 30, step: 1, fmt: px },
@@ -61,7 +154,7 @@ const GROUPS: FieldGroup[] = [
   },
   {
     legend: t('texture.g.halftone'),
-    when: (s: S) => s.look === 'halftone',
+    when: (s: S) => isPrint(s) && s.look === 'halftone',
     fields: [
       { kind: 'select', path: 'halftone.shape', label: t('texture.f.halftone-shape'), options: DOTS },
       { kind: 'range', path: 'halftone.cell', label: t('texture.f.halftone-cell'), min: 3, max: 40, step: 1, fmt: px },
@@ -70,6 +163,7 @@ const GROUPS: FieldGroup[] = [
   },
   {
     legend: t('texture.g.colours'),
+    when: isPrint,
     fields: [
       { kind: 'color', path: 'colors.ink2', label: t('texture.f.colors-ink2') },
       { kind: 'range', path: 'colors.paperGrain', label: t('texture.f.colors-paperGrain'), min: 0, max: 1, step: 0.05, fmt: pct },
@@ -78,7 +172,7 @@ const GROUPS: FieldGroup[] = [
   {
     legend: t('texture.g.own-colours'),
     // Hidden while the texture takes the scan's ink and paper.
-    when: () => !$<HTMLInputElement>('texture-scan-colours').checked,
+    when: (s: S) => isPrint(s) && !$<HTMLInputElement>('texture-scan-colours').checked,
     fields: [
       { kind: 'color', path: 'colors.ink', label: t('texture.f.colors-ink') },
       { kind: 'color', path: 'colors.paper', label: t('texture.f.colors-paper') },
@@ -87,6 +181,7 @@ const GROUPS: FieldGroup[] = [
   },
   {
     legend: t('texture.g.layout'),
+    when: isPrint,
     fields: [
       { kind: 'select', path: 'layout.mode', label: t('texture.f.layout-mode'), options: LAYOUTS },
       { kind: 'range', path: 'layout.scale', label: t('texture.f.layout-scale'), min: 0.05, max: 1.5, step: 0.01, fmt: pct },
@@ -126,6 +221,12 @@ box.title(t('texture.presets'))
 // Saving, sharing and resetting presets sit with the export, at the bottom.
 $('texture-style-actions').replaceWith(box.actions)
 const fillFields = buildFields($('texture-fields'), GROUPS, 'tex', () => book.current, update)
+const fillMake = buildFields($('texture-make-fields'), MAKE_GROUPS, 'tex', () => book.current, update)
+const fillSurface = buildFields($('texture-surface-fields'), SURFACE_GROUPS, 'tex', () => book.current, update)
+const fillMaps = buildFields($('texture-map-fields'), MAP_GROUPS, 'tex', () => book.current, update)
+const fillFile = buildFields($('texture-file-fields'), FILE_GROUPS, 'tex', () => book.current, update)
+// The file fields sit inside the Files fieldset: no fieldset of their own.
+for (const fs of $('texture-file-fields').querySelectorAll('fieldset')) fs.replaceWith(...[...fs.childNodes].filter((n) => n.nodeName !== 'LEGEND'))
 
 function update(next: TextureStyle) {
   book.edit(next)
@@ -134,7 +235,13 @@ function update(next: TextureStyle) {
 
 function applied() {
   style = withScan(book.current)
+  $('texture-app').dataset.make = book.current.make
   fillFields(book.current)
+  fillMake(book.current)
+  fillSurface(book.current)
+  fillMaps(book.current)
+  fillFile(book.current)
+  fillMapSize()
   fillSize()
   box.refresh()
   renderSoon()
@@ -230,6 +337,30 @@ for (const [input, other] of [[sizeW, sizeH], [sizeH, sizeW]] as const) {
 $('tex-swap').addEventListener('click', () => setSize(book.current.layout.height, book.current.layout.width))
 sizeFit.addEventListener('change', () => update({ ...book.current, layout: { ...book.current.layout, fit: sizeFit.checked } }))
 
+// ---- Map size ----
+
+const mapW = $<HTMLInputElement>('map-w')
+const mapH = $<HTMLInputElement>('map-h')
+
+function fillMapSize() {
+  mapW.value = String(book.current.file.width)
+  mapH.value = String(book.current.file.height)
+  const q = $('texture-file-fields').querySelector<HTMLElement>('input[type="range"]')?.closest('label')
+  if (q) q.hidden = book.current.file.format === 'png'
+}
+
+function setMapSize(width: number, height: number) {
+  const side = (v: number) => Math.round(Math.min(MAX_MAP, Math.max(16, v || 16)))
+  update({ ...book.current, file: { ...book.current.file, width: side(width), height: side(height) } })
+}
+
+mapW.addEventListener('change', () => setMapSize(Number(mapW.value), book.current.file.height))
+mapH.addEventListener('change', () => setMapSize(book.current.file.width, Number(mapH.value)))
+$('map-swap').addEventListener('click', () => setMapSize(book.current.file.height, book.current.file.width))
+for (const b of document.querySelectorAll<HTMLButtonElement>('[data-square]')) {
+  b.addEventListener('click', () => setMapSize(Number(b.dataset.square), Number(b.dataset.square)))
+}
+
 // ---- Rendering ----
 
 let timer = 0
@@ -239,6 +370,12 @@ function renderSoon() {
 }
 
 function render() {
+  if ($('texture-app').hidden) return
+  if (book.current.make === 'maps') {
+    const paper = scanned?.colours.paper ?? book.current.colors.paper
+    void renderMaps(book.current, { ink: scanned?.colours.ink ?? book.current.colors.ink, paper })
+    return
+  }
   // No drawing: the print is an empty box with its name.
   $('texture-print-pane').classList.toggle('empty', !rawArt)
   if (!rawArt) {
@@ -319,7 +456,7 @@ const scan = new ScanStep('texture', (next) => {
   const coloursChanged = JSON.stringify(next.colours) !== JSON.stringify(scanned?.colours)
   scanned = next
   if (next.art?.mask !== rawArt?.mask) setArt(next.art, next.name)
-  if (coloursChanged && $<HTMLInputElement>('texture-scan-colours').checked) applied()
+  if (coloursChanged && ($<HTMLInputElement>('texture-scan-colours').checked || book.current.make === 'maps')) applied()
 })
 
 /** A photo opened, dropped or pasted while the Texture view is open. */
@@ -347,6 +484,7 @@ function setArt(next: Art | null, name: string) {
   art = null
   artName = name
   print = null
+  setMapArt(scanned?.art ?? null, name)
   renderSoon()
 }
 
@@ -356,6 +494,4 @@ export function showTexture() {
 
 $('texture-scan-colours').addEventListener('change', applied)
 
-fillFields(book.current)
-fillSize()
-box.refresh()
+applied()
