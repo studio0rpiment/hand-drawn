@@ -21,6 +21,12 @@ export interface ScanMarkup {
   multiple?: boolean
   /** "Several drawings on this sheet" starts on. */
   sheetOn?: boolean
+  /** The tab's own words for "Several drawings on this sheet". */
+  sheetLabel?: string
+  /** Where "Ignore spots under" starts, in pixels (40 unless set). */
+  speck?: number
+  /** Extra controls at the end of the Ink fieldset. */
+  inkExtra?: string
   /** Above the upload button, in its box: what the tab asks before photos come in. */
   setup?: string
   /** Below the upload button, in its box. */
@@ -49,8 +55,9 @@ export function scanControls(prefix: string, m: ScanMarkup) {
       ${slider(p, 'level', 'scan.level', 1, 254, 1, 128)}
       <label class="check"><input id="${p}-level-auto" type="checkbox" checked /> ${tHtml('scan.level-auto')}</label>
       ${slider(p, 'weight', 'scan.weight', -3, 3, 1, 0)}
-      ${slider(p, 'speck', 'scan.speck', 0, 400, 5, 40)}
+      ${slider(p, 'speck', 'scan.speck', 0, 400, m.speck !== undefined && m.speck < 5 ? 1 : 5, m.speck ?? 40)}
       ${slider(p, 'trim', 'scan.trim', 0, 0.08, 0.005, 0.015)}
+      ${m.inkExtra ?? ''}
     </fieldset>
     <fieldset>
       <legend>${tHtml('scan.colour')}</legend>
@@ -69,7 +76,7 @@ export function scanControls(prefix: string, m: ScanMarkup) {
     </fieldset>
     <fieldset>
       <legend>${tHtml('scan.sheet')}</legend>
-      <label class="check accent"><input id="${p}-sheet-on" type="checkbox"${m.sheetOn ? ' checked' : ''} /> ${tHtml('scan.sheet-on')}</label>
+      <label class="check accent"><input id="${p}-sheet-on" type="checkbox"${m.sheetOn ? ' checked' : ''} /> ${m.sheetLabel ?? tHtml('scan.sheet-on')}</label>
       <p class="hint">${m.sheetHint}</p>
       ${slider(p, 'gap', 'scan.gap', 0, 160, 1, 30)}
       <p class="hint" id="${p}-sheet-count" aria-live="polite"></p>

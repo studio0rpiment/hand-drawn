@@ -1,6 +1,6 @@
 # Every screen
 
-The words every screen shares: the header and tabs, the landing page, the tab flags, the footer, the privacy card, the style box (Icon, Texture and Font) and a few messages.
+The words every screen shares: the header and tabs, the landing page, the tab flags, the footer, the privacy card, the style box (Icon, Texture, Font and Sketches) and a few messages.
 
 How to edit: change the words after a key; don't change the key in backticks, which ties the words to their place in the app. A long text may run on over several lines; a blank line ends it. {name} is filled in by the app (a number, a name). **bold**, *emphasis* and [a link](https://…) work. The screens show most words in lower case; write them in sentence case here.
 
@@ -26,7 +26,7 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 
 `home.link` Hand Drawn: back to the start
 `home.title` Hand Drawn
-`home.lead` Create {icon}, {texture} or {font} from your own drawings.
+`home.lead` Create {icon}, {texture}, {font} or {sketch} from your own drawings.
 `home.icon` an icon pack
 `home.texture` a texture
 `home.font` a font
@@ -52,7 +52,7 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 
 `common.globe-label` {title}: {x} and {y}. Left and right change {x}, up and down change {y}.
 
-## Style box (Icon, Texture and Font)
+## Style box (Icon, Texture, Font and Sketches)
 
 `common.style` Style
 `common.style-save` Save as…

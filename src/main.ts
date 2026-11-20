@@ -1,10 +1,11 @@
-// The page: the landing, the three tabs (Icon, Texture, Font), where photos
+// The page: the landing, the four tabs (Icon, Texture, Font, Sketches), where photos
 // go when they are dropped or pasted, the sample, and the privacy card. Each
 // tab takes its own photos and does its own scan step.
 
 import { loadSampleSheets, openFontPhotos, showFont } from './font/ui'
 import { loadIconSample, openIconPhoto, showIcon } from './icon/ui'
 import { loadTextureSample, openTexturePhoto, showTexture } from './texture/ui'
+import { loadSketchSample, openSketchPhotos, showSketch } from './sketch/ui'
 import { decorate, favicon, handSliders, installSprite, reserveHoverWidths } from './ui/hand'
 import { privacyNotice, privacySettings } from './ui/privacy'
 import { installFlags } from './ui/flags'
@@ -29,6 +30,7 @@ function show(view: string) {
   if (view === 'icon-app') showIcon()
   if (view === 'texture-app') showTexture()
   if (view === 'font-app') showFont()
+  if (view === 'sketch-app') showSketch()
 }
 
 for (const tab of tabs) tab.addEventListener('click', () => show(tab.dataset.view!))
@@ -37,13 +39,13 @@ $('home-link').addEventListener('click', () => show('home'))
 // ---- The landing ----
 
 /**
- * "Create {icon}, {texture} or {font} from your own drawings": each of the
- * three is a button to its tab.
+ * "Create {icon}, {texture}, {font} or {sketch} from your own drawings": each
+ * of the four is a button to its tab.
  */
 function landing() {
   const lead = $('home-lead')
-  const to: Record<string, string> = { icon: 'icon-app', texture: 'texture-app', font: 'font-app' }
-  for (const part of t('home.lead').split(/(\{(?:icon|texture|font)\})/)) {
+  const to: Record<string, string> = { icon: 'icon-app', texture: 'texture-app', font: 'font-app', sketch: 'sketch-app' }
+  for (const part of t('home.lead').split(/(\{(?:icon|texture|font|sketch)\})/)) {
     const key = /^\{(\w+)\}$/.exec(part)?.[1]
     if (!key) {
       lead.append(part)
@@ -64,6 +66,7 @@ landing()
 function openFiles(files: File[]) {
   const view = showing()
   if (view === 'font-app') return void openFontPhotos(files)
+  if (view === 'sketch-app') return void openSketchPhotos(files)
   const f = files[0]
   if (!f) return
   if (view === 'texture-app') return void openTexturePhoto(f, f.name)
@@ -76,6 +79,7 @@ $('sample').addEventListener('click', () => {
   const view = showing()
   if (view === 'font-app') void loadSampleSheets()
   else if (view === 'texture-app') void loadTextureSample()
+  else if (view === 'sketch-app') void loadSketchSample()
   else void loadIconSample()
 })
 
