@@ -33,8 +33,10 @@ export interface Scanned {
   /** Several drawings on this sheet is ticked. */
   sheet: boolean
   colours: ScanColours
-  /** The picked drawing with the light-evened photo under it and the straightened photo in colour, cropped alike (for textures, which keep the photo's tones). */
-  art: { gray: GrayImage; mask: Mask; colour: RGBAImage } | null
+  /** The picked drawing with the light-evened photo under it and the straightened photo in colour, cropped alike (for textures, which keep the photo's tones), and where it was cropped from. */
+  art: { gray: GrayImage; mask: Mask; colour: RGBAImage; box: Box } | null
+  /** The whole straightened photo, or null. */
+  flat: RGBAImage | null
   /** Counts the photos opened (and removed), so a new one can be told from new settings. */
   photo: number
   /** A page of the icon template: which page, and each drawing's icon name (in `drawings` order). */
@@ -452,7 +454,7 @@ export class ScanStep {
     const page = this.page
     const art = box && page ? (() => {
       const b = padBox(box, 2, page.mask.width, page.mask.height)
-      return { gray: cropMask(page.base, b), mask: cropMask(page.mask, b), colour: cropRGBA(this.flat!, b) }
+      return { gray: cropMask(page.base, b), mask: cropMask(page.mask, b), colour: cropRGBA(this.flat!, b), box: b }
     })() : null
     this.changed({
       name: this.name,
@@ -461,6 +463,7 @@ export class ScanStep {
       sheet: this.el<HTMLInputElement>('sheet-on').checked || !!this.templateRead,
       colours: this.colours(),
       art,
+      flat: this.flat,
       photo: this.photoCount,
       template: this.templateRead,
     })

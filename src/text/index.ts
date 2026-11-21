@@ -8,10 +8,11 @@ import font from './font.md?raw'
 import icon from './icon.md?raw'
 import privacy from './privacy.md?raw'
 import scan from './scan.md?raw'
+import sketch from './sketch.md?raw'
 import texture from './texture.md?raw'
 import { fill, parseText, toHtml } from './parse'
 
-export const FILES = { common, scan, icon, texture, font, privacy }
+export const FILES = { common, scan, icon, texture, font, sketch, privacy }
 
 const TEXT: Record<string, string> = Object.assign({}, ...Object.values(FILES).map(parseText))
 

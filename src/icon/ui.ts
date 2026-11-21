@@ -115,7 +115,7 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 // Storage keys keep the project's first name, sketch-to-mark, so styles saved before the rename still load.
 const book = new StyleBook<IconStyle>({ noun: 'icon', key: 'sketch-to-mark.styles', builtIn: BUILT_IN, read: readStyle })
 /** The latest from the scan step: the drawings on the photo and its colours. */
-let scanned: Scanned = { name: 'drawing', drawings: [], pick: 0, sheet: false, colours: { ink: '#1d1a24', paper: null }, art: null, photo: 0, template: null }
+let scanned: Scanned = { name: 'drawing', drawings: [], pick: 0, sheet: false, colours: { ink: '#1d1a24', paper: null }, art: null, flat: null, photo: 0, template: null }
 
 /**
  * The style as drawn: the edited one, with the image's colours when "Icons

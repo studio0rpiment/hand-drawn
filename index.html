@@ -17,6 +17,7 @@
         <button data-flag="tab.icon" id="icon-tab" class="tab" type="button" data-view="icon-app" aria-pressed="false" data-icon="triangle-y-fill">{{common.tab.icon}}</button>
         <button data-flag="tab.texture" id="texture-tab" class="tab" type="button" data-view="texture-app" aria-pressed="false" data-icon="hatch-heavy-fill">{{common.tab.texture}}</button>
         <button data-flag="tab.font" id="font-tab" class="tab" type="button" data-view="font-app" aria-pressed="false" data-icon="spiral-tight-fill">{{common.tab.font}}</button>
+        <button data-flag="tab.sketch" id="sketch-tab" class="tab" type="button" data-view="sketch-app" aria-pressed="false" data-icon="strokes-fill">{{common.tab.sketch}}</button>
       </nav>
       <div class="bar-actions">
         <button id="sample" class="button" type="button" data-icon="star-scribble-fill" hidden>{{common.sample}}</button>
@@ -283,6 +284,152 @@
         <div class="pane" id="font-checks-pane" hidden>
           <h2>{{font.checks}}</h2>
           <ul class="font-checks" id="font-checks"></ul>
+        </div>
+      </section>
+    </main>
+
+    <main id="sketch-app" class="sketch-app" hidden>
+      <aside class="controls" aria-label="{{sketch.settings}}">
+        <h2 class="step">{{sketch.step-image}}</h2>
+        <div id="sketch-scan-controls"></div>
+
+        <h2 class="step">{{sketch.step-drawing}}</h2>
+        <fieldset>
+          <legend>{{sketch.tuning}}</legend>
+          <p class="hint">{{sketch.drawing.hint}}</p>
+          <label class="slider">
+            <span>{{sketch.rotate}} <output id="sketch-rotate-out"></output></span>
+            <input id="sketch-rotate" type="range" min="-15" max="15" step="0.1" value="0" />
+          </label>
+          <label class="slider">
+            <span>{{sketch.spread}} <output id="sketch-spread-out"></output></span>
+            <input id="sketch-spread" type="range" min="-1" max="1" step="0.05" value="0" />
+          </label>
+          <label class="slider">
+            <span>{{sketch.margin}} <output id="sketch-margin-out"></output></span>
+            <input id="sketch-margin" type="range" min="0" max="0.3" step="0.01" value="0.04" />
+          </label>
+        </fieldset>
+        <fieldset>
+          <legend>{{sketch.marks}}</legend>
+          <p class="hint">{{sketch.marks.hint}}</p>
+          <div class="row">
+            <button id="sketch-marks-pick" class="button small" type="button" aria-pressed="false">{{sketch.marks-pick}}</button>
+            <button id="sketch-marks-back" class="button small" type="button">{{sketch.marks-back}}</button>
+          </div>
+          <p class="hint" id="sketch-marks-count" aria-live="polite"></p>
+        </fieldset>
+        <fieldset>
+          <legend>{{sketch.lineup}}</legend>
+          <p class="hint">{{sketch.lineup.hint}}</p>
+          <label class="field">{{sketch.lineup-with}} <select id="sketch-lineup"></select></label>
+        </fieldset>
+
+        <h2 class="step">{{sketch.step-styles}}</h2>
+        <div id="sketch-style-box"></div>
+        <fieldset>
+          <legend>{{sketch.kind}}</legend>
+          <div class="kind-choices" id="sketch-kinds" role="radiogroup" aria-label="{{sketch.kind}}">
+            <button class="kind-choice" type="button" role="radio" data-kind="as-drawn">{{sketch.kind.as-drawn}}</button>
+            <button class="kind-choice" type="button" role="radio" data-kind="line">{{sketch.kind.line}}</button>
+            <button class="kind-choice" type="button" role="radio" data-kind="schematic">{{sketch.kind.schematic}}</button>
+            <button class="kind-choice" type="button" role="radio" data-kind="tones">{{sketch.kind.tones}}</button>
+          </div>
+          <p class="hint" id="sketch-kind-hint" aria-live="polite"></p>
+        </fieldset>
+        <div id="sketch-fields"></div>
+        <fieldset>
+          <legend>{{sketch.size}}</legend>
+          <label class="check"><input id="sketch-fit" type="checkbox" /> {{sketch.fit}}</label>
+          <label class="field">{{sketch.preset}} <select id="sketch-preset"></select></label>
+          <div class="row size-row">
+            <label class="field">{{sketch.width}} <input id="sketch-w" type="number" min="16" max="8000" step="1" inputmode="numeric" /></label>
+            <button id="sketch-swap" class="button small" type="button" aria-label="{{sketch.swap}}" title="{{sketch.swap}}">⇄</button>
+            <label class="field">{{sketch.height}} <input id="sketch-h" type="number" min="16" max="8000" step="1" inputmode="numeric" /></label>
+          </div>
+          <label class="check"><input id="sketch-lock" type="checkbox" checked /> {{sketch.lock}}</label>
+          <div class="row size-row">
+            <label class="field">{{sketch.dpi}} <input id="sketch-dpi" type="number" min="36" max="1200" step="1" inputmode="numeric" /></label>
+          </div>
+          <p class="hint" id="sketch-size-note" aria-live="polite"></p>
+        </fieldset>
+
+        <h2 class="step">{{sketch.step-output}}</h2>
+        <fieldset>
+          <legend>{{sketch.export}}</legend>
+          <label class="field">{{sketch.name}} <input id="sketch-name" type="text" spellcheck="false" autocomplete="off" /></label>
+          <div class="multi" role="group" aria-label="{{sketch.formats}}">
+            <label class="check"><input type="checkbox" data-format="svg" checked /> {{sketch.format-svg}}</label>
+            <label class="check"><input type="checkbox" data-format="png" checked /> {{sketch.format-png}}</label>
+            <label class="check"><input type="checkbox" data-format="pdf" /> {{sketch.format-pdf}}</label>
+          </div>
+          <p class="hint" id="sketch-formats-hint" aria-live="polite"></p>
+          <div class="row">
+            <button id="sketch-dl" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">{{sketch.dl-sketch}}</button>
+            <button id="sketch-copy-svg" class="button small" type="button" data-icon="equals-fill">{{sketch.copy-svg}}</button>
+          </div>
+          <label class="check"><input id="sketch-photos" type="checkbox" /> {{sketch.photos}}</label>
+          <div class="row">
+            <button id="sketch-dl-favourites" class="button small" type="button" data-icon="arrow-bar-fill-r90">{{sketch.dl-favourites}}</button>
+          </div>
+          <p class="stats" id="sketch-stats" aria-live="polite"></p>
+          <div id="sketch-style-actions"></div>
+        </fieldset>
+      </aside>
+
+      <section class="icon-preview">
+        <div id="sketch-scan-image"></div>
+        <div class="pane result-pane empty" id="sketch-pane">
+          <div class="pane-head">
+            <h2>{{sketch.sketch}}</h2>
+            <div class="toggle" role="radiogroup" aria-label="{{sketch.show}}">
+              <label><input type="radio" name="sketch-ground" value="light" checked /> {{sketch.light}}</label>
+              <label><input type="radio" name="sketch-ground" value="dark" /> {{sketch.dark}}</label>
+            </div>
+          </div>
+          <div class="stage sketch-stage" id="sketch-stage"></div>
+          <div class="map-making sketch-making" id="sketch-making" role="status" hidden>
+            <svg class="making-line" viewBox="0 0 240 70" aria-hidden="true">
+              <path pathLength="1" d="M6 48 C 22 14, 40 12, 56 38 S 86 62, 104 36 S 132 6, 150 30 S 178 60, 196 34 S 222 14, 234 26" />
+            </svg>
+            <p id="sketch-making-text"></p>
+            <button id="sketch-stop" class="button small" type="button">{{sketch.stop}}</button>
+          </div>
+        </div>
+        <div class="pane result-pane empty" id="sketch-collection-pane">
+          <div class="pane-head">
+            <h2>{{sketch.collection-pane}}</h2>
+            <button id="sketch-dl-collection" class="button primary small" type="button" data-icon="arrow-bar-fill-r90">{{sketch.dl-collection}}</button>
+          </div>
+          <p class="stats" id="sketch-collection-stats" aria-live="polite"></p>
+          <div class="row collection-tools">
+            <label class="field inline">{{sketch.order}} <select id="sketch-order"></select></label>
+            <button id="sketch-favourites-only" class="button small" type="button" aria-pressed="false">{{sketch.favourites-only}}</button>
+          </div>
+          <p class="hint">{{sketch.tiles.hint}}</p>
+          <div class="sketch-tiles" id="sketch-tiles" role="listbox" aria-label="{{sketch.tiles}}"></div>
+          <div class="map-making sketch-making" id="collection-making" role="status" hidden>
+            <svg class="making-line" viewBox="0 0 240 70" aria-hidden="true">
+              <path pathLength="1" d="M6 48 C 22 14, 40 12, 56 38 S 86 62, 104 36 S 132 6, 150 30 S 178 60, 196 34 S 222 14, 234 26" />
+            </svg>
+            <p id="collection-making-text"></p>
+            <button id="collection-stop" class="button small" type="button">{{sketch.stop}}</button>
+          </div>
+        </div>
+        <div class="pane result-pane empty" id="sketch-compare-pane">
+          <div class="pane-head">
+            <h2>{{sketch.compare}}</h2>
+            <div class="toggle" role="radiogroup" aria-label="{{sketch.compare}}">
+              <label><input type="radio" name="sketch-compare" value="side" checked /> {{sketch.side}}</label>
+              <label><input type="radio" name="sketch-compare" value="overlay" /> {{sketch.overlay}}</label>
+            </div>
+          </div>
+          <p class="hint" id="sketch-compare-hint">{{sketch.compare.empty}}</p>
+          <label class="slider" id="sketch-blend-row" hidden>
+            <span>{{sketch.blend}} <output id="sketch-blend-out"></output></span>
+            <input id="sketch-blend" type="range" min="0" max="1" step="0.05" value="0.6" />
+          </label>
+          <div class="compare" id="sketch-compare"></div>
         </div>
       </section>
     </main>

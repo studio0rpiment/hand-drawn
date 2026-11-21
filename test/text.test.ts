@@ -64,8 +64,11 @@ describe('the text files', () => {
       ...['tiles', 'screens', 'print'].map((g) => `texture.size-group.${g}`),
       ...['square-512', 'square-1024', 'square-2048', 'square-4096', 'hd', '4k', 'post', 'story', 'banner', 'phone'].map((s) => `texture.size.${s}`),
       ...['a5', 'a4', 'letter', '5x7', '8x10', '11x14', '12x12'].map((s) => `texture.size.${s}`),
-      ...['icon', 'texture', 'font'].flatMap((tab) => [`flag.tab.${tab}`, `flag.tab.${tab}.title`]),
-      ...['consent', 'icon', 'icon-current', 'texture', 'texture-current', 'font', 'font-current'].map((s) => `privacy.store-${s}`),
+      ...['icon', 'texture', 'font', 'sketch'].flatMap((tab) => [`flag.tab.${tab}`, `flag.tab.${tab}.title`]),
+      ...['as-drawn', 'line', 'schematic', 'tones'].flatMap((k) => [`sketch.kind.${k}`, `sketch.kind.${k}.hint`]),
+      ...['outlines', 'centre', '0', '15', '45', '90', 'none', 'paper', 'colour', 'uploaded', 'name', 'favourites', 'date', 'own'].map((o) => `sketch.o.${o}`),
+      ...['svg', 'png', 'pdf'].map((f) => `sketch.format-${f}`),
+      ...['consent', 'icon', 'icon-current', 'texture', 'texture-current', 'font', 'font-current', 'sketch', 'sketch-current', 'sketch-keep', 'sketch-db'].map((s) => `privacy.store-${s}`),
     ]
     for (const key of want) expect(TEXT[key], key).toBeDefined()
   })

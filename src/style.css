@@ -651,7 +651,8 @@ input[type='color'] {
 
 main.icon-app,
 main.texture-app,
-main.font-app {
+main.font-app,
+main.sketch-app {
   grid-template-columns: 18rem minmax(0, 1fr);
 }
 
@@ -817,12 +818,14 @@ h3 {
 @media (max-width: 48rem) {
   main.icon-app,
   main.texture-app,
-  main.font-app {
+  main.font-app,
+  main.sketch-app {
     grid-template-columns: 1fr;
   }
   main.icon-app .controls,
   main.texture-app .controls,
-  main.font-app .controls {
+  main.font-app .controls,
+  main.sketch-app .controls {
     order: 2;
   }
   .tabs {
@@ -2114,4 +2117,205 @@ label.off {
   .making-line path {
     stroke-dashoffset: 0;
   }
+}
+
+/* ---- Sketches ---- */
+
+.collection-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* The output kinds: yellow choices, one at a time; the chosen one filled. */
+.kind-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.kind-choice {
+  font: inherit;
+  font-size: 0.8125rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius);
+  border: 1px dashed var(--accent);
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.kind-choice[aria-checked='true'] {
+  border-style: solid;
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+/* A format the output kind doesn't have. */
+.check.off {
+  opacity: 0.4;
+}
+
+#sketch-pane,
+#sketch-collection-pane {
+  position: relative;
+}
+
+#sketch-pane.making .sketch-stage,
+#sketch-collection-pane.making .sketch-tiles {
+  opacity: 0.25;
+}
+
+/* The sketch, large, on a light or dark ground. */
+.sketch-stage {
+  display: grid;
+  place-items: center;
+  min-height: 12rem;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  background: #f3f1ec;
+}
+
+#sketch-pane.dark .sketch-stage {
+  background: #202022;
+}
+
+.sketch-stage > *,
+.sketch-stage svg {
+  display: block;
+  max-width: 100%;
+  max-height: 70vh;
+  width: auto;
+  height: auto;
+}
+
+.collection-tools {
+  align-items: end;
+}
+
+.sketch-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: 0.5rem;
+}
+
+.sketch-tile {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 0.375rem;
+  background: #f3f1ec;
+  touch-action: none;
+}
+
+.sketch-tile[aria-selected='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.sketch-tile.lifted {
+  opacity: 0.4;
+}
+
+.sketch-tile.over {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+}
+
+.sketch-tile-pic {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 1.4rem 0.4rem 0.4rem;
+  border: 0;
+  background: none;
+  cursor: grab;
+}
+
+.sketch-tile-pic > *,
+.sketch-tile-pic svg,
+.sketch-ghost canvas,
+.sketch-ghost svg {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
+.sketch-ghost .sketch-tile-pic {
+  width: 4rem;
+  height: 4rem;
+  padding: 0.2rem;
+}
+
+.sketch-star {
+  position: absolute;
+  top: 0.1rem;
+  right: 0.25rem;
+  border: 0;
+  background: none;
+  color: #a49b92;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sketch-star[aria-pressed='true'] {
+  color: #c99a00;
+}
+
+.sketch-tick {
+  position: absolute;
+  bottom: 0.2rem;
+  right: 0.3rem;
+}
+
+.sketch-tick input {
+  accent-color: var(--accent);
+}
+
+/* The image pane's ink while marks are being picked. */
+canvas.picking {
+  cursor: crosshair;
+}
+
+.compare.side {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.compare figure {
+  margin: 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.compare figure > :first-child,
+.compare-stack {
+  display: grid;
+  place-items: center;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  background: #f3f1ec;
+}
+
+.compare figcaption {
+  font-size: 0.8125rem;
+  color: var(--quiet);
+}
+
+.compare canvas,
+.compare svg {
+  display: block;
+  max-width: 100%;
+  max-height: 60vh;
+  width: auto;
+  height: auto;
+}
+
+/* Overlay: both sketches in one place, the second over the first. */
+.compare-stack > * {
+  grid-area: 1 / 1;
 }
