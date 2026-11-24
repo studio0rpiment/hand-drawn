@@ -71,7 +71,7 @@ const GROUPS: FieldGroup[] = [
     legend: t('icon.g.variants'),
     fields: [
       { kind: 'multi', path: 'variants', label: t('icon.f.variants'), options: VARIANTS },
-      { kind: 'range', path: 'stroke', label: t('icon.f.stroke'), min: 1, max: 60, step: 0.5, fmt: plain },
+      { kind: 'range', path: 'lineWidth', label: t('icon.f.lineWidth'), min: 0, max: 120, step: 1, fmt: (v: number) => (v ? plain(v) : t('icon.as-drawn')) },
       { kind: 'range', path: 'tintOpacity', label: t('icon.f.tintOpacity'), min: 0, max: 1, step: 0.05, fmt: pct },
     ],
   },

@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { Mask } from '../src/image'
 import { crc32, ico, zip } from '../src/icon/files'
-import { close, distance2, fillEmptyHoles, fillHoles, iconMasks, placeOnSquare } from '../src/icon/shape'
+import { centreLines, close, distance2, fillEmptyHoles, fillHoles, iconMasks, placeOnSquare } from '../src/icon/shape'
 import { HAND_ICONS, effectivePadding, readStyle, slug } from '../src/icon/style'
 import { directionTransform, faviconSvg, sprite, standaloneSvg } from '../src/icon/svg'
 
@@ -31,7 +31,7 @@ describe('style', () => {
     const s = readStyle({
       name: '  Badge ',
       padding: 0.9,
-      stroke: 'thick',
+      lineWidth: 'thick',
       variants: ['fill', 'bogus'],
       directions: [],
       container: { shape: 'circle' },
@@ -40,7 +40,7 @@ describe('style', () => {
     })
     expect(s.name).toBe('Badge')
     expect(s.padding).toBe(0.4)
-    expect(s.stroke).toBe(HAND_ICONS.stroke)
+    expect(s.lineWidth).toBe(HAND_ICONS.lineWidth)
     expect(s.variants).toEqual(['fill'])
     expect(s.directions).toEqual(HAND_ICONS.directions)
     expect(s.container).toEqual({ shape: 'circle', radius: HAND_ICONS.container.radius })
@@ -151,8 +151,17 @@ describe('fillEmptyHoles', () => {
   })
 })
 
+describe('centre lines', () => {
+  it('draws one drawn ring as one line, as wide as it was drawn', () => {
+    const { line, width } = centreLines(ring(200, 60, 12, 0), 0.8)
+    expect(line.match(/M/g)?.length).toBe(1)
+    expect(width).toBeGreaterThan(9)
+    expect(width).toBeLessThan(14)
+  })
+})
+
 describe('svg', () => {
-  const p = { ink: 'M0 0L10 0L10 10Z', solid: 'M0 0L20 0L20 20Z' }
+  const p = { ink: 'M0 0L10 0L10 10Z', solid: 'M0 0L20 0L20 20Z', line: 'M0 0L10 10', width: 6 }
 
   it('rotates about the centre and mirrors across it', () => {
     expect(directionTransform('r90', 1024)).toBe('rotate(90 512 512)')

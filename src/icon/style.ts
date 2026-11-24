@@ -32,8 +32,8 @@ export interface IconStyle {
   padding: number
   /** Padding used instead when the directions include a 45° turn, so the diagonal fits. */
   padding45: number
-  /** Stroke width of the line variant, in canvas units. */
-  stroke: number
+  /** Width of the line variant's lines, in canvas units; 0 draws them as wide as they were drawn. */
+  lineWidth: number
   /** Fill opacity behind the line in the tint variant. */
   tintOpacity: number
   /** Fill closed shapes solid in the fill and tint variants. */
@@ -60,7 +60,7 @@ export const HAND_ICONS: IconStyle = {
   canvas: 1024,
   padding: 0.12,
   padding45: 0.16,
-  stroke: 6,
+  lineWidth: 0,
   tintOpacity: 0.35,
   fillClosed: true,
   bridge: 41,
@@ -108,7 +108,7 @@ export function readStyle(raw: unknown, base: IconStyle = HAND_ICONS): IconStyle
     canvas: Math.round(num(r.canvas, base.canvas, 64, 4096)),
     padding: num(r.padding, base.padding, 0, 0.4),
     padding45: num(r.padding45, base.padding45, 0, 0.4),
-    stroke: num(r.stroke, base.stroke, 0.5, 200),
+    lineWidth: num(r.lineWidth, base.lineWidth, 0, 200),
     tintOpacity: num(r.tintOpacity, base.tintOpacity, 0, 1),
     fillClosed: typeof r.fillClosed === 'boolean' ? r.fillClosed : base.fillClosed,
     bridge: num(r.bridge, base.bridge, 0, 400),

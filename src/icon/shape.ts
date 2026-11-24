@@ -2,6 +2,7 @@
 // for the fill variants, with closed shapes made solid. Mirrors hand-icons'
 // split.py and vectorize.py.
 
+import { polylines, simplify, skeleton, smoothPath, typicalWidth } from '../sketch/lines'
 import type { Mask } from '../image'
 
 /**
@@ -254,4 +255,18 @@ export function iconMasks(placed: Mask, opts: { pinholes: number; fillClosed: bo
   const interiors = fillEmptyHoles(close(ink, opts.bridge))
   const solid = { ...ink, data: ink.data.map((v, i) => v | interiors.data[i]) }
   return { ink, solid }
+}
+
+/**
+ * The line variant's paths: the middle of each drawn line, so one pen stroke
+ * stays one line (stroking the ink's outline would draw both its edges), and
+ * how wide the lines were drawn.
+ */
+export function centreLines(ink: Mask, smoothness: number): { line: string; width: number } {
+  const skel = skeleton(ink)
+  const width = typicalWidth(ink, skel)
+  const line = polylines(skel, Math.max(2, width))
+    .map((l) => smoothPath(simplify(l, 0.4 + smoothness)))
+    .join('')
+  return { line, width }
 }

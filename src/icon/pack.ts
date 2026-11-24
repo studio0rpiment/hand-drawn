@@ -3,7 +3,7 @@
 import type { Mask } from '../image'
 import { trace } from '../trace'
 import { ico, zip, type ZipFile } from './files'
-import { iconMasks, placeOnSquare } from './shape'
+import { centreLines, iconMasks, placeOnSquare } from './shape'
 import { effectivePadding, slug, type Direction, type IconStyle, type Variant } from './style'
 import { faviconSvg, sprite, standaloneSvg, type IconPaths } from './svg'
 
@@ -20,7 +20,8 @@ export async function buildIcon(mask: Mask, s: IconStyle): Promise<IconBuild> {
   const opts = { ignore: s.trace.ignore, smoothness: s.trace.smoothness, simplify: s.trace.simplify, decimals: 0 }
   const ink = (await trace(m.ink, opts)).paths.join('')
   const solid = m.solid === m.ink ? ink : (await trace(m.solid, opts)).paths.join('')
-  return { paths: { ink, solid }, ink: m.ink }
+  const { line, width } = centreLines(m.ink, s.trace.smoothness)
+  return { paths: { ink, solid, line, width }, ink: m.ink }
 }
 
 /** The settings buildIcon depends on, to know when a retrace is needed. */

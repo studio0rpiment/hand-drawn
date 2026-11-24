@@ -71,7 +71,8 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 
 `icon.g.variants` Variants
 `icon.f.variants` Make
-`icon.f.stroke` Line width
+`icon.f.lineWidth` Line width
+`icon.as-drawn` as drawn
 `icon.f.tintOpacity` Tint strength
 
 ## Orientation

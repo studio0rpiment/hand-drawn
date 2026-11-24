@@ -4,11 +4,18 @@
 import type { Direction, IconStyle, Variant } from './style'
 
 export interface IconPaths {
-  /** The ink as drawn. */
+  /** The ink as drawn: the outline of every inked shape, filled. */
   ink: string
   /** The ink with closed shapes filled. */
   solid: string
+  /** The centre of every drawn line, one path per stroke, for the line variant to stroke. */
+  line: string
+  /** How wide the lines were drawn, in canvas units. */
+  width: number
 }
+
+/** The line variant's line width: the style's, or as drawn. */
+export const lineWidth = (p: IconPaths, s: IconStyle) => Math.round((s.lineWidth || p.width) * 10) / 10
 
 export function directionTransform(d: Direction, size: number): string {
   const c = size / 2
@@ -74,16 +81,16 @@ export function containerElement(s: IconStyle, attrs: string, fullBleed = false)
 export function markElement(v: Variant, p: IconPaths, s: IconStyle, ink: string | null, d: Direction): string {
   const t = tf(d, s.canvas)
   const fill = ink ? `fill="${ink}"` : 'class="ink"'
-  const line = ink ? `fill="none" stroke="${ink}"` : 'class="ink-line"'
+  const line = `${ink ? `fill="none" stroke="${ink}"` : 'class="ink-line"'} stroke-width="${lineWidth(p, s)}" stroke-linejoin="round" stroke-linecap="round"`
   switch (v) {
     case 'line':
-      return `<path d="${p.ink}" ${line} stroke-width="${s.stroke}" stroke-linejoin="round" stroke-linecap="round"${t}/>`
+      return `<path d="${p.line}" ${line}${t}/>`
     case 'fill':
       return `<path d="${p.solid}" ${fill} fill-rule="evenodd"${t}/>`
     case 'tint':
       return (
         `<g${t}><path d="${p.solid}" ${fill} fill-opacity="${s.tintOpacity}" fill-rule="evenodd"/>` +
-        `<path d="${p.ink}" ${fill} fill-rule="evenodd"/></g>`
+        `<path d="${p.line}" ${line}/></g>`
       )
   }
 }
@@ -123,6 +130,8 @@ export function faviconSvg(p: IconPaths, s: IconStyle): string {
 export interface ManifestEntry {
   name: string
   solid: boolean
+  /** The line variant's line width. */
+  stroke: number
   directions: string[]
   symbols: Record<string, Record<string, string>>
 }
@@ -140,11 +149,11 @@ export function sprite(name: string, p: IconPaths, s: IconStyle): { svg: string;
 export function spriteSet(
   icons: { name: string; paths: IconPaths }[],
   s: IconStyle,
-): { svg: string; manifest: { viewBox: number; stroke: number; icons: (ManifestEntry & { number: number })[] } } {
+): { svg: string; manifest: { viewBox: number; lineWidth: number | 'as-drawn'; icons: (ManifestEntry & { number: number })[] } } {
   const parts = icons.map((i) => spritePart(i.name, i.paths, s))
   return {
     svg: wrapSprite(parts),
-    manifest: { viewBox: s.canvas, stroke: s.stroke, icons: parts.map((p, i) => ({ number: i + 1, ...p.entry })) },
+    manifest: { viewBox: s.canvas, lineWidth: s.lineWidth || 'as-drawn', icons: parts.map((p, i) => ({ number: i + 1, ...p.entry })) },
   }
 }
 
@@ -165,7 +174,9 @@ function spritePart(name: string, p: IconPaths, s: IconStyle): SpritePart {
   const S = s.canvas
   const pre = `${s.prefix}-p-${name}`
   const solid = p.solid !== p.ink
-  const defs = [`<path id="${pre}" d="${p.ink}"/>`]
+  const defs = [`<path id="${pre}" d="${p.ink}"/>`, `<path id="${pre}-line" d="${p.line}"/>`]
+  const stroke = lineWidth(p, s)
+  const line = `fill="none" stroke="currentColor" stroke-width="${stroke}" stroke-linejoin="round" stroke-linecap="round"`
   if (solid) defs.push(`<path id="${pre}-solid" d="${p.solid}"/>`)
   const solidRef = solid ? `${pre}-solid` : pre
   const bg = containerElement(s, ` style="fill:var(--icon-bg, ${s.light.bg})"`)
@@ -180,16 +191,16 @@ function spritePart(name: string, p: IconPaths, s: IconStyle): SpritePart {
       ids[d][v] = id
       let body: string
       if (v === 'line') {
-        body = `<use href="#${pre}" fill="none" stroke="currentColor" stroke-width="${s.stroke}" stroke-linejoin="round" stroke-linecap="round"${t}/>`
+        body = `<use href="#${pre}-line" ${line}${t}/>`
       } else if (v === 'fill') {
         body = `<use href="#${solidRef}" fill="currentColor" fill-rule="evenodd"${t}/>`
       } else {
         body =
           `<g${t}><use href="#${solidRef}" fill="currentColor" fill-rule="evenodd" style="fill-opacity:var(--icon-fill-opacity, ${s.tintOpacity})"/>` +
-          `<use href="#${pre}" fill="currentColor" fill-rule="evenodd"/></g>`
+          `<use href="#${pre}-line" ${line}/></g>`
       }
       symbols.push(`<symbol id="${id}" viewBox="0 0 ${S} ${S}">${bg}${body}</symbol>`)
     }
   }
-  return { defs, symbols, entry: { name, solid, directions: [...s.directions], symbols: ids } }
+  return { defs, symbols, entry: { name, solid, stroke, directions: [...s.directions], symbols: ids } }
 }
