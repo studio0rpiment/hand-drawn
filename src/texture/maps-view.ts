@@ -399,29 +399,48 @@ function outMaps(): Maps | null {
   return out ? (made.get(sizeKey(out)) ?? null) : null
 }
 
+/** While files are saved: the download buttons off, and words saying what is under way. */
+async function saving(words: string, work: () => Promise<void>) {
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-map-dl], #map-zip')]
+  if (buttons.some((b) => b.disabled)) return
+  for (const b of buttons) b.disabled = true
+  $('map-stats').textContent = words
+  // Let the words show before the work starts.
+  await new Promise((r) => setTimeout(r, 30))
+  try {
+    await work()
+  } finally {
+    for (const b of buttons) b.disabled = false
+  }
+}
+
 async function downloadMap(kind: MapKind) {
   const s = style
   const maps = outMaps()
   if (!maps || !s) return
-  const b = await encode(imageCanvas(maps, kind), s)
-  if (!b) return
-  download(b, fileName(s, kind))
-  $('map-stats').textContent = t('texture.saved', { name: fileName(s, kind), size: sizeText(b.size) })
+  await saving(t('texture.saving', { name: fileName(s, kind) }), async () => {
+    const b = await encode(imageCanvas(maps, kind), s)
+    if (!b) return
+    download(b, fileName(s, kind))
+    $('map-stats').textContent = t('texture.saved', { name: fileName(s, kind), size: sizeText(b.size) })
+  })
 }
 
 async function downloadZip() {
   const s = style
   const maps = outMaps()
   if (!maps || !s) return
-  const files = []
-  for (const kind of MAP_KINDS) {
-    const b = await encode(imageCanvas(maps, kind), s)
-    if (b) files.push({ path: fileName(s, kind), data: new Uint8Array(await b.arrayBuffer()) })
-  }
   const name = `${slug(source?.name ?? 'texture')}_maps_${maps.width}x${maps.height}.zip`
-  const data = zip(files)
-  download(new Blob([data as Uint8Array<ArrayBuffer>], { type: 'application/zip' }), name)
-  $('map-stats').textContent = t('texture.saved', { name, size: sizeText(data.length) })
+  await saving(t('texture.packing', { name }), async () => {
+    const files = []
+    for (const kind of MAP_KINDS) {
+      const b = await encode(imageCanvas(maps, kind), s)
+      if (b) files.push({ path: fileName(s, kind), data: new Uint8Array(await b.arrayBuffer()) })
+    }
+    const data = zip(files)
+    download(new Blob([data as Uint8Array<ArrayBuffer>], { type: 'application/zip' }), name)
+    $('map-stats').textContent = t('texture.saved', { name, size: sizeText(data.length) })
+  })
 }
 
 for (const b of document.querySelectorAll<HTMLButtonElement>('[data-map-dl]')) {

@@ -99,6 +99,8 @@ How to edit: change the words after a key; don't change the key in backticks, wh
 `texture.step.tile` Seamless tile
 `texture.stop` Stop
 `texture.stopped` Stopped; nothing was made.
+`texture.saving` Saving {name}…
+`texture.packing` Packing {name}…
 `texture.saved` Saved {name}, {size}
 
 ## Upload and adjust image
